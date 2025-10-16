@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import AddInvestors from "../Investors/AddInvestors";
+import AddExpense from "./AddExpense";
 
 interface User {
   id: number;
@@ -401,7 +402,7 @@ export const ExpensesTab: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <AddInvestors isOpen={openModal} onClose={() => setOpenModal(false)} />
+        <AddExpense isOpen={openModal} onClose={() => setOpenModal(false)} />
       </div>
     </div>
   );

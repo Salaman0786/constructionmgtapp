@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
 import AddInvestors from "../Investors/AddInvestors";
+import AddInvoice from "./AddInvoice";
 
 interface User {
   id: number;
@@ -330,7 +331,7 @@ export const InvoicesTab: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <AddInvestors isOpen={openModal} onClose={() => setOpenModal(false)} />
+        <AddInvoice isOpen={openModal} onClose={() => setOpenModal(false)} />
       </div>
     </div>
   );

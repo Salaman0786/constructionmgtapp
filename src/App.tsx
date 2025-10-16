@@ -29,6 +29,7 @@ import Inventory from "./components/Inventory/Inventory";
 import Reports from "./components/Reports/Reports";
 import BOQ from "./components/BOQ/BOQ";
 import Dashboard from "./components/Dashboard/Dashboard";
+import AdminLogin from "./pages/AuthPages/AdminLogin";
 
 export default function App() {
   return (
@@ -73,7 +74,7 @@ export default function App() {
           </Route>
 
           {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signin" element={<AdminLogin />} />
           <Route path="/signup" element={<SignUp />} />
 
           {/* Fallback Route */}
