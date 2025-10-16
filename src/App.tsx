@@ -28,6 +28,7 @@ import Units from "./components/Units/Units";
 import Inventory from "./components/Inventory/Inventory";
 import Reports from "./components/Reports/Reports";
 import BOQ from "./components/BOQ/BOQ";
+import Dashboard from "./components/Dashboard/Dashboard";
 
 export default function App() {
   return (
@@ -37,7 +38,7 @@ export default function App() {
         <Routes>
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
+            <Route index path="/" element={<Dashboard />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />

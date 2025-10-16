@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import AddInvestors from "../Investors/AddInvestors";
+import AddBOQ from "./AddBOQ";
 
 interface User {
   id: number;
@@ -398,7 +399,7 @@ export const BOQTab: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <AddInvestors isOpen={openModal} onClose={() => setOpenModal(false)} />
+        <AddBOQ isOpen={openModal} onClose={() => setOpenModal(false)} />
       </div>
     </div>
   );
