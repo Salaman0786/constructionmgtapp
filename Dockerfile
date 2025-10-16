@@ -1,20 +1,16 @@
-# Use Node.js base image
-FROM node:20-alpine
-
-# Set working directory
+# Build stage
+FROM node:20-alpine AS builder
 WORKDIR /app
-
-# Copy package files first for better caching
 COPY package*.json ./
-
-# Install dependencies (clean, reproducible)
-RUN npm ci
-
-# Copy rest of the project files
+RUN npm install
 COPY . .
-
-# Build the project (output goes to /app/dist)
 RUN npm run build
 
-# Default command — optional (just to keep container alive or show build result)
-CMD ["sh", "-c", "echo 'Build completed. Files are in /app/dist'; ls -la /app/dist"]
+# Serve stage
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
