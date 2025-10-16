@@ -1,0 +1,15 @@
+services:
+  construction-app-ui:
+    build: ./
+    image: construction-app-ui.image
+    container_name: construction-app-ui.container
+    ports:
+      - 3000:3000
+
+    networks:
+      - construction-app-ui.network
+
+networks:
+  construction-app-ui.network:
+    name: construction-app-ui.network
+    driver: bridge
