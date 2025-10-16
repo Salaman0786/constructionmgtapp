@@ -1,27 +1,20 @@
-# Node version
-FROM node:20-alpine AS builder
+# Use Node.js base image
+FROM node:20-alpine
 
-# Make work directory
-WORKDIR /usr/src/app
+# Set working directory
+WORKDIR /app
 
-# Copy files
+# Copy package files first for better caching
 COPY package*.json ./
-COPY postcss.config.js ./
-COPY tailwind.config.js ./
-COPY . ./
 
-# Install packages 
-RUN npm install
+# Install dependencies (clean, reproducible)
+RUN npm ci
 
-# Build application
+# Copy rest of the project files
+COPY . .
+
+# Build the project (output goes to /app/dist)
 RUN npm run build
 
-# Install global serve
-RUN npm install -g serve
-
-# PORT defined
-EXPOSE 3000
-
-# Execute command
-
-CMD ["serve", "-s", "dist", "-p", "3000"]
+# Default command — optional (just to keep container alive or show build result)
+CMD ["sh", "-c", "echo 'Build completed. Files are in /app/dist'; ls -la /app/dist"]
