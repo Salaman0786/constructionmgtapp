@@ -15,4 +15,14 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    host: '0.0.0.0', // Listen on all network interfaces
+    port: 3000,
+    strictPort: true,
+    allowedHosts: [
+      'construction-stg.itrtechsystems.com', // your Caddy domain
+      'localhost',
+      '127.0.0.1'
+    ],
+  },
 });
