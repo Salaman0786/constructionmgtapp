@@ -4,7 +4,7 @@ services:
     image: construction-app-ui.image
     container_name: construction-app-ui.container
     ports:
-      - 3000:3000
+      - 3000:5173
 
     networks:
       - construction-app-ui.network
