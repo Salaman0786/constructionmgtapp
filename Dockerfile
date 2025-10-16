@@ -1,16 +1,20 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Use Node.js image
+FROM node:20-alpine
+
+# Set working directory
 WORKDIR /app
+
+# Copy package files first (for better caching)
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
+
+# Copy all source files
 COPY . .
-RUN npm run build
 
-# Serve stage
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Expose the Vite dev server port
+EXPOSE 3000
 
-
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Start the app
+CMD ["npm", "run", "dev"]
