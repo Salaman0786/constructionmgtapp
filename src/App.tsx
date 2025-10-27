@@ -17,7 +17,6 @@ import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import Home from "./pages/Dashboard/Home";
 import AdminPanel from "./components/AdminPanel/AdminPanel";
 import Investors from "./components/Investors/Investors";
 import Vendors from "./components/vendors/Vendors";
@@ -27,9 +26,11 @@ import Expenses from "./components/Expenses/Expenses";
 import Units from "./components/Units/Units";
 import Inventory from "./components/Inventory/Inventory";
 import Reports from "./components/Reports/Reports";
-import BOQ from "./components/BOQ/BOQ";
+import BOQ from "./components/ProjectControl/BOQ/BOQ";
 import Dashboard from "./components/Dashboard/Dashboard";
 import AdminLogin from "./pages/AuthPages/AdminLogin";
+import SiteDiary from "./components/ProjectControl/SiteDiary/SiteDiary";
+import TaskAssignment from "./components/ProjectControl/TaskAssignment/TaskAssignment";
 
 export default function App() {
   return (
@@ -53,12 +54,16 @@ export default function App() {
             <Route path="/units" element={<Units />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/boq" element={<BOQ />} />
+
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
 
             {/* Tables */}
             <Route path="/basic-tables" element={<BasicTables />} />
+            {/* Project Control */}
+            <Route path="/boq" element={<BOQ />} />
+            <Route path="/site-diary" element={<SiteDiary />} />
+            <Route path="/task-assignment" element={<TaskAssignment />} />
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />

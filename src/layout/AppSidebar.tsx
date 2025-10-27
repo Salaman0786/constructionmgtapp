@@ -11,15 +11,19 @@ import {
 } from "../icons";
 import {
   Box,
+  Calculator,
   Car,
   ChartColumn,
   CircleDollarSign,
   CreditCard,
   File,
+  Folder,
   House,
   LayoutDashboard,
+  NotebookText,
   ReceiptText,
   Settings,
+  SquareCheckBig,
   UserRoundCog,
   Users,
 } from "lucide-react";
@@ -29,7 +33,13 @@ type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: {
+    icon: any;
+    name: string;
+    path: string;
+    pro?: boolean;
+    new?: boolean;
+  }[];
 };
 
 const navItems: NavItem[] = [
@@ -37,6 +47,30 @@ const navItems: NavItem[] = [
     icon: <LayoutDashboard />,
     name: "Dashboard",
     path: "/",
+  },
+  {
+    icon: <Folder />,
+    name: "Project Control",
+    subItems: [
+      {
+        icon: <Calculator />,
+        name: "BOQ & Estimation",
+        path: "/boq",
+        pro: false,
+      },
+      {
+        icon: <NotebookText />,
+        name: "Site Diary (DPR)",
+        path: "/site-diary",
+        pro: false,
+      },
+      {
+        icon: <SquareCheckBig />,
+        name: "Task Assignment",
+        path: "/task-assignment",
+        pro: false,
+      },
+    ],
   },
   {
     icon: <Users />,
@@ -243,7 +277,7 @@ const AppSidebar: React.FC = () => {
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                     openSubmenu?.type === menuType &&
                     openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
+                      ? "rotate-180 text-white"
                       : ""
                   }`}
                 />
@@ -296,7 +330,7 @@ const AppSidebar: React.FC = () => {
                           : "menu-dropdown-item-inactive"
                       }`}
                     >
-                      {subItem.name}
+                      {subItem.icon} {subItem.name}
                       <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
                           <span
