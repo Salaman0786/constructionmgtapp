@@ -1,11 +1,11 @@
-name: Deploy to addisababa.itrtechsystems.com
+name: Deploy to construction-stg.itrtechsystems.com
 on:
   push:
     branches:
       - stg-deploy
 
 jobs:
-  addisababa-jamaat-app-front-stg:
+  construction-stg:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,3 +26,4 @@ jobs:
             git log -4 --date=local --pretty=format:"%h | %an | %ad | %s" .
             /bin/bash run.sh
           debug: true
+
