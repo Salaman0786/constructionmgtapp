@@ -9,7 +9,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import AddInvestors from "../../Investors/AddInvestors";
+import AddInvestors from "../../Finance&CRM/Investors/AddInvestors";
 import AddBOQ from "./AddBOQ";
 
 interface User {
@@ -273,9 +273,9 @@ export const BOQTab: React.FC = () => {
               <h2 className="text-gray-900 font-semibold text-base">
                 BOQ Master & Tracking Table
               </h2>
-              <p className="text-sm text-gray-500">
+              {/* <p className="text-sm text-gray-500">
                 Comprehensive management of quantities, costs, and progress
-              </p>
+              </p> */}
             </div>
             {selectedIds.length > 0 && (
               <div className="flex items-center gap-2 text-sm justify-end">

@@ -54,6 +54,18 @@ const navItems: NavItem[] = [
     subItems: [
       {
         icon: <Calculator />,
+        name: "Project",
+        path: "/project",
+        pro: false,
+      },
+      {
+        icon: <Calculator />,
+        name: "Gantt & Scheduling",
+        path: "/gantt-scheduling",
+        pro: false,
+      },
+      {
+        icon: <Calculator />,
         name: "BOQ & Estimation",
         path: "/boq",
         pro: false,
@@ -73,30 +85,66 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    icon: <Users />,
-    name: "Investors",
-    path: "/investors",
+    icon: <Calculator />,
+    name: "Finance & CRM",
+    subItems: [
+      {
+        icon: <Users />,
+        name: "Investors",
+        path: "/investors",
+        pro: false,
+      },
+      {
+        icon: <Car />,
+        name: "Vendors",
+        path: "/vendors",
+        pro: false,
+      },
+      {
+        icon: <House />,
+        name: "My Units",
+        path: "/units",
+        pro: false,
+      },
+      {
+        icon: <File />,
+        name: "Invoices",
+        path: "/invoices",
+        pro: false,
+      },
+      {
+        icon: <CreditCard />,
+        name: "Payments",
+        path: "/payments",
+        pro: false,
+      },
+    ],
   },
-  {
-    icon: <Car />,
-    name: "Vendors",
-    path: "/vendors",
-  },
-  {
-    icon: <House />,
-    name: "Units",
-    path: "/units",
-  },
-  {
-    icon: <File />,
-    name: "Invoices",
-    path: "/invoices",
-  },
-  {
-    icon: <CreditCard />,
-    name: "Payments",
-    path: "/payments",
-  },
+  // {
+  //   icon: <Users />,
+  //   name: "Investors",
+  //   path: "/investors",
+  // },
+  // {
+  //   icon: <Car />,
+  //   name: "Vendors",
+  //   path: "/vendors",
+  // },
+  // {
+  //   icon: <House />,
+  //   name: "Units",
+  //   path: "/units",
+  // },
+  // {
+  //   icon: <File />,
+  //   name: "Invoices",
+  //   path: "/invoices",
+  // },
+  // {
+  //   icon: <CreditCard />,
+  //   name: "Payments",
+  //   path: "/payments",
+  // },
   {
     icon: <CircleDollarSign />,
     name: "Expenses",

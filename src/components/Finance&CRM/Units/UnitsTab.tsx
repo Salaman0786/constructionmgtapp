@@ -139,20 +139,30 @@ export const UnitsTab: React.FC = () => {
             <h2 className="text-gray-900 font-semibold text-base">
               Units Directory
             </h2>
-            <p className="text-sm text-gray-500">
-              Complete inventory of residential and commercial units
-            </p>
           </div>
-          <button
-            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-sm px-3 py-2 rounded-md"
-            onClick={() => setOpenAddRole(true)}
-          >
-            <Plus size={16} /> Add Unit
-          </button>
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-600">
+                {selectedIds.length} item(s) selected
+              </span>
+              <button
+                onClick={handleExportSelected}
+                className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
+              >
+                Export Selected
+              </button>
+              <button
+                onClick={handleDeleteSelected}
+                className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
+              >
+                Delete Selected
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Search and Actions */}
-        <div className="flex justify-start items-center mb-3 flex-wrap gap-6">
+        {/* <div className="flex justify-start items-center mb-3 flex-wrap gap-6">
           <input
             type="text"
             placeholder="Search..."
@@ -191,27 +201,7 @@ export const UnitsTab: React.FC = () => {
               <option value="hold">Hold</option>
             </select>
           </div>
-
-          {selectedIds.length > 0 && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-600">
-                {selectedIds.length} item(s) selected
-              </span>
-              <button
-                onClick={handleExportSelected}
-                className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
-              >
-                Export Selected
-              </button>
-              <button
-                onClick={handleDeleteSelected}
-                className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-              >
-                Delete Selected
-              </button>
-            </div>
-          )}
-        </div>
+        </div> */}
 
         {/* Table */}
         <div className="overflow-x-auto border border-gray-200 rounded-xl relative">
@@ -233,7 +223,7 @@ export const UnitsTab: React.FC = () => {
                 <th className="p-3">Status</th>
                 <th className="p-3">Owner</th>
                 <th className="p-3">Amenities</th>
-                <th className="p-3"></th>
+                <th className="p-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -301,7 +291,7 @@ export const UnitsTab: React.FC = () => {
                       ))}
                     </div>
                   </td>
-                  <td className="p-3 text-right text-gray-500 cursor-pointer hover:text-gray-700 relative">
+                  <td className="p-3 text-gray-500 cursor-pointer hover:text-gray-700 relative">
                     <div
                       onClick={() =>
                         setOpenMenuId(openMenuId === role.id ? null : role.id)
@@ -325,11 +315,32 @@ export const UnitsTab: React.FC = () => {
               ))}
             </tbody>
           </table>
-          <AddUnits
-            isOpen={openAddRole}
-            onClose={() => setOpenAddRole(false)}
-            onCreateRole={handleCreateRole}
-          />
+        </div>
+        <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm sm:text-base">
+            Showing 1 to 3 of 10 results
+          </span>
+
+          <div>
+            <div className="flex items-center space-x-2">
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                «
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              <div>...</div>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ›
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                »
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

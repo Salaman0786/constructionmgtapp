@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
-import AddInvestors from "../Investors/AddInvestors";
-import AddInvoice from "./AddInvoice";
+import AddInvestors from "./AddInvestors";
 
 interface User {
   id: number;
@@ -10,72 +9,48 @@ interface User {
   nationality: string;
   email: string;
   status: string;
-  amount: string;
-  subAmount: string;
+  investment: string;
   units: string;
-  issueDate: string;
-  dueDate: string;
-  invoiceNo: string;
-  paid: string;
-  remaining: string;
-  percentage: string;
+  joined: string;
 }
 
 const usersData: User[] = [
   {
     id: 1,
-    invoiceNo: "INV-2024-001",
     name: "Ahmed Hassan",
     email: "ahmed.hassan@email.com",
     phone: "+251911234567",
     nationality: "American",
-    status: "PAID",
-    amount: "USD 15,000",
-    subAmount: "ETB 816,150",
-    units: "C-301",
-    issueDate: "15/01/2024",
-    dueDate: "10/08/2024",
-    paid: "$10,000",
-    remaining: " $15,000",
-    percentage: "40% paid",
+    status: "Pending",
+    investment: "$120,000",
+    units: "3",
+    joined: "15/01/2024",
   },
   {
     id: 2,
-    invoiceNo: "INV-2024-002",
     name: "Omar Al-Rashid",
     email: "omar.rashid@email.com",
     phone: "+966501234567",
     nationality: "Saudi Arabian",
-    status: "PARTIAL",
-    amount: "USD 25,000",
-    subAmount: "ETB 1,359,500",
-    units: "A-101",
-    issueDate: "28/01/2024",
-    dueDate: "13/05/2024",
-    paid: "$15,000",
-    remaining: "$0",
-    percentage: "100% paid",
+    status: "Approved",
+    investment: "$95,000",
+    units: "2",
+    joined: "28/01/2024",
   },
   {
     id: 3,
-    invoiceNo: "INV-2024-003",
     name: "Sarah Johnson",
     email: "sarah.j@email.com",
     phone: "+1234567890",
     nationality: "American",
-    status: "ISSUED",
-    amount: "	USD 30,000",
-    subAmount: "ETB 1,632,300",
-    units: "B-205",
-    issueDate: "01/02/2024",
-    dueDate: "19/03/2024",
-    paid: "$0",
-    remaining: "$30,000",
-    percentage: "0% paid",
+    status: "Pending",
+    investment: "$85,000",
+    units: "2",
+    joined: "01/02/2024",
   },
 ];
 
-export const InvoicesTab: React.FC = () => {
+export const InvestorsTab: React.FC = () => {
   const [users, setUsers] = useState<User[]>(usersData);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
@@ -150,52 +125,34 @@ export const InvoicesTab: React.FC = () => {
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm mt-6">
       <div className="p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
+        <div className="flex justify-between items-center mb-1 flex-wrap gap-3">
           <div>
             <h2 className="text-gray-900 font-semibold text-base">
-              Invoice Registry
+              Investor Directory
             </h2>
-            <p className="text-sm text-gray-500">
-              Complete list of all invoices with payment status and FX rates
-            </p>
           </div>
-          <button
-            onClick={() => setOpenModal(true)}
-            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-sm px-3 py-2 rounded-md"
-          >
-            <Plus size={16} /> Add Invoice
-          </button>
+          <div className="flex justify-end items-center mb-2 flex-wrap gap-3">
+            {selectedIds.length > 0 && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-600">
+                  {selectedIds.length} item(s) selected
+                </span>
+                <button
+                  onClick={handleExportSelected}
+                  className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
+                >
+                  Export Selected
+                </button>
+                <button
+                  onClick={handleDeleteSelected}
+                  className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
+                >
+                  Delete Selected
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Search and Actions */}
-        <div className="flex justify-between items-center mb-3 flex-wrap gap-3">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-
-          {selectedIds.length > 0 && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-600">
-                {selectedIds.length} item(s) selected
-              </span>
-              <button
-                onClick={handleExportSelected}
-                className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
-              >
-                Export Selected
-              </button>
-              <button
-                onClick={handleDeleteSelected}
-                className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-              >
-                Delete Selected
-              </button>
-            </div>
-          )}
-        </div>
-
         {/* Table */}
         <div className="overflow-x-auto border border-gray-200 rounded-xl">
           <table className="min-w-full text-sm border-collapse">
@@ -223,14 +180,14 @@ export const InvoicesTab: React.FC = () => {
                     className="accent-purple-700"
                   />
                 </th>
-                <th className="p-3">Invoice</th>
-                <th className="p-3">Unit</th>
-                <th className="p-3">Amount</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Issue Date</th>
-                <th className="p-3">Due Date</th>
-                <th className="p-3">Paid/Remaining</th>
-                <th className="p-3"></th>
+                <th className="p-3">Name</th>
+                <th className="p-3">Phone</th>
+                <th className="p-3">Nationality</th>
+                <th className="p-3">KYC Status</th>
+                <th className="p-3">Investment</th>
+                <th className="p-3">Units</th>
+                <th className="p-3">Joined</th>
+                <th className="p-3 ">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -256,28 +213,28 @@ export const InvoicesTab: React.FC = () => {
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {user.invoiceNo}
+                          {user.name}
                         </div>
-                        <div className="text-xs text-gray-500">{user.name}</div>
+                        <div className="text-xs text-gray-500">
+                          {user.email}
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3 text-gray-700">{user.units}</td>
                   <td className="p-3">
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {user.amount}
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium text-gray-700">
+                        <Phone size={12} />
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {user.subAmount}
-                      </div>
+                      <div className="text-xs text-gray-700">{user.phone}</div>
                     </div>
                   </td>
+                  <td className="p-3 text-gray-700">{user.nationality}</td>
 
                   <td className="p-3">
                     <span
                       className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        user.status === "PARTIAL"
+                        user.status === "Pending"
                           ? "bg-[#e6d6f5] text-[#4b0082]" // light background, dark text
                           : "bg-[#4b0082] text-white" // solid indigo background
                       }`}
@@ -286,21 +243,12 @@ export const InvoicesTab: React.FC = () => {
                     </span>
                   </td>
 
-                  <td className="p-3 text-gray-700">{user.issueDate}</td>
-                  <td className="p-3 text-gray-700">{user.dueDate}</td>
-                  <td className="p-3">
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {user.paid} / {user.remaining}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {user.percentage}
-                      </div>
-                    </div>
-                  </td>
+                  <td className="p-3 text-gray-700">{user.investment}</td>
+                  <td className="p-3 text-gray-700">{user.units}</td>
+                  <td className="p-3 text-gray-700">{user.joined}</td>
 
                   {/* Action menu */}
-                  <td className="relative p-3 text-right">
+                  <td className="relative p-3 text-left">
                     <button
                       onClick={() =>
                         setActiveMenuId(
@@ -331,7 +279,32 @@ export const InvoicesTab: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <AddInvoice isOpen={openModal} onClose={() => setOpenModal(false)} />
+        <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm sm:text-base">
+            Showing 1 to 3 of 10 results
+          </span>
+
+          <div>
+            <div className="flex items-center space-x-2">
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                «
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              <div>...</div>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ›
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                »
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

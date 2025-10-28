@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
-import AddInvestors from "./AddInvestors";
+import { File, Mail, MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
+import AddVendors from "./AddVendors";
 
 interface User {
   id: number;
@@ -9,48 +9,58 @@ interface User {
   nationality: string;
   email: string;
   status: string;
-  investment: string;
-  units: string;
-  joined: string;
+
+  contracts: string;
+
+  type: string;
+  vendor: string;
+  tax: string;
+  totalValue: string;
 }
 
 const usersData: User[] = [
   {
     id: 1,
-    name: "Ahmed Hassan",
+    vendor: "Prime Steel Works",
+    name: "Mohammed Ali",
     email: "ahmed.hassan@email.com",
     phone: "+251911234567",
     nationality: "American",
-    status: "Pending",
-    investment: "$120,000",
-    units: "3",
-    joined: "15/01/2024",
+    status: "Active",
+    totalValue: "$120,000",
+    contracts: "8",
+    type: "Contractor",
+    tax: "TIN-0098765432",
   },
   {
     id: 2,
-    name: "Omar Al-Rashid",
+    vendor: "Elite Electrical Services",
+    name: "Sarah Gebre",
     email: "omar.rashid@email.com",
     phone: "+966501234567",
     nationality: "Saudi Arabian",
-    status: "Approved",
-    investment: "$95,000",
-    units: "2",
-    joined: "28/01/2024",
+    status: "Active",
+    totalValue: "$95,000",
+    contracts: "12",
+    type: "Service Provider",
+    tax: "TIN-0054321098",
   },
   {
     id: 3,
-    name: "Sarah Johnson",
+    vendor: "Addis Construction Materials Ltd",
+    name: "Bekele Tadesse",
     email: "sarah.j@email.com",
     phone: "+1234567890",
     nationality: "American",
-    status: "Pending",
-    investment: "$85,000",
-    units: "2",
-    joined: "01/02/2024",
+    status: "Active",
+    totalValue: "$85,000",
+    contracts: "15	",
+    type: "Supplier",
+    tax: "TIN-0012345678",
   },
 ];
 
-export const InvestorsTab: React.FC = () => {
+export const VendorsTab: React.FC = () => {
   const [users, setUsers] = useState<User[]>(usersData);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
@@ -125,52 +135,36 @@ export const InvestorsTab: React.FC = () => {
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm mt-6">
       <div className="p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
+        <div className="flex justify-between items-center mb-2 flex-wrap gap-3">
           <div>
             <h2 className="text-gray-900 font-semibold text-base">
-              Investor Directory
+              Vendor Directory
             </h2>
-            <p className="text-sm text-gray-500">
-              Comprehensive list of all investors with KYC status and investment
-              details
-            </p>
           </div>
-          <button
-            onClick={() => setOpenModal(true)}
-            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-sm px-3 py-2 rounded-md"
-          >
-            <Plus size={16} /> Add Investors
-          </button>
+          <div className="flex justify-between items-center mb-2 flex-wrap gap-3">
+            {selectedIds.length > 0 && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-600">
+                  {selectedIds.length} item(s) selected
+                </span>
+                <button
+                  onClick={handleExportSelected}
+                  className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
+                >
+                  Export Selected
+                </button>
+                <button
+                  onClick={handleDeleteSelected}
+                  className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
+                >
+                  Delete Selected
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Search and Actions */}
-        <div className="flex justify-between items-center mb-3 flex-wrap gap-3">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-
-          {selectedIds.length > 0 && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-600">
-                {selectedIds.length} item(s) selected
-              </span>
-              <button
-                onClick={handleExportSelected}
-                className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
-              >
-                Export Selected
-              </button>
-              <button
-                onClick={handleDeleteSelected}
-                className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-              >
-                Delete Selected
-              </button>
-            </div>
-          )}
-        </div>
 
         {/* Table */}
         <div className="overflow-x-auto border border-gray-200 rounded-xl">
@@ -199,14 +193,14 @@ export const InvestorsTab: React.FC = () => {
                     className="accent-purple-700"
                   />
                 </th>
-                <th className="p-3">Name</th>
-                <th className="p-3">Phone</th>
-                <th className="p-3">Nationality</th>
-                <th className="p-3">KYC Status</th>
-                <th className="p-3">Investment</th>
-                <th className="p-3">Units</th>
-                <th className="p-3">Joined</th>
-                <th className="p-3"></th>
+                <th className="p-3">Vendor Name</th>
+                <th className="p-3">Type</th>
+                <th className="p-3">Contact</th>
+                <th className="p-3">Tax ID</th>
+                <th className="p-3">Status</th>
+                <th className="p-3">Contracts</th>
+                <th className="p-3">Total Value</th>
+                <th className="p-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -228,32 +222,54 @@ export const InvestorsTab: React.FC = () => {
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
-                        {user.name.charAt(0)}
+                        {user.vendor.charAt(0)}
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {user.name}
+                          {user.vendor}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {user.email}
-                        </div>
+                        <div className="text-xs text-gray-500">{user.name}</div>
                       </div>
                     </div>
                   </td>
                   <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="font-medium text-gray-700">
-                        <Phone size={12} />
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#e6d6f5] text-[#4b0082]">
+                      {user.type}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex-col items-center  gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-gray-700">
+                          <Mail size={12} />
+                        </div>
+                        <div className="text-xs text-gray-700">
+                          {user.email}
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-700">{user.phone}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-gray-700">
+                          <Phone size={12} />
+                        </div>
+                        <div className="text-xs text-gray-700">
+                          {user.phone}
+                        </div>
+                      </div>
                     </div>
                   </td>
-                  <td className="p-3 text-gray-700">{user.nationality}</td>
+                  <td className="p-3 text-gray-700">
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium text-gray-700">
+                        <File size={12} />
+                      </div>
+                      <div className="text-xs text-gray-700"> {user.tax} </div>
+                    </div>
+                  </td>
 
                   <td className="p-3">
                     <span
                       className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        user.status === "Pending"
+                        user.status === "Inactive"
                           ? "bg-[#e6d6f5] text-[#4b0082]" // light background, dark text
                           : "bg-[#4b0082] text-white" // solid indigo background
                       }`}
@@ -262,12 +278,10 @@ export const InvestorsTab: React.FC = () => {
                     </span>
                   </td>
 
-                  <td className="p-3 text-gray-700">{user.investment}</td>
-                  <td className="p-3 text-gray-700">{user.units}</td>
-                  <td className="p-3 text-gray-700">{user.joined}</td>
-
+                  <td className="p-3 text-gray-700">{user.contracts}</td>
+                  <td className="p-3 text-gray-700">{user.totalValue}</td>
                   {/* Action menu */}
-                  <td className="relative p-3 text-right">
+                  <td className="relative p-3 ">
                     <button
                       onClick={() =>
                         setActiveMenuId(
@@ -298,7 +312,32 @@ export const InvestorsTab: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <AddInvestors isOpen={openModal} onClose={() => setOpenModal(false)} />
+        <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm sm:text-base">
+            Showing 1 to 3 of 10 results
+          </span>
+
+          <div>
+            <div className="flex items-center space-x-2">
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                «
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              <div>...</div>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ›
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                »
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

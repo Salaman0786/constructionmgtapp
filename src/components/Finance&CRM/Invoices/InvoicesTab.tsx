@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CreditCard, MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
+import { MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
 import AddInvestors from "../Investors/AddInvestors";
-import AddPayment from "./AddPayment";
+import AddInvoice from "./AddInvoice";
 
 interface User {
   id: number;
@@ -13,90 +13,69 @@ interface User {
   amount: string;
   subAmount: string;
   units: string;
-  date: string;
+  issueDate: string;
   dueDate: string;
   invoiceNo: string;
   paid: string;
   remaining: string;
   percentage: string;
-  paymentId: string;
-  method: string;
-  reference: string;
 }
 
 const usersData: User[] = [
   {
     id: 1,
-    paymentId: "PAY-2024-001",
     invoiceNo: "INV-2024-001",
     name: "Ahmed Hassan",
-    method: "Bank Transfer",
-    reference: "TXN-BT-001234",
-    amount: "USD 15,000",
-    remaining: "$0",
-    date: "15/01/2024",
-    status: "Confirmed",
     email: "ahmed.hassan@email.com",
     phone: "+251911234567",
     nationality: "American",
-
+    status: "PAID",
+    amount: "USD 15,000",
     subAmount: "ETB 816,150",
     units: "C-301",
-
+    issueDate: "15/01/2024",
     dueDate: "10/08/2024",
     paid: "$10,000",
-
+    remaining: " $15,000",
     percentage: "40% paid",
   },
-
   {
     id: 2,
-    paymentId: "PAY-2024-002",
     invoiceNo: "INV-2024-002",
-    name: "Sarah Johnson",
-    method: "Online",
-    reference: "TXN-ON-005678",
-    amount: "USD 10,000",
-    remaining: "$15,000",
-    date: "25/09/2024",
-    status: "Confirmed",
-    email: "sarah.j@email.com",
-    phone: "+1234567890",
-    nationality: "American",
-    subAmount: "ETB 1,632,300",
-    units: "B-205",
-
-    dueDate: "19/03/2024",
-    paid: "$0",
-
-    percentage: "0% paid",
-  },
-  {
-    id: 3,
-    paymentId: "PAY-2024-003",
-    invoiceNo: "INV-2024-003",
     name: "Omar Al-Rashid",
-    method: "Check",
-    reference: "CHK-001234",
-    amount: "USD 5,000",
-    remaining: "$25,000",
-    date: "02/10/2024",
-    status: "Pending",
     email: "omar.rashid@email.com",
     phone: "+966501234567",
     nationality: "Saudi Arabian",
-
+    status: "PARTIAL",
+    amount: "USD 25,000",
     subAmount: "ETB 1,359,500",
     units: "A-101",
-
+    issueDate: "28/01/2024",
     dueDate: "13/05/2024",
     paid: "$15,000",
-
+    remaining: "$0",
     percentage: "100% paid",
+  },
+  {
+    id: 3,
+    invoiceNo: "INV-2024-003",
+    name: "Sarah Johnson",
+    email: "sarah.j@email.com",
+    phone: "+1234567890",
+    nationality: "American",
+    status: "ISSUED",
+    amount: "	USD 30,000",
+    subAmount: "ETB 1,632,300",
+    units: "B-205",
+    issueDate: "01/02/2024",
+    dueDate: "19/03/2024",
+    paid: "$0",
+    remaining: "$30,000",
+    percentage: "0% paid",
   },
 ];
 
-export const PaymentsTab: React.FC = () => {
+export const InvoicesTab: React.FC = () => {
   const [users, setUsers] = useState<User[]>(usersData);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
@@ -174,28 +153,9 @@ export const PaymentsTab: React.FC = () => {
         <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
           <div>
             <h2 className="text-gray-900 font-semibold text-base">
-              Payment History
+              Invoice Registry
             </h2>
-            <p className="text-sm text-gray-500">
-              Complete record of all payments received with status tracking
-            </p>
           </div>
-          <button
-            onClick={() => setOpenModal(true)}
-            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-sm px-3 py-2 rounded-md"
-          >
-            <Plus size={16} /> Add Payment
-          </button>
-        </div>
-
-        {/* Search and Actions */}
-        <div className="flex justify-between items-center mb-3 flex-wrap gap-3">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-gray-600">
@@ -216,6 +176,8 @@ export const PaymentsTab: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Search and Actions */}
 
         {/* Table */}
         <div className="overflow-x-auto border border-gray-200 rounded-xl">
@@ -244,14 +206,13 @@ export const PaymentsTab: React.FC = () => {
                     className="accent-purple-700"
                   />
                 </th>
-                <th className="p-3">Payment</th>
-                <th className="p-3">Investor</th>
+                <th className="p-3">Invoice</th>
+                <th className="p-3">Unit</th>
                 <th className="p-3">Amount</th>
-                <th className="p-3">Method</th>
-                <th className="p-3">Reference</th>
-                <th className="p-3">Date</th>
                 <th className="p-3">Status</th>
-                <th className="p-3">Remaining</th>
+                <th className="p-3">Issue Date</th>
+                <th className="p-3">Due Date</th>
+                <th className="p-3">Paid/Remaining</th>
                 <th className="p-3"></th>
               </tr>
             </thead>
@@ -274,20 +235,18 @@ export const PaymentsTab: React.FC = () => {
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
-                        <CreditCard size={16} />
+                        {user.name.charAt(0)}
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {user.paymentId}
-                        </div>
-                        <div className="text-xs text-gray-500">
                           {user.invoiceNo}
                         </div>
+                        <div className="text-xs text-gray-500">{user.name}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3 text-gray-700">{user.name}</td>
-                  {/* <td className="p-3">
+                  <td className="p-3 text-gray-700">{user.units}</td>
+                  <td className="p-3">
                     <div>
                       <div className="font-medium text-gray-900">
                         {user.amount}
@@ -296,20 +255,12 @@ export const PaymentsTab: React.FC = () => {
                         {user.subAmount}
                       </div>
                     </div>
-                  </td> */}
-                  <td className="p-3 text-gray-700">{user.amount}</td>
-                  <td className="p-3">
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#e6d6f5] text-[#4b0082]">
-                      {user.method}
-                    </span>
                   </td>
 
-                  <td className="p-3 text-gray-700">{user.reference}</td>
-                  <td className="p-3 text-gray-700">{user.date}</td>
                   <td className="p-3">
                     <span
                       className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        user.status === "Pending"
+                        user.status === "PARTIAL"
                           ? "bg-[#e6d6f5] text-[#4b0082]" // light background, dark text
                           : "bg-[#4b0082] text-white" // solid indigo background
                       }`}
@@ -317,15 +268,20 @@ export const PaymentsTab: React.FC = () => {
                       {user.status}
                     </span>
                   </td>
-                  <td
-                    className={`text-xl font-medium p-3 rounded-full bg-white ${
-                      user.remaining === "$0"
-                        ? "text-green-700" // light background, dark text
-                        : "text-orange-700" // solid indigo background
-                    }`}
-                  >
-                    {user.remaining}
+
+                  <td className="p-3 text-gray-700">{user.issueDate}</td>
+                  <td className="p-3 text-gray-700">{user.dueDate}</td>
+                  <td className="p-3">
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {user.paid} / {user.remaining}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {user.percentage}
+                      </div>
+                    </div>
                   </td>
+
                   {/* Action menu */}
                   <td className="relative p-3 text-right">
                     <button
@@ -358,7 +314,32 @@ export const PaymentsTab: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <AddPayment isOpen={openModal} onClose={() => setOpenModal(false)} />
+        <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm sm:text-base">
+            Showing 1 to 3 of 10 results
+          </span>
+
+          <div>
+            <div className="flex items-center space-x-2">
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                «
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              <div>...</div>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ›
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                »
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

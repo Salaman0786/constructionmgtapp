@@ -9,7 +9,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import AddUnits from "../Units/AddUnits";
+import AddUnits from "../Finance&CRM/Units/AddUnits";
 
 interface Role {
   id: number;

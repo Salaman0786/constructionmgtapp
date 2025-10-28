@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { File, Mail, MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
-import AddVendors from "./AddVentors";
+import { CreditCard, MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
+import AddInvestors from "../Finance&CRM/Investors/AddInvestors";
+import AddPayment from "./AddPayment";
 
 interface User {
   id: number;
@@ -9,58 +10,93 @@ interface User {
   nationality: string;
   email: string;
   status: string;
-
-  contracts: string;
-
-  type: string;
-  vendor: string;
-  tax: string;
-  totalValue: string;
+  amount: string;
+  subAmount: string;
+  units: string;
+  date: string;
+  dueDate: string;
+  invoiceNo: string;
+  paid: string;
+  remaining: string;
+  percentage: string;
+  paymentId: string;
+  method: string;
+  reference: string;
 }
 
 const usersData: User[] = [
   {
     id: 1,
-    vendor: "Prime Steel Works",
-    name: "Mohammed Ali",
+    paymentId: "PAY-2024-001",
+    invoiceNo: "INV-2024-001",
+    name: "Ahmed Hassan",
+    method: "Bank Transfer",
+    reference: "TXN-BT-001234",
+    amount: "USD 15,000",
+    remaining: "$0",
+    date: "15/01/2024",
+    status: "Confirmed",
     email: "ahmed.hassan@email.com",
     phone: "+251911234567",
     nationality: "American",
-    status: "Active",
-    totalValue: "$120,000",
-    contracts: "8",
-    type: "Contractor",
-    tax: "TIN-0098765432",
+
+    subAmount: "ETB 816,150",
+    units: "C-301",
+
+    dueDate: "10/08/2024",
+    paid: "$10,000",
+
+    percentage: "40% paid",
   },
+
   {
     id: 2,
-    vendor: "Elite Electrical Services",
-    name: "Sarah Gebre",
-    email: "omar.rashid@email.com",
-    phone: "+966501234567",
-    nationality: "Saudi Arabian",
-    status: "Active",
-    totalValue: "$95,000",
-    contracts: "12",
-    type: "Service Provider",
-    tax: "TIN-0054321098",
-  },
-  {
-    id: 3,
-    vendor: "Addis Construction Materials Ltd",
-    name: "Bekele Tadesse",
+    paymentId: "PAY-2024-002",
+    invoiceNo: "INV-2024-002",
+    name: "Sarah Johnson",
+    method: "Online",
+    reference: "TXN-ON-005678",
+    amount: "USD 10,000",
+    remaining: "$15,000",
+    date: "25/09/2024",
+    status: "Confirmed",
     email: "sarah.j@email.com",
     phone: "+1234567890",
     nationality: "American",
-    status: "Active",
-    totalValue: "$85,000",
-    contracts: "15	",
-    type: "Supplier",
-    tax: "TIN-0012345678",
+    subAmount: "ETB 1,632,300",
+    units: "B-205",
+
+    dueDate: "19/03/2024",
+    paid: "$0",
+
+    percentage: "0% paid",
+  },
+  {
+    id: 3,
+    paymentId: "PAY-2024-003",
+    invoiceNo: "INV-2024-003",
+    name: "Omar Al-Rashid",
+    method: "Check",
+    reference: "CHK-001234",
+    amount: "USD 5,000",
+    remaining: "$25,000",
+    date: "02/10/2024",
+    status: "Pending",
+    email: "omar.rashid@email.com",
+    phone: "+966501234567",
+    nationality: "Saudi Arabian",
+
+    subAmount: "ETB 1,359,500",
+    units: "A-101",
+
+    dueDate: "13/05/2024",
+    paid: "$15,000",
+
+    percentage: "100% paid",
   },
 ];
 
-export const VendorsTab: React.FC = () => {
+export const PaymentsTab: React.FC = () => {
   const [users, setUsers] = useState<User[]>(usersData);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
@@ -138,28 +174,9 @@ export const VendorsTab: React.FC = () => {
         <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
           <div>
             <h2 className="text-gray-900 font-semibold text-base">
-              Vendor Directory
+              Payment History
             </h2>
-            <p className="text-sm text-gray-500">
-              Complete list of suppliers, contractors, and service providers
-            </p>
           </div>
-          <button
-            onClick={() => setOpenModal(true)}
-            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-sm px-3 py-2 rounded-md"
-          >
-            <Plus size={16} /> Add Vendor
-          </button>
-        </div>
-
-        {/* Search and Actions */}
-        <div className="flex justify-between items-center mb-3 flex-wrap gap-3">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-gray-600">
@@ -208,13 +225,14 @@ export const VendorsTab: React.FC = () => {
                     className="accent-purple-700"
                   />
                 </th>
-                <th className="p-3">Vendor Name</th>
-                <th className="p-3">Type</th>
-                <th className="p-3">Contact</th>
-                <th className="p-3">Tax ID</th>
+                <th className="p-3">Payment</th>
+                <th className="p-3">Investor</th>
+                <th className="p-3">Amount</th>
+                <th className="p-3">Method</th>
+                <th className="p-3">Reference</th>
+                <th className="p-3">Date</th>
                 <th className="p-3">Status</th>
-                <th className="p-3">Contracts</th>
-                <th className="p-3">Total Value</th>
+                <th className="p-3">Remaining</th>
                 <th className="p-3"></th>
               </tr>
             </thead>
@@ -237,54 +255,42 @@ export const VendorsTab: React.FC = () => {
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
-                        {user.vendor.charAt(0)}
+                        <CreditCard size={16} />
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {user.vendor}
+                          {user.paymentId}
                         </div>
-                        <div className="text-xs text-gray-500">{user.name}</div>
+                        <div className="text-xs text-gray-500">
+                          {user.invoiceNo}
+                        </div>
                       </div>
                     </div>
                   </td>
+                  <td className="p-3 text-gray-700">{user.name}</td>
+                  {/* <td className="p-3">
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {user.amount}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {user.subAmount}
+                      </div>
+                    </div>
+                  </td> */}
+                  <td className="p-3 text-gray-700">{user.amount}</td>
                   <td className="p-3">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#e6d6f5] text-[#4b0082]">
-                      {user.type}
+                      {user.method}
                     </span>
                   </td>
-                  <td className="p-3">
-                    <div className="flex-col items-center  gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium text-gray-700">
-                          <Mail size={12} />
-                        </div>
-                        <div className="text-xs text-gray-700">
-                          {user.email}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium text-gray-700">
-                          <Phone size={12} />
-                        </div>
-                        <div className="text-xs text-gray-700">
-                          {user.phone}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-3 text-gray-700">
-                    <div className="flex items-center gap-2">
-                      <div className="font-medium text-gray-700">
-                        <File size={12} />
-                      </div>
-                      <div className="text-xs text-gray-700"> {user.tax} </div>
-                    </div>
-                  </td>
 
+                  <td className="p-3 text-gray-700">{user.reference}</td>
+                  <td className="p-3 text-gray-700">{user.date}</td>
                   <td className="p-3">
                     <span
                       className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        user.status === "Inactive"
+                        user.status === "Pending"
                           ? "bg-[#e6d6f5] text-[#4b0082]" // light background, dark text
                           : "bg-[#4b0082] text-white" // solid indigo background
                       }`}
@@ -292,9 +298,15 @@ export const VendorsTab: React.FC = () => {
                       {user.status}
                     </span>
                   </td>
-
-                  <td className="p-3 text-gray-700">{user.contracts}</td>
-                  <td className="p-3 text-gray-700">{user.totalValue}</td>
+                  <td
+                    className={`text-xl font-medium p-3 rounded-full bg-white ${
+                      user.remaining === "$0"
+                        ? "text-green-700" // light background, dark text
+                        : "text-orange-700" // solid indigo background
+                    }`}
+                  >
+                    {user.remaining}
+                  </td>
                   {/* Action menu */}
                   <td className="relative p-3 text-right">
                     <button
@@ -327,7 +339,32 @@ export const VendorsTab: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <AddVendors isOpen={openModal} onClose={() => setOpenModal(false)} />
+        <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm sm:text-base">
+            Showing 1 to 3 of 10 results
+          </span>
+
+          <div>
+            <div className="flex items-center space-x-2">
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                «
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              <div>...</div>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ›
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                »
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

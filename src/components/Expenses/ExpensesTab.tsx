@@ -7,7 +7,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import AddInvestors from "../Investors/AddInvestors";
+import AddInvestors from "../Finance&CRM/Investors/AddInvestors";
 import AddExpense from "./AddExpense";
 
 interface User {

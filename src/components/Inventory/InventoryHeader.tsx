@@ -1,6 +1,6 @@
 import { Plus, TrendingDown, TrendingUp } from "lucide-react";
 import React, { useState } from "react";
-import AddUnits from "../Units/AddUnits";
+import AddUnits from "../Finance&CRM/Units/AddUnits";
 
 interface StatCardProps {
   title: string;
