@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Filter, Plus, Search } from "lucide-react";
 import React, { useState } from "react";
 import AddInvoice from "./AddInvoice";
 
@@ -48,6 +48,23 @@ const InvoicesHeader: React.FC = () => {
           value={"$25,000"}
           valueColor="text-green-600"
         />
+      </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
+        <div className="relative w-full md:w-9/10">
+          <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+
+          <input
+            type="text"
+            placeholder="Search Diary (DPR)..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <Filter size={16} /> Filters
+          </button>
+        </div>
       </div>
       <AddInvoice isOpen={openModal} onClose={() => setOpenModal(false)} />
     </div>
