@@ -258,25 +258,31 @@ const Project: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-end items-center mt-4 gap-2">
-          <button className="px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-100">
-            &lt;
-          </button>
-          {[1, 2, 3, 4, 5].map((num) => (
-            <button
-              key={num}
-              className={`px-3 py-1 border rounded-lg ${
-                num === 1
-                  ? "bg-purple-700 text-white"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              {num}
-            </button>
-          ))}
-          <button className="px-3 py-1 border rounded-lg text-gray-600 hover:bg-gray-100">
-            &gt;
-          </button>
+        <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm sm:text-base">
+            Showing 1 to 4 of 10 results
+          </span>
+
+          <div>
+            <div className="flex items-center space-x-2 ">
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                «
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              <div>...</div>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ›
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                »
+              </button>
+            </div>
+          </div>
         </div>
         <AddProject
           isOpen={isModalOpen}
