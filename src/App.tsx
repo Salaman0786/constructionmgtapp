@@ -32,9 +32,9 @@ import AdminLogin from "./pages/AuthPages/AdminLogin";
 import SiteDiary from "./components/ProjectControl/SiteDiary/SiteDiary";
 import TaskAssignment from "./components/ProjectControl/TaskAssignment/TaskAssignment";
 import Payments from "./components/Finance&CRM/Payments/Payments";
-import GanttScheduling from "./components/ProjectControl/GanttScheduling/GanttScheduling";
+
 import Project from "./components/ProjectControl/Project/Project";
-import NewGantt from "./components/ProjectControl/GanttScheduling/NewGantt";
+import GanttScheduling from "./components/ProjectControl/GanttScheduling/GanttScheduling";
 
 export default function App() {
   return (
@@ -67,7 +67,7 @@ export default function App() {
             {/* Project Control */}
 
             <Route path="/boq" element={<BOQ />} />
-            <Route path="/gantt-scheduling" element={<NewGantt />} />
+            <Route path="/gantt-scheduling" element={<GanttScheduling />} />
             <Route path="/project" element={<Project />} />
             <Route path="/site-diary" element={<SiteDiary />} />
             <Route path="/task-assignment" element={<TaskAssignment />} />

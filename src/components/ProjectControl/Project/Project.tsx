@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Filter, Upload, Trash2 } from "lucide-react";
+import { Plus, Filter, Upload, Trash2, Search } from "lucide-react";
 import AddProject from "./AddProject";
 
 interface Project {
@@ -113,7 +113,7 @@ const Project: React.FC = () => {
   );
 
   return (
-    <div className="p-6 space-y-6 bg-white min-h-screen">
+    <div className="space-y-6 bg-white min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -123,7 +123,7 @@ const Project: React.FC = () => {
           </p>
         </div>
         <button
-          className="flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded-xl hover:bg-purple-800"
+          className="flex items-center gap-1 bg-[#4b0082] text-white text-xs sm:text-sm px-3 py-2 rounded-md hover:bg-purple-800"
           onClick={() => setIsModalOpen(true)}
         >
           <Plus size={18} /> Create Project
@@ -131,17 +131,22 @@ const Project: React.FC = () => {
       </div>
 
       {/* Search and Filter */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-3 bg-white p-4 rounded-xl shadow-sm">
-        <input
-          type="text"
-          placeholder="Search projects..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full md:w-1/2 border border-gray-200 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 outline-none"
-        />
-        <button className="flex items-center gap-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100">
-          <Filter size={16} /> Filters
-        </button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
+        <div className="relative w-full md:w-9/10">
+          <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+
+          <input
+            type="text"
+            placeholder="Search Project..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <Filter size={16} /> Filters
+          </button>
+        </div>
       </div>
 
       {/* Table Section */}
@@ -170,10 +175,10 @@ const Project: React.FC = () => {
         )}
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left border-collapse">
+        <div className="overflow-x-auto border border-gray-200 rounded-xl">
+          <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
-              <tr>
+              <tr className="whitespace-nowrap">
                 <th className="p-3">
                   <input
                     type="checkbox"
@@ -189,7 +194,7 @@ const Project: React.FC = () => {
                 <th className="p-3">Progress</th>
                 <th className="p-3">Budget</th>
                 <th className="p-3">Cost</th>
-                <th className="p-3">Start Date</th>
+                <th className="p-3 w-[">Start Date</th>
                 <th className="p-3">End Date</th>
               </tr>
             </thead>

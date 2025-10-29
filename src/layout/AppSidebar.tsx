@@ -18,6 +18,8 @@ import {
   CreditCard,
   File,
   Folder,
+  FolderGit2,
+  FolderKanban,
   House,
   LayoutDashboard,
   NotebookText,
@@ -49,17 +51,17 @@ const navItems: NavItem[] = [
     path: "/",
   },
   {
-    icon: <Folder />,
+    icon: <FolderGit2 />,
     name: "Project Control",
     subItems: [
       {
-        icon: <Calculator />,
+        icon: <FolderKanban />,
         name: "Project",
         path: "/project",
         pro: false,
       },
       {
-        icon: <Calculator />,
+        icon: <ChartColumn />,
         name: "Gantt & Scheduling",
         path: "/gantt-scheduling",
         pro: false,

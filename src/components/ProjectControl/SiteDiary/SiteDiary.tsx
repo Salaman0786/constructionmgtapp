@@ -149,8 +149,8 @@ const SiteDiary: React.FC = () => {
       </div>
 
       {/* 2️⃣ Search & Controls Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0]">
-        <div className="relative w-full md:w-1/2">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
+        <div className="relative w-full md:w-9/10">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
 
           <input
