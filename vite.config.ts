@@ -20,7 +20,7 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
     allowedHosts: [
-      "https://construction-ui-stg.addisababadbohra.com", // 👈 your staging domain
+      "construction-ui-stg.addisababadbohra.com", // 👈 your staging domain
       ".addisabadbohra.com", // optional wildcard for subdomains
       "localhost",
       "127.0.0.1",
