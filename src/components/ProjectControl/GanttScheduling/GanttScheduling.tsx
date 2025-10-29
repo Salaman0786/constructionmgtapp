@@ -3,7 +3,7 @@ import { Calendar, Download, Filter } from "lucide-react";
 
 const GanttScheduling: React.FC = () => {
   return (
-    <div className="p-6 bg-white min-h-screen">
+    <div className="bg-white min-h-screen">
       {/* 1️⃣ Heading Section */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -16,11 +16,11 @@ const GanttScheduling: React.FC = () => {
         </div>
 
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border rounded-xl text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100">
+          <button className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-100">
             <Calendar size={16} />
             Today
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium shadow-sm hover:bg-indigo-700">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#4b0082] text-white rounded-lg text-sm font-medium shadow-sm hover:bg-indigo-700">
             <Download size={16} />
             Export
           </button>
@@ -28,30 +28,26 @@ const GanttScheduling: React.FC = () => {
       </div>
 
       {/* 2️⃣ Search + Filters Section */}
-      <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-center justify-between">
+      <div className="bg-white rounded-xl border border-[f0f0f0] shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-center justify-between">
         <input
           type="text"
           placeholder="Search projects..."
-          className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="flex-1 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-        <select className="border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <select className="border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <option>PRJ-001 - Residential Complex Phase 1</option>
           <option>PRJ-002 - Office Tower</option>
           <option>PRJ-003 - Shopping Plaza</option>
         </select>
-        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100">
+        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
           <Filter size={16} />
           Filters
         </button>
       </div>
 
       {/* 3️⃣ Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <p className="text-gray-600 text-sm mb-6">
-          <strong>Lorem Ipsum</strong> is simply dummy text of the printing.
-        </p>
-
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="overflow-x-auto border border-gray-200 rounded-xl">
           <table className="min-w-full text-sm border-collapse">
             <thead>
               <tr className="border-b bg-gray-50 text-left text-gray-600">
@@ -127,27 +123,30 @@ const GanttScheduling: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-between items-center mt-6 text-sm text-gray-600">
-          <p>Showing 1 to 4 of 10 results</p>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1 border rounded-md hover:bg-gray-100">
-              &lt;
-            </button>
-            {[1, 2, 3, 4, 5].map((page) => (
-              <button
-                key={page}
-                className={`px-3 py-1 rounded-md ${
-                  page === 1
-                    ? "bg-indigo-600 text-white"
-                    : "border hover:bg-gray-100"
-                }`}
-              >
-                {page}
+        <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm sm:text-base">
+            Showing 1 to 4 of 10 results
+          </span>
+
+          <div>
+            <div className="flex items-center space-x-2 ">
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                «
               </button>
-            ))}
-            <button className="px-3 py-1 border rounded-md hover:bg-gray-100">
-              &gt;
-            </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              <div>...</div>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                ›
+              </button>
+
+              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                »
+              </button>
+            </div>
           </div>
         </div>
       </div>
