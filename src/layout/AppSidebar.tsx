@@ -11,6 +11,10 @@ import {
 } from "../icons";
 import {
   Box,
+  ShoppingCart,
+  FileQuestion,
+  FileText,
+  Package,
   Calculator,
   Car,
   ChartColumn,
@@ -68,6 +72,37 @@ const navItems: NavItem[] = [
         icon: <SquareCheckBig />,
         name: "Task Assignment",
         path: "/task-assignment",
+        pro: false,
+      },
+    ],
+  },
+  /*Procrument */
+  {
+    icon: <ShoppingCart />,
+    name: "Procurement",
+    subItems: [
+      {
+        icon: <ShoppingCart />,
+        name: "Purchase Request",
+        path: "/purchase-request",
+        pro: false,
+      },
+      {
+        icon: <FileQuestion />,
+        name: "Request for Quotation",
+        path: "/request-for-quotation",
+        pro: false,
+      },
+      {
+        icon: <FileText />,
+        name: "Purchase Orders",
+        path: "/purchase-orders",
+        pro: false,
+      },
+      {
+        icon: <Package />,
+        name: "Goods Received Note",
+        path: "/goods-received-note",
         pro: false,
       },
     ],

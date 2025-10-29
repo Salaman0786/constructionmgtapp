@@ -31,6 +31,10 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import AdminLogin from "./pages/AuthPages/AdminLogin";
 import SiteDiary from "./components/ProjectControl/SiteDiary/SiteDiary";
 import TaskAssignment from "./components/ProjectControl/TaskAssignment/TaskAssignment";
+import PurchaseRequest from "./components/Procurement/PurchaseRequest/PurchaseRequest";
+import RequestForQuotation from "./components/Procurement/RequestForQuotation/RequestForQuotation";
+import PurchaseOrders from "./components/Procurement/PurchaseOrders/PurchaseOrders";
+import GoodsReceivedNote from "./components/Procurement/GoodsReceivedNote/GoodsReceivedNote";
 
 export default function App() {
   return (
@@ -64,6 +68,12 @@ export default function App() {
             <Route path="/boq" element={<BOQ />} />
             <Route path="/site-diary" element={<SiteDiary />} />
             <Route path="/task-assignment" element={<TaskAssignment />} />
+
+            {/*  Procurement */}
+              <Route path="/purchase-request" element={<PurchaseRequest />} />
+            <Route path="/request-for-quotation" element={<RequestForQuotation />} />
+            <Route path="/purchase-orders" element={<PurchaseOrders />} />
+            <Route path="/goods-received-note" element={<GoodsReceivedNote/>} />
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />
