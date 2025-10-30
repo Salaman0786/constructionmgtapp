@@ -157,7 +157,7 @@ export const InvestorsTab: React.FC = () => {
         <div className="overflow-x-auto border border-gray-200 rounded-xl">
           <table className="min-w-full text-sm border-collapse">
             <thead>
-              <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
+              <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
                 {/* <th className="p-3">
                 <input
                   type="checkbox"

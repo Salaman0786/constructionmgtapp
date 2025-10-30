@@ -31,7 +31,7 @@ const AddInvoice: React.FC<AddInvoiceModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+      <div className="relative bg-white rounded-lg shadow-lg w-full max-w-[350px] sm:max-w-lg p-6 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center border-b pb-3">
           <h2 className="text-lg font-semibold text-gray-800">

@@ -203,14 +203,6 @@ export const PaymentsTab: React.FC = () => {
           <table className="min-w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
-                {/* <th className="p-3">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  className="accent-purple-700"
-                  onChange={(e) => selectAll(e.target.checked)}
-                />
-              </th> */}
                 <th className="p-3">
                   <input
                     type="checkbox"
@@ -233,7 +225,7 @@ export const PaymentsTab: React.FC = () => {
                 <th className="p-3">Date</th>
                 <th className="p-3">Status</th>
                 <th className="p-3">Remaining</th>
-                <th className="p-3"></th>
+                <th className="p-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -268,16 +260,6 @@ export const PaymentsTab: React.FC = () => {
                     </div>
                   </td>
                   <td className="p-3 text-gray-700">{user.name}</td>
-                  {/* <td className="p-3">
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {user.amount}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {user.subAmount}
-                      </div>
-                    </div>
-                  </td> */}
                   <td className="p-3 text-gray-700">{user.amount}</td>
                   <td className="p-3">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#e6d6f5] text-[#4b0082]">
@@ -291,8 +273,8 @@ export const PaymentsTab: React.FC = () => {
                     <span
                       className={`text-xs font-medium px-2 py-1 rounded-full ${
                         user.status === "Pending"
-                          ? "bg-[#e6d6f5] text-[#4b0082]" // light background, dark text
-                          : "bg-[#4b0082] text-white" // solid indigo background
+                          ? "bg-[#e6d6f5] text-[#4b0082]"
+                          : "bg-[#4b0082] text-white"
                       }`}
                     >
                       {user.status}
@@ -301,14 +283,14 @@ export const PaymentsTab: React.FC = () => {
                   <td
                     className={`text-xl font-medium p-3 rounded-full bg-white ${
                       user.remaining === "$0"
-                        ? "text-green-700" // light background, dark text
-                        : "text-orange-700" // solid indigo background
+                        ? "text-green-700"
+                        : "text-orange-700"
                     }`}
                   >
                     {user.remaining}
                   </td>
-                  {/* Action menu */}
-                  <td className="relative p-3 text-right">
+
+                  <td className="relative p-3">
                     <button
                       onClick={() =>
                         setActiveMenuId(
@@ -339,6 +321,132 @@ export const PaymentsTab: React.FC = () => {
             </tbody>
           </table>
         </div>
+        {/* <div className="overflow-x-auto border border-gray-200 rounded-xl scrollbar-thin scrollbar-thumb-gray-300">
+          <table className="min-w-max text-sm border-collapse table-fixed w-full">
+            <thead>
+              <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
+                <th className="p-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.length === users.length}
+                    onChange={() =>
+                      setSelectedIds(
+                        selectedIds.length === users.length
+                          ? []
+                          : users.map((u) => u.id)
+                      )
+                    }
+                    className="accent-purple-700"
+                  />
+                </th>
+                <th className="p-3 w-[160px]">Payment</th>
+                <th className="p-3 w-[120px]">Investor</th>
+                <th className="p-3 w-[120px]">Amount</th>
+                <th className="p-3 w-[120px]">Method</th>
+                <th className="p-3 w-[150px]">Reference</th>
+                <th className="p-3 w-[100px]">Date</th>
+                <th className="p-3 w-[100px]">Status</th>
+                <th className="p-3 w-[100px]">Remaining</th>
+                <th className="p-3 w-[80px]">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {users.map((user) => (
+                <tr
+                  key={user.id}
+                  className={`border-b border-gray-100 hover:bg-gray-50 transition ${
+                    selectedIds.includes(user.id) ? "bg-purple-50" : ""
+                  }`}
+                >
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(user.id)}
+                      onChange={() => toggleSelect(user.id)}
+                      className="accent-purple-700"
+                    />
+                  </td>
+                  <td className="p-3 w-[160px]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
+                        <CreditCard size={16} />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {user.paymentId}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {user.invoiceNo}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-3 w-[120px] text-gray-700">{user.name}</td>
+                  <td className="p-3 w-[120px] text-gray-700">{user.amount}</td>
+                  <td className="p-3 w-[120px]">
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#e6d6f5] text-[#4b0082]">
+                      {user.method}
+                    </span>
+                  </td>
+                  <td className="p-3 w-[150px] text-gray-700">
+                    {user.reference}
+                  </td>
+                  <td className="p-3 w-[100px] text-gray-700">{user.date}</td>
+                  <td className="p-3 w-[100px]">
+                    <span
+                      className={`text-xs font-medium px-2 py-1 rounded-full ${
+                        user.status === "Pending"
+                          ? "bg-[#e6d6f5] text-[#4b0082]"
+                          : "bg-[#4b0082] text-white"
+                      }`}
+                    >
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="p-3 w-[100px] text-xl font-medium rounded-full bg-white">
+                    <span
+                      className={
+                        user.remaining === "$0"
+                          ? "text-green-700"
+                          : "text-orange-700"
+                      }
+                    >
+                      {user.remaining}
+                    </span>
+                  </td>
+                  <td className="relative p-3 w-[80px] ">
+                    <button
+                      onClick={() =>
+                        setActiveMenuId(
+                          activeMenuId === user.id ? null : user.id
+                        )
+                      }
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <MoreHorizontal size={18} />
+                    </button>
+
+                    {activeMenuId === user.id && (
+                      <div
+                        ref={menuRef}
+                        className="absolute right-0 top-8 w-28 bg-white border border-gray-200 rounded-md shadow-md z-10"
+                      >
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 size={16} /> Delete
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div> */}
+
         <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <span className="text-sm sm:text-base">
             Showing 1 to 3 of 10 results

@@ -170,7 +170,7 @@ export const VendorsTab: React.FC = () => {
         <div className="overflow-x-auto border border-gray-200 rounded-xl">
           <table className="min-w-full text-sm border-collapse">
             <thead>
-              <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
+              <tr className="border-b border-gray-200 text-left whitespace-nowrap text-gray-700 bg-gray-50">
                 {/* <th className="p-3">
                 <input
                   type="checkbox"
@@ -193,10 +193,10 @@ export const VendorsTab: React.FC = () => {
                     className="accent-purple-700"
                   />
                 </th>
-                <th className="p-3">Vendor Name</th>
-                <th className="p-3">Type</th>
-                <th className="p-3">Contact</th>
-                <th className="p-3">Tax ID</th>
+                <th className="p-3 w-[200px]">Vendor Name</th>
+                <th className="p-3 w-[100px]">Type</th>
+                <th className="p-3 w-[200px]">Contact</th>
+                <th className="p-3 w-[200px]">Tax ID</th>
                 <th className="p-3">Status</th>
                 <th className="p-3">Contracts</th>
                 <th className="p-3">Total Value</th>
@@ -207,7 +207,7 @@ export const VendorsTab: React.FC = () => {
               {users.map((user) => (
                 <tr
                   key={user.id}
-                  className={`border-b border-gray-100 hover:bg-gray-50 transition ${
+                  className={`border-b border-gray-100 hover:bg-gray-50 transition  ${
                     selectedIds.includes(user.id) ? "bg-purple-50" : ""
                   }`}
                 >
@@ -219,7 +219,7 @@ export const VendorsTab: React.FC = () => {
                       className="accent-purple-700"
                     />
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 w-[200px]">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
                         {user.vendor.charAt(0)}
@@ -232,12 +232,12 @@ export const VendorsTab: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 w-[100px]">
                     <span className="text-xs font-medium px-2 py-1 rounded-full bg-[#e6d6f5] text-[#4b0082]">
                       {user.type}
                     </span>
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 w-[200px]">
                     <div className="flex-col items-center  gap-2">
                       <div className="flex items-center gap-2">
                         <div className="font-medium text-gray-700">
@@ -257,7 +257,7 @@ export const VendorsTab: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="p-3 text-gray-700">
+                  <td className="p-3 text-gray-700 w-[200px]">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-gray-700">
                         <File size={12} />

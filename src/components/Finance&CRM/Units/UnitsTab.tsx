@@ -205,7 +205,7 @@ export const UnitsTab: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto border border-gray-200 rounded-xl relative">
-          <table className="min-w-full text-sm border-collapse">
+          <table className="min-w-full table-fixed text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
                 <th className="p-3">
@@ -216,7 +216,7 @@ export const UnitsTab: React.FC = () => {
                     onChange={(e) => selectAll(e.target.checked)}
                   />
                 </th>
-                <th className="p-3">Unit</th>
+                <th className="p-3 w-[150px]">Unit</th>
                 <th className="p-3">Type</th>
                 <th className="p-3">Area</th>
                 <th className="p-3">Price</th>
@@ -243,7 +243,7 @@ export const UnitsTab: React.FC = () => {
                     />
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-3 w-[150px]">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
                         <House size={16} />

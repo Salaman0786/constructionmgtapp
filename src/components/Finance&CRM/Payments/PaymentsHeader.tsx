@@ -23,10 +23,10 @@ const PaymentsHeader: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   return (
     <div>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div>
           <h1 className="text-lg font-semibold text-gray-900">Payments</h1>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-gray-500">
             Track and manage invoice payments
           </p>
         </div>

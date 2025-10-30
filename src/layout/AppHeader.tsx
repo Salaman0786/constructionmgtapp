@@ -5,6 +5,8 @@ import { useSidebar } from "../context/SidebarContext";
 // import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 // import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
+import NotificationDropdown from "../components/header/NotificationDropdown";
+import { Filter, Search } from "lucide-react";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -82,8 +84,18 @@ const AppHeader: React.FC = () => {
             )}
             {/* Cross Icon */}
           </button>
-
-          <Link to="/" className="lg:hidden">
+          <div className="relative w-full hidden sm:block">
+            <Search className="absolute left-3 top-2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="w-full pl-10 pr-4 py-2 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+            />
+          </div>
+          <div className="font-semibold text-lg sm:hidden text-[#4b0082]">
+            Addis Ababa Jamaat
+          </div>
+          {/* <Link to="/" className="lg:hidden">
             <img
               className="dark:hidden"
               src="./images/logo/logo.svg"
@@ -94,7 +106,7 @@ const AppHeader: React.FC = () => {
               src="./images/logo/logo-dark.svg"
               alt="Logo"
             />
-          </Link>
+          </Link> */}
 
           <button
             onClick={toggleApplicationMenu}
@@ -151,6 +163,7 @@ const AppHeader: React.FC = () => {
             </form>
           </div> */}
         </div>
+
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
@@ -164,6 +177,7 @@ const AppHeader: React.FC = () => {
             {/* <!-- Notification Menu Area --> */}
           </div>
           {/* <!-- User Area --> */}
+          <NotificationDropdown />
           <UserDropdown />
         </div>
       </div>

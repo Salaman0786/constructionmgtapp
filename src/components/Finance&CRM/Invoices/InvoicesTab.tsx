@@ -184,14 +184,6 @@ export const InvoicesTab: React.FC = () => {
           <table className="min-w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
-                {/* <th className="p-3">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  className="accent-purple-700"
-                  onChange={(e) => selectAll(e.target.checked)}
-                />
-              </th> */}
                 <th className="p-3">
                   <input
                     type="checkbox"
@@ -206,14 +198,14 @@ export const InvoicesTab: React.FC = () => {
                     className="accent-purple-700"
                   />
                 </th>
-                <th className="p-3">Invoice</th>
+                <th className="p-3 w-[200px]">Invoice</th>
                 <th className="p-3">Unit</th>
                 <th className="p-3">Amount</th>
                 <th className="p-3">Status</th>
                 <th className="p-3">Issue Date</th>
                 <th className="p-3">Due Date</th>
                 <th className="p-3">Paid/Remaining</th>
-                <th className="p-3"></th>
+                <th className="p-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -232,7 +224,7 @@ export const InvoicesTab: React.FC = () => {
                       className="accent-purple-700"
                     />
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 w-[200px]">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
                         {user.name.charAt(0)}
@@ -261,8 +253,8 @@ export const InvoicesTab: React.FC = () => {
                     <span
                       className={`text-xs font-medium px-2 py-1 rounded-full ${
                         user.status === "PARTIAL"
-                          ? "bg-[#e6d6f5] text-[#4b0082]" // light background, dark text
-                          : "bg-[#4b0082] text-white" // solid indigo background
+                          ? "bg-[#e6d6f5] text-[#4b0082]"
+                          : "bg-[#4b0082] text-white"
                       }`}
                     >
                       {user.status}
@@ -282,8 +274,7 @@ export const InvoicesTab: React.FC = () => {
                     </div>
                   </td>
 
-                  {/* Action menu */}
-                  <td className="relative p-3 text-right">
+                  <td className="relative p-3">
                     <button
                       onClick={() =>
                         setActiveMenuId(
