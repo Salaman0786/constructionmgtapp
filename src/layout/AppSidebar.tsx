@@ -10,6 +10,7 @@ import {
   PlugInIcon,
 } from "../icons";
 import {
+  BadgeDollarSign,
   Box,
   Building2,
   Calculator,
@@ -27,6 +28,7 @@ import {
   ReceiptText,
   Settings,
   SquareCheckBig,
+  TrendingUp,
   UserRoundCog,
   Users,
 } from "lucide-react";
@@ -119,6 +121,18 @@ const navItems: NavItem[] = [
         icon: <CreditCard />,
         name: "Payments",
         path: "/payments",
+        pro: false,
+      },
+      {
+        icon: <TrendingUp />,
+        name: "Cash Flow Projection",
+        path: "/cash-flow-projection",
+        pro: false,
+      },
+      {
+        icon: <BadgeDollarSign />,
+        name: "Budget vs Actual",
+        path: "/budget-actual",
         pro: false,
       },
     ],

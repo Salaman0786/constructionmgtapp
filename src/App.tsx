@@ -35,6 +35,8 @@ import Payments from "./components/Finance&CRM/Payments/Payments";
 
 import Project from "./components/ProjectControl/Project/Project";
 import GanttScheduling from "./components/ProjectControl/GanttScheduling/GanttScheduling";
+import CashFlowProjection from "./components/Finance&CRM/CashFlowProjection/CashFlowProjection";
+import BudgetActual from "./components/Finance&CRM/Budget&Actual/BudgetActual";
 
 export default function App() {
   return (
@@ -71,6 +73,20 @@ export default function App() {
             <Route path="/project" element={<Project />} />
             <Route path="/site-diary" element={<SiteDiary />} />
             <Route path="/task-assignment" element={<TaskAssignment />} />
+
+            {/* Project Control */}
+
+            <Route path="/investors" element={<Investors />} />
+            <Route path="/vendors" element={<Vendors />} />
+            <Route path="/invoices" element={<Invoices />} />
+            <Route path="/payments" element={<Payments />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/units" element={<Units />} />
+            <Route
+              path="/cash-flow-projection"
+              element={<CashFlowProjection />}
+            />
+            <Route path="/budget-actual" element={<BudgetActual />} />
 
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />

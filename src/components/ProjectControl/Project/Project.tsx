@@ -115,19 +115,22 @@ const Project: React.FC = () => {
   return (
     <div className="space-y-6 bg-white min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-800">Project</h1>
           <p className="text-sm text-gray-500">
             Manage construction projects and track progress
           </p>
         </div>
-        <button
-          className="flex items-center gap-1 bg-[#4b0082] text-white text-xs sm:text-sm px-3 py-2 rounded-md hover:bg-purple-800"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Plus size={18} /> Create Project
-        </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
+          >
+            <Plus size={18} /> Create Project
+          </button>
+        </div>
       </div>
 
       {/* Search and Filter */}
