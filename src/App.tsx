@@ -31,12 +31,18 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import AdminLogin from "./pages/AuthPages/AdminLogin";
 import SiteDiary from "./components/ProjectControl/SiteDiary/SiteDiary";
 import TaskAssignment from "./components/ProjectControl/TaskAssignment/TaskAssignment";
+
 import Payments from "./components/Finance&CRM/Payments/Payments";
 
 import Project from "./components/ProjectControl/Project/Project";
 import GanttScheduling from "./components/ProjectControl/GanttScheduling/GanttScheduling";
 import CashFlowProjection from "./components/Finance&CRM/CashFlowProjection/CashFlowProjection";
 import BudgetActual from "./components/Finance&CRM/Budget&Actual/BudgetActual";
+
+import PurchaseRequest from "./components/Procurement/PurchaseRequest/PurchaseRequest";
+import RequestForQuotation from "./components/Procurement/RequestForQuotation/RequestForQuotation";
+import PurchaseOrders from "./components/Procurement/PurchaseOrders/PurchaseOrders";
+import GoodsReceivedNote from "./components/Procurement/GoodsReceivedNote/GoodsReceivedNote";
 
 export default function App() {
   return (
@@ -47,7 +53,6 @@ export default function App() {
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
             <Route index path="/" element={<Dashboard />} />
-
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/admin_panel" element={<AdminPanel />} />
@@ -60,22 +65,17 @@ export default function App() {
             <Route path="/units" element={<Units />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/reports" element={<Reports />} />
-
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
-
             {/* Tables */}
             <Route path="/basic-tables" element={<BasicTables />} />
             {/* Project Control */}
-
             <Route path="/boq" element={<BOQ />} />
             <Route path="/gantt-scheduling" element={<GanttScheduling />} />
             <Route path="/project" element={<Project />} />
             <Route path="/site-diary" element={<SiteDiary />} />
             <Route path="/task-assignment" element={<TaskAssignment />} />
-
             {/* Project Control */}
-
             <Route path="/investors" element={<Investors />} />
             <Route path="/vendors" element={<Vendors />} />
             <Route path="/invoices" element={<Invoices />} />
@@ -87,7 +87,18 @@ export default function App() {
               element={<CashFlowProjection />}
             />
             <Route path="/budget-actual" element={<BudgetActual />} />
-
+            {/*  Procurement */}
+            <Route path="/purchase-request" element={<PurchaseRequest />} />
+            <Route
+              path="/request-for-quotation"
+              element={<RequestForQuotation />}
+            />
+            <Route path="/purchase-orders" element={<PurchaseOrders />} />
+            <Route
+              path="/goods-received-note"
+              element={<GoodsReceivedNote />}
+            />
+            feature/Procurement-Module
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/avatars" element={<Avatars />} />
@@ -95,7 +106,6 @@ export default function App() {
             <Route path="/buttons" element={<Buttons />} />
             <Route path="/images" element={<Images />} />
             <Route path="/videos" element={<Videos />} />
-
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
