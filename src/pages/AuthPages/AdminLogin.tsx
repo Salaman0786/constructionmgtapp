@@ -1,146 +1,111 @@
 import React, { useState } from "react";
-import { Mail, Eye, EyeOff, Building2 } from "lucide-react";
+import { Mail, Eye, EyeOff, Building2, Clipboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../../app/hooks";
+import { useLoginMutation } from "../../features/auth/api/authApi";
+import { setCredentials } from "../../features/auth/slices/authSlice";
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log(email, password, "all get");
-
-    // Simple static authentication
-    if (email === "admin@addisababa.com" && password === "password123") {
-      setError("");
-      navigate("/"); // redirect to home/dashboard
-    } else {
-      setError("Invalid email or password. Please try again.");
-    }
+  const handleForgotPassword = () => {
+    navigate("/signin/forgot-password");
   };
 
+  const dispatch = useAppDispatch();
+  const [login, { isLoading, error }] = useLoginMutation();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const userData = await login({ email, password }).unwrap();
+      dispatch(setCredentials({ token: userData.token, user: userData.user }));
+    } catch (err) {
+      console.error("Login failed:", err);
+    }
+    navigate("/");
+  };
   return (
-    <div className="flex min-h-screen">
-      {/* Left Section */}
-      <div className="hidden md:flex w-1/2 bg-purple-900 text-white flex-col justify-center px-16">
-        <div className="flex items-center gap-3 mb-8">
+    <div
+      className="min-h-screen bg-cover bg-center flex items-center justify-center"
+      style={{
+        backgroundImage: "url('/backgroundImage.jpg')",
+      }}
+    >
+      <div className="bg-white bg-opacity-95 shadow-lg rounded-2xl p-8 max-w-xs w-full sm:max-w-md mx-2 ">
+        <div className="flex items-center justify-center gap-1 mb-5">
           <div className="bg-white/20 p-3 rounded-xl">
-            <Building2 className="w-8 h-8 text-white" />
+            <Building2 className="w-8 h-8 text-purple-700" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">Addis Ababa Jamaat</h2>
-            <p className="text-lg opacity-90">Construction Management</p>
+            <h2 className="text-lg font-semibold">Addis Ababa Jamaat</h2>
+            <p className="text-sm opacity-90">Construction Management</p>
           </div>
         </div>
+        <h2 className="text-center text-lg font-semibold mb-2 text-gray-800">
+          login
+        </h2>
 
-        <h1 className="text-3xl font-bold mb-4">Admin Dashboard</h1>
-        <p className="text-lg leading-relaxed mb-6">
-          Manage your construction projects, track investments, and oversee
-          operations with our comprehensive management system.
-        </p>
+        {/* Heading */}
 
-        <ul className="space-y-3 text-sm">
-          <li className="flex items-center gap-2 text-lg ">
-            <span className="text-yellow-300">•</span> Complete project
-            oversight
-          </li>
-          <li className="flex items-center gap-2 text-lg ">
-            <span className="text-yellow-300">•</span> Financial tracking &
-            reporting
-          </li>
-          <li className="flex items-center gap-2 text-lg ">
-            <span className="text-yellow-300">•</span> Investor & vendor
-            management
-          </li>
-        </ul>
-      </div>
-
-      {/* Right Section */}
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-white">
-        <form
-          onSubmit={handleLogin}
-          className="border rounded-xl shadow-md p-8 max-w-full w-[370px] sm:w-[380px] md:w-[380px] lg:w-[480px]"
-        >
-          <h2 className="text-center text-xl font-semibold mb-2">
-            Admin Login
-          </h2>
-          <p className="text-center text-gray-500 text-lg mb-6">
-            Access the administrative dashboard
-          </p>
-
-          {/* Email */}
-          <label className="block text-lg mb-1 font-medium text-gray-700">
+        {/* Email */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Email
           </label>
-          <div className="relative mb-4">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@addisababa.com"
-              className="w-full border rounded-md px-3 py-2 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-              required
-            />
-            <Mail className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
-          </div>
+          <input
+            type="email"
+            placeholder="Admin@addisababa.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
 
-          {/* Password */}
-          <label className="block text-lg mb-1 font-medium text-gray-700">
+        {/* Password */}
+        <div className="mb-4 relative">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Password
           </label>
-          <div className="relative mb-3">
-            <input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full border rounded-md px-3 py-2 pr-10 text-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-              required
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-2.5 text-gray-400"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeOff className="w-6 h-6" />
-              ) : (
-                <Eye className="w-6 h-6" />
-              )}
-            </button>
-          </div>
-
-          {error && (
-            <p className="text-red-600 text-xs mb-4 text-center">{error}</p>
-          )}
-
-          <a
-            href="#"
-            className="text-base text-purple-700 hover:underline block mb-4 text-right"
-          >
-            Forgot Password?
-          </a>
-
-          {/* Login Button */}
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10"
+          />
           <button
-            type="submit"
-            className="w-full bg-purple-800 text-lg text-white py-2 rounded-md hover:bg-purple-900 transition"
+            type="button"
+            className="absolute right-3 top-8 text-gray-500"
+            onClick={() => setShowPassword(!showPassword)}
           >
-            Login to Admin Dashboard
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
+        </div>
 
-          <div className="text-center mt-4">
-            <button
-              type="button"
-              className="text-base text-gray-500 hover:text-purple-700 transition"
-            >
-              Switch to User Login
-            </button>
-          </div>
-        </form>
+        {/* Remember + Forgot */}
+        <div className="flex items-center justify-between mb-6">
+          <label className="flex items-center text-sm text-gray-600">
+            <input type="checkbox" className="mr-2 accent-purple-700" />
+            Remember me
+          </label>
+          <a
+            onClick={handleForgotPassword}
+            className="text-sm text-purple-600 hover:underline hover:cursor-pointer"
+          >
+            Forgot password
+          </a>
+        </div>
+
+        {/* Login button */}
+        <button
+          className="w-full bg-purple-700 hover:bg-purple-800 text-white py-2 rounded-md font-medium transition duration-200"
+          onClick={handleSubmit}
+        >
+          Login
+        </button>
       </div>
     </div>
   );

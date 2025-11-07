@@ -43,6 +43,11 @@ import PurchaseRequest from "./components/Procurement/PurchaseRequest/PurchaseRe
 import RequestForQuotation from "./components/Procurement/RequestForQuotation/RequestForQuotation";
 import PurchaseOrders from "./components/Procurement/PurchaseOrders/PurchaseOrders";
 import GoodsReceivedNote from "./components/Procurement/GoodsReceivedNote/GoodsReceivedNote";
+import ProjectCostControl from "./components/Finance&CRM/ProjectCostControl/ProjectCostControl";
+import ForgotPassword from "./pages/AuthPages/ForgotPassword";
+import SendOtp from "./pages/AuthPages/SendOtp";
+import ResetPassword from "./pages/AuthPages/ResetPassword";
+import LoginForm from "./features/auth/components/LoginForm";
 
 export default function App() {
   return (
@@ -87,6 +92,10 @@ export default function App() {
               element={<CashFlowProjection />}
             />
             <Route path="/budget-actual" element={<BudgetActual />} />
+            <Route
+              path="/project-cost-control"
+              element={<ProjectCostControl />}
+            />
             {/*  Procurement */}
             <Route path="/purchase-request" element={<PurchaseRequest />} />
             <Route
@@ -113,6 +122,16 @@ export default function App() {
 
           {/* Auth Layout */}
           <Route path="/signin" element={<AdminLogin />} />
+          {/* <Route path="/signin" element={<LoginForm />} /> */}
+          <Route path="/signin/forgot-password" element={<ForgotPassword />} />
+          <Route
+            path="/signin/forgot-password/send-otp"
+            element={<SendOtp />}
+          />
+          <Route
+            path="/signin/forgot-password/send-otp/reset-password"
+            element={<ResetPassword />}
+          />
           <Route path="/signup" element={<SignUp />} />
 
           {/* Fallback Route */}

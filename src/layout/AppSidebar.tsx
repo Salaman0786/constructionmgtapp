@@ -170,6 +170,12 @@ const navItems: NavItem[] = [
         path: "/budget-actual",
         pro: false,
       },
+      {
+        icon: <Calculator />,
+        name: "Project Cost Control",
+        path: "/project-cost-control",
+        pro: false,
+      },
     ],
   },
   // {

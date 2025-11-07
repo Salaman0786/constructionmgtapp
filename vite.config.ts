@@ -24,6 +24,8 @@ export default defineConfig({
       ".addisabadbohra.com", // optional wildcard for subdomains
       "localhost",
       "127.0.0.1",
+      "https://construction-api-stg.addisababadbohra.com/api",
+      "http://localhost:3000/signin",
     ],
   },
 });
