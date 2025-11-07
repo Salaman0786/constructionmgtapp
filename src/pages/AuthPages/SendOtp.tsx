@@ -7,33 +7,13 @@ import {
   useVerifyOTPMutation,
 } from "../../features/auth/api/authApi";
 import { setUserToken } from "../../features/auth/slices/authSlice";
+import { showError, showSuccess } from "../../utils/toast";
 
 const SendOtp: React.FC = () => {
   const { userEmail } = useAppSelector((state) => state.auth);
 
-  console.log(userEmail, "email got");
   const navigate = useNavigate();
   const [forgotPassword, { isLoading, error }] = useForgotPasswordMutation();
-  // const handleChange = (value: string, index: number) => {
-  //   if (!/^[0-9]?$/.test(value)) return; // Only allow numbers
-  //   const newOtp = [...otp];
-  //   newOtp[index] = value;
-  //   setOtp(newOtp);
-
-  //   // Auto focus next input
-  //   if (value && index < 5) {
-  //     inputRefs.current[index + 1]?.focus();
-  //   }
-  // };
-
-  // const handleKeyDown = (
-  //   e: React.KeyboardEvent<HTMLInputElement>,
-  //   index: number
-  // ) => {
-  //   if (e.key === "Backspace" && !otp[index] && index > 0) {
-  //     inputRefs.current[index - 1]?.focus();
-  //   }
-  // };
 
   const [otp, setOtp] = useState<string>(""); // Empty initially
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -79,26 +59,27 @@ const SendOtp: React.FC = () => {
     try {
       const userData = await verifyOTP({ email: userEmail, otp }).unwrap();
       dispatch(setUserToken({ token: userData?.data?.resetToken }));
+      showSuccess("Verify OTP successfully!");
       navigate("/signin/forgot-password/send-otp/reset-password");
     } catch (err) {
-      console.error("Login failed:", err);
+      showError("Failed to verify OTP!");
     }
   };
 
   const handleResendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await forgotPassword({ userEmail }).unwrap();
+      await forgotPassword({ email: userEmail }).unwrap();
+      showSuccess("Resend OTP successfully!");
     } catch (err) {
-      console.error("Login failed:", err);
+      showError("Failed to resend OTP!");
     }
   };
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1600566752471-72ecb5bdf25b?auto=format&fit=crop&w=1920&q=80')", // Replace with your own background
+        backgroundImage: "url('/backgroundImage.jpg')", // Replace with your own background
       }}
     >
       <div className="bg-white bg-opacity-95 shadow-lg rounded-2xl p-8 w-full max-w-md">
@@ -138,7 +119,7 @@ const SendOtp: React.FC = () => {
           className="w-full bg-purple-700 hover:bg-purple-800 text-white py-2 rounded-md font-medium transition duration-200"
           onClick={handleSubmit}
         >
-          Submit
+          {isloadingOTP ? "Submiting.." : "Submit"}
         </button>
 
         {/* Resend OTP */}
@@ -146,7 +127,7 @@ const SendOtp: React.FC = () => {
           className="w-full border border-purple-700 text-purple-700 mt-4 py-2 rounded-md font-medium hover:bg-purple-50 transition duration-200"
           onClick={handleResendOtp}
         >
-          Resend OTP
+          {isLoading ? "Resending OTP" : "Resend OTP"}
         </button>
       </div>
     </div>

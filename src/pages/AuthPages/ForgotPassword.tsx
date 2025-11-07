@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { useAppDispatch } from "../../app/hooks";
 import { useForgotPasswordMutation } from "../../features/auth/api/authApi";
 import { setUserEmail } from "../../features/auth/slices/authSlice";
+import { showError, showSuccess } from "../../utils/toast";
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
@@ -16,10 +17,11 @@ const ForgotPassword: React.FC = () => {
     try {
       await forgotPassword({ email }).unwrap();
       dispatch(setUserEmail({ userEmail: email }));
+      showSuccess("Send OTP to your email id!");
+      navigate("/signin/forgot-password/send-otp");
     } catch (err) {
-      console.error("Login failed:", err);
+      showError("Failed to Send OTP to your email id!");
     }
-    navigate("/signin/forgot-password/send-otp");
   };
   return (
     <div
@@ -68,7 +70,7 @@ const ForgotPassword: React.FC = () => {
           className="w-full bg-purple-700 hover:bg-purple-800 text-white py-2 rounded-md font-medium transition duration-200"
           onClick={handleSubmit}
         >
-          Verify Email
+          {isLoading ? "Verifing Email ..." : "Verify Email"}
         </button>
       </div>
     </div>

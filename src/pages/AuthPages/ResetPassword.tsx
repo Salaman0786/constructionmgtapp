@@ -3,6 +3,7 @@ import { Building2, Clipboard, Eye, EyeOff } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { useResetPasswordMutation } from "../../features/auth/api/authApi";
 import { useNavigate } from "react-router";
+import { showError, showSuccess } from "../../utils/toast";
 
 const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState("");
@@ -22,17 +23,17 @@ const ResetPassword: React.FC = () => {
         newPassword: password,
         confirmPassword: confirmPassword,
       }).unwrap();
+      showSuccess("Successfully set up your new password!");
       navigate("/signin");
     } catch (err) {
-      console.error("Login failed:", err);
+      showError("Failed to set your new password!");
     }
   };
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1600566752471-72ecb5bdf25b?auto=format&fit=crop&w=1920&q=80')", // Replace with your own background image
+        backgroundImage: "url('/backgroundImage.jpg')", // Replace with your own background image
       }}
     >
       <div className="bg-white bg-opacity-95 shadow-lg rounded-2xl p-8 w-full max-w-md">
@@ -106,7 +107,7 @@ const ResetPassword: React.FC = () => {
           className="w-full bg-purple-700 hover:bg-purple-800 text-white py-2 rounded-md font-medium transition duration-200"
           onClick={handleSubmit}
         >
-          Confirm
+          {isLoading ? "Confirming..." : "Confirm"}
         </button>
       </div>
     </div>

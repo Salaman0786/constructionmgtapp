@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../app/hooks";
 import { useLoginMutation } from "../../features/auth/api/authApi";
 import { setCredentials } from "../../features/auth/slices/authSlice";
+import { showError, showSuccess } from "../../utils/toast";
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -22,10 +23,11 @@ const AdminLogin: React.FC = () => {
     try {
       const userData = await login({ email, password }).unwrap();
       dispatch(setCredentials({ token: userData.token, user: userData.user }));
+      showSuccess("Login successful!");
+      navigate("/");
     } catch (err) {
-      console.error("Login failed:", err);
+      showError("Login failed!");
     }
-    navigate("/");
   };
   return (
     <div
@@ -104,7 +106,7 @@ const AdminLogin: React.FC = () => {
           className="w-full bg-purple-700 hover:bg-purple-800 text-white py-2 rounded-md font-medium transition duration-200"
           onClick={handleSubmit}
         >
-          Login
+          {isLoading ? "Logining..." : "Login"}
         </button>
       </div>
     </div>
