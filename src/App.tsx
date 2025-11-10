@@ -17,7 +17,6 @@ import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import AdminPanel from "./components/AdminPanel/AdminPanel";
 import Investors from "./components/Finance&CRM/Investors/Investors";
 import Vendors from "./components/Finance&CRM/vendors/Vendors";
 import Invoices from "./components/Finance&CRM/Invoices/Invoices";
@@ -49,6 +48,10 @@ import SendOtp from "./pages/AuthPages/SendOtp";
 import ResetPassword from "./pages/AuthPages/ResetPassword";
 import LoginForm from "./features/auth/components/LoginForm";
 
+import AdminPanel from "./components/Admin/UserManagement/AdminPanel";
+import RolesAndPermissions from "./components/Admin/Roles&Permissions/RolesAndPermissions";
+import CompanySetting from "./components/Admin/CompanySetting/CompanySetting";
+
 export default function App() {
   return (
     <>
@@ -60,7 +63,6 @@ export default function App() {
             <Route index path="/" element={<Dashboard />} />
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/admin_panel" element={<AdminPanel />} />
             <Route path="/blank" element={<Blank />} />
             <Route path="/investors" element={<Investors />} />
             <Route path="/vendors" element={<Vendors />} />
@@ -107,6 +109,17 @@ export default function App() {
               path="/goods-received-note"
               element={<GoodsReceivedNote />}
             />
+            {/*  Admin */}
+            <Route path="/user-management" element={<AdminPanel />} />
+            <Route
+              path="/roles-and-permissions"
+              element={<RolesAndPermissions />}
+            />
+            <Route path="/company-setting" element={<CompanySetting />} />
+            {/* <Route
+              path="/tally-integration"
+              element={<TallyIntegration />}
+            /> */}
             feature/Procurement-Module
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />

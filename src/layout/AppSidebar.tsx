@@ -35,6 +35,9 @@ import {
   TrendingUp,
   UserRoundCog,
   Users,
+  User,
+  Lock,
+  SettingsIcon
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -243,10 +246,36 @@ const navItems: NavItem[] = [
   //   name: "Calendar",
   //   path: "/calendar",
   // },
-  {
+// Admin
+   {
     icon: <UserRoundCog />,
-    name: "Admin Panel",
-    path: "/admin_panel",
+    name: "Admin",
+    subItems: [
+      {
+        icon: <Users />,
+        name: "User Management",
+        path: "/user-management",
+        pro: false,
+      },
+      {
+        icon: <Lock />,
+        name: "Roles & Permissions",
+        path: "/roles-and-permissions",
+        pro: false,
+      },
+      {
+        icon: <SettingsIcon />,
+        name: "Company Setting",
+        path: "/company-setting",
+        pro: false,
+      },
+      // {
+      //   icon: <Database />,
+      //   name: "Tally Integration",
+      //   path: "/tally-integration",
+      //   pro: false,
+      // },
+    ],
   },
 ];
 

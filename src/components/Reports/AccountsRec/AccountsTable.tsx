@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
-import AddUser from "../../AdminPanel/AddUser";
-
+import AddUser from "../../Admin/UserManagement/AddUser";
 interface User {
   id: number;
   name: string;

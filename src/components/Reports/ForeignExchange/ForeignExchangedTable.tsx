@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import AddUser from "../../AdminPanel/AddUser";
+import AddUser from "../../Admin/UserManagement/AddUser";
 
 interface User {
   id: number;
