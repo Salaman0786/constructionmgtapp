@@ -22,7 +22,7 @@ const AdminLogin: React.FC = () => {
     e.preventDefault();
     try {
       const userData = await login({ email, password }).unwrap();
-      dispatch(setCredentials({ token: userData.token, user: userData.user }));
+      dispatch(setCredentials({ token: userData?.data?.data?.token, user: userData?.data?.data?.user }));
       showSuccess("Login successful!");
       navigate("/");
     } catch (err) {
