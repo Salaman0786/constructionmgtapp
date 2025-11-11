@@ -7,5 +7,5 @@ export default function ProtectedRoute({
   children: JSX.Element;
 }) {
   const token = useAppSelector((state) => state.auth.token);
-  return token ? children : <Navigate to="/login" replace />;
+  return token ? children : <Navigate to="/signin" replace />;
 }
