@@ -120,6 +120,49 @@ const CompanyInformationForm: React.FC = () => {
         Company Information
       </h2>
 
+      {/* 🖼️ Logo Upload Section */}
+      <div className="md:col-span-2 mb-7">
+        <label className="block text-sm font-medium text-[#313131] mb-2">
+          Company Logo
+        </label>
+
+        {/* ✅ Drag & Drop + Click Upload Area */}
+        <label
+          htmlFor="companyLogo"
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          className="w-full flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl bg-[#F8FAFC] py-10 cursor-pointer mb-1 hover:bg-gray-50 transition"
+        >
+          {/* ✅ Logo Preview */}
+          {formData.companyLogoUrl && (
+            <div className="flex justify-center mb-3">
+              <img
+                src={formData.companyLogoUrl}
+                alt="Company Logo Preview"
+                className="h-24 w-24 object-cover rounded-lg border"
+              />
+            </div>
+          )}
+          <UploadCloud className="w-8 h-8 text-gray-400 mb-2" />
+          <p className="text-gray-500 text-center text-sm">
+            Drop your logo here, or click to browse
+          </p>
+          <span className="text-purple-700 text-sm font-medium mt-2">
+            Upload Logo
+          </span>
+        </label>
+
+        {/* Hidden File Input */}
+        <input
+          id="companyLogo"
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="hidden"
+          accept="image/*"
+        />
+      </div>
+
       <form
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-2 gap-6"
@@ -148,50 +191,6 @@ const CompanyInformationForm: React.FC = () => {
             />
           </div>
         ))}
-
-        {/* 🖼️ Logo Upload Section */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-[#313131] mb-1">
-            Company Logo
-          </label>
-
-          {/* ✅ Logo Preview */}
-          {formData.companyLogoUrl && (
-            <div className="flex justify-center mb-3">
-              <img
-                src={formData.companyLogoUrl}
-                alt="Company Logo Preview"
-                className="h-24 w-24 object-cover rounded-lg border"
-              />
-            </div>
-          )}
-
-          {/* ✅ Drag & Drop + Click Upload Area */}
-          <label
-            htmlFor="companyLogo"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className="w-full flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl bg-[#F8FAFC] py-10 cursor-pointer hover:bg-gray-50 transition"
-          >
-            <UploadCloud className="w-8 h-8 text-gray-400 mb-2" />
-            <p className="text-gray-500 text-center text-sm">
-              Drop your logo here, or click to browse
-            </p>
-            <span className="text-purple-700 text-sm font-medium mt-2">
-              Upload Logo
-            </span>
-          </label>
-
-          {/* Hidden File Input */}
-          <input
-            id="companyLogo"
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            className="hidden"
-            accept="image/*"
-          />
-        </div>
 
         {/* 💾 Save Button */}
         <div className="md:col-span-2 flex justify-end">

@@ -14,20 +14,151 @@ interface RoleData {
 }
 
 const AddRole: React.FC<AddRoleProps> = ({ isOpen, onClose, onCreateRole }) => {
+  // 🔹 Local States
   const [roleName, setRoleName] = useState("");
   const [description, setDescription] = useState("");
   const [permissions, setPermissions] = useState<string[]>([]);
 
+  // ✅ Define permission groups (later can be fetched from API)
+  const permissionGroups = [
+    {
+      category: "Project Control",
+      items: [
+        "Projects",
+        "Gantt & Scheduling",
+        "Site Diary (DPR)",
+        "BOQ & Estimation",
+        "Task Assignment",
+      ],
+    },
+    {
+      category: "Procurement",
+      items: [
+        "Purchase Request",
+        "Purchase Orders",
+        "Request for Quotation",
+        "Goods Received Note",
+      ],
+    },
+    {
+      category: "Inventory",
+      items: ["Stock Ledger", "Material Issues","Inventory Forecast ", "Reorder Alerts"],
+    },
+    
+      {
+      category: "Audit Logs",
+      items: [
+        "Audit Logs",
+      ],
+    },
+
+     {
+      category: "Contracts & Billing",
+      items: [
+        "Work Orders",
+        "Contractor Billing",
+        "Measurement Book",
+      ],
+    },
+    {
+      category: "Finance & CRM",
+      items: [
+        "Buyers",
+        "Vendors",
+        "My Units",
+        "Invoices",
+        "Payments",
+        "Budget vs Actual",
+        "Project Cost Control",
+        "Cash Flow Projection",
+      ],
+    },
+   
+     {
+      category: "Quality & Safety",
+      items: [
+        "Qa Checklists",
+        "Inspection Reports",
+        "Safety Incidents",
+      ],
+    },
+    {
+      category: "Document & Controls",
+      items: [
+        "Drawings & Revisions",
+        "Submittals",
+        "Request for Information",
+        "Approval Logs",
+      ],
+    },
+    {
+      category: "Reports",
+      items: [
+        "MIS Dashboard",
+        "Procurement Reports",
+        "Inventory Reports",
+        "Project Cost Reports",
+        "AR/AP Summary ",
+      ],
+    },
+    {
+      category: "Admin",
+      items: [
+        "User Management",
+        "Roles & Permissions",
+        "Company Settings",
+        "Tally Integration",
+      ],
+    },
+  ];
+
+  // ✅ Toggle single permission
   const togglePermission = (perm: string) => {
     setPermissions((prev) =>
       prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]
     );
   };
 
+  // ✅ Toggle full group (main permission)
+  const toggleGroup = (group: { category: string; items: string[] }) => {
+    const allSelected = group.items.every((perm) => permissions.includes(perm));
+    if (allSelected) {
+      setPermissions((prev) => prev.filter((p) => !group.items.includes(p)));
+    } else {
+      setPermissions((prev) => [...new Set([...prev, ...group.items])]);
+    }
+  };
+
+  // ✅ Full Access → all permissions
+  const handleFullAccess = () => {
+    const allPerms = permissionGroups.flatMap((g) => g.items);
+    const hasAll = allPerms.every((perm) => permissions.includes(perm));
+
+    if (hasAll && permissions.includes("Full Access")) {
+      setPermissions([]);
+    } else {
+      setPermissions(["Full Access", ...allPerms]);
+    }
+  };
+
+  const isFullAccessActive = permissionGroups
+    .flatMap((g) => g.items)
+    .every((perm) => permissions.includes(perm));
+
+  // ✅ Form submit
   const handleSubmit = () => {
-    if (!roleName || !description)
-      return alert("Please fill all required fields!");
-    onCreateRole({ roleName, description, permissions });
+    if (!roleName.trim() || !description.trim()) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    onCreateRole({
+      roleName,
+      description,
+      permissions,
+    });
+
+    // Reset after creation
     setRoleName("");
     setDescription("");
     setPermissions([]);
@@ -37,175 +168,132 @@ const AddRole: React.FC<AddRoleProps> = ({ isOpen, onClose, onCreateRole }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40">
-      <div className="bg-white w-full max-w-lg rounded-lg shadow-lg relative max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Add New Role</h2>
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40">
+      <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg relative max-h-[90vh] overflow-y-auto">
+        {/* 🔹 Header */}
+        <div className="flex justify-between items-center px-6 py-4 border-b bg-gray-50 sticky top-0">
+          <h2 className="text-lg font-semibold text-gray-800">Add New Role</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 transition"
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-6 py-4 space-y-4">
+        {/* 🔹 Form Body */}
+        <div className="px-6 py-5 space-y-5">
+          {/* Role Name */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1 text-gray-700">
               Role Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={roleName}
               onChange={(e) => setRoleName(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
-              placeholder="Project Manager"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4B0082]"
+              placeholder="e.g. Project Manager"
             />
           </div>
 
+          {/* Description */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1 text-gray-700">
               Description <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600"
-              placeholder="Role description"
+              rows={2}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#4B0082]"
+              placeholder="Describe this role’s purpose or responsibilities..."
             />
           </div>
 
+          {/* Permissions */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium mb-2 text-gray-700">
               Permissions <span className="text-red-500">*</span>
             </label>
-            <div className="space-y-3">
-              <div>
-                <p className="font-medium text-gray-700">System</p>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={permissions.includes("Full Access")}
-                    onChange={() => togglePermission("Full Access")}
-                    className="accent-purple-600"
-                  />
-                  Full Access
-                </label>
-              </div>
 
-              <div>
-                <p className="font-medium text-gray-700">General</p>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={permissions.includes("View All Data")}
-                    onChange={() => togglePermission("View All Data")}
-                    className="accent-purple-600"
-                  />
-                  View All Data
-                </label>
-              </div>
+            {/* Full Access */}
+            <div className="mb-4 border-b border-gray-200 pb-2">
+              <p className="font-medium text-gray-800 mb-1">System</p>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={isFullAccessActive}
+                  onChange={handleFullAccess}
+                  className="accent-purple-600"
+                />
+                <span className="text-gray-700 font-medium">
+                  Full Access (All Modules)
+                </span>
+              </label>
+            </div>
 
-              <div>
-                <p className="font-medium text-gray-700">Financial</p>
-                <div className="space-y-1">
-                  {[
-                    "View Financial Data",
-                    "Manage Invoices",
-                    "Manage Payments",
-                    "Manage Expenses",
-                  ].map((perm) => (
-                    <label key={perm} className="flex items-center gap-2">
+            {/* Permission Groups */}
+            <div className="space-y-5 max-h-[45vh] overflow-y-auto pr-2">
+              {permissionGroups.map((group) => {
+                const allGroupSelected = group.items.every((perm) =>
+                  permissions.includes(perm)
+                );
+
+                return (
+                  <div
+                    key={group.category}
+                    className="border-b border-gray-100 pb-3"
+                  >
+                    {/* Group Header */}
+                    <label className="flex items-center gap-2 mb-1">
                       <input
                         type="checkbox"
-                        checked={permissions.includes(perm)}
-                        onChange={() => togglePermission(perm)}
+                        checked={allGroupSelected}
+                        onChange={() => toggleGroup(group)}
                         className="accent-purple-600"
                       />
-                      {perm}
+                      <p
+                        className={`font-semibold ${
+                          allGroupSelected ? "text-[#4B0082]" : "text-gray-800"
+                        }`}
+                      >
+                        {group.category}
+                      </p>
                     </label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="font-medium text-gray-700">Limited</p>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={permissions.includes("View Own Data Only")}
-                    onChange={() => togglePermission("View Own Data Only")}
-                    className="accent-purple-600"
-                  />
-                  View Own Data Only
-                </label>
-              </div>
-              <div>
-                <p className="font-medium text-gray-700">Admin</p>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={permissions.includes("Manage Users")}
-                    onChange={() => togglePermission("Manage Users")}
-                    className="accent-purple-600"
-                  />
-                  Manage Users
-                </label>
-              </div>
-              <div>
-                <p className="font-medium text-gray-700">Operations</p>
-                <div className="space-y-1">
-                  {[
-                    "Manage Investors",
-                    "Manage Vendors",
-                    "Manage Units",
-                    "Manage Inventory",
-                  ].map((perm) => (
-                    <label key={perm} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={permissions.includes(perm)}
-                        onChange={() => togglePermission(perm)}
-                        className="accent-purple-600"
-                      />
-                      {perm}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="font-medium text-gray-700">Reports</p>
-                <div className="space-y-1">
-                  {["View Reports", "Export Data"].map((perm) => (
-                    <label key={perm} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={permissions.includes(perm)}
-                        onChange={() => togglePermission(perm)}
-                        className="accent-purple-600"
-                      />
-                      {perm}
-                    </label>
-                  ))}
-                </div>
-              </div>
+
+                    {/* Sub Permissions */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 pl-6">
+                      {group.items.map((perm) => (
+                        <label key={perm} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={permissions.includes(perm)}
+                            onChange={() => togglePermission(perm)}
+                            className="accent-purple-600"
+                          />
+                          <span className="text-gray-700 text-sm">{perm}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 px-6 py-4 border-t">
+        {/* 🔹 Footer */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 sticky bottom-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100"
+            className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className="px-5 py-2 rounded-md bg-[#4b0082] text-white hover:bg-[#4b0089]"
+            className="px-5 py-2 rounded-md bg-[#4B0082] text-white font-medium hover:bg-[#4B0089] transition"
           >
             Create Role
           </button>
