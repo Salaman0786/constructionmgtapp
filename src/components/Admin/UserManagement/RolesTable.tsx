@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { Filter, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
 import AddRole from "./AddRole";
 
 interface Role {
@@ -123,32 +123,22 @@ export const RolesTable: React.FC = () => {
       </div>
 
       {/* Search and Actions */}
-      <div className="flex justify-between items-center mb-3 flex-wrap gap-3">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-        />
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 my-4">
+        <div className="relative w-full md:w-9/10">
+          <Search className="absolute left-3 top-3 text-gray-400" size={18} />
 
-        {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-600">
-              {selectedIds.length} item(s) selected
-            </span>
-            <button
-              onClick={handleExportSelected}
-              className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
-            >
-              Export Selected
-            </button>
-            <button
-              onClick={handleDeleteSelected}
-              className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-            >
-              Delete Selected
-            </button>
-          </div>
-        )}
+          <input
+            type="text"
+            placeholder="Search Project..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <Filter size={16} /> Filters
+          </button>
+        </div>
       </div>
 
       {/* Table */}

@@ -8,7 +8,7 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, valueColor }) => {
   return (
-    <div className="flex flex-col justify-between border border-gray-200 rounded-lg shadow-sm p-5 min-w-[110px] min-h-[100px]">
+    <div className="flex flex-col justify-between border border-gray-200 rounded-lg shadow-sm px-4 py-3 min-w-[110px] min-h-[80px]">
       <p className="text-sm text-gray-700 font-medium">{title}</p>
       <p className={`text-lg font-semibold ${valueColor ?? "text-black"}`}>
         {value}

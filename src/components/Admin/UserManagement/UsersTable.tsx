@@ -1,5 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Eye, MoreHorizontal, Plus, SquarePen, Trash2 } from "lucide-react";
+import {
+  Eye,
+  Filter,
+  MoreHorizontal,
+  Plus,
+  Search,
+  SquarePen,
+  Trash2,
+} from "lucide-react";
 import AddUser from "./AddUser";
 import {
   useDeleteUserMutation,
@@ -114,15 +122,23 @@ export const UsersTable: React.FC = () => {
         </button>
       </div>
 
-      {/* Search and Actions */}
-      <div className="flex justify-between items-center mb-3 flex-wrap gap-3">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-        />
-      </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 my-4">
+        <div className="relative w-full md:w-9/10">
+          <Search className="absolute left-3 top-3 text-gray-400" size={18} />
 
+          <input
+            type="text"
+            placeholder="Search Project..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+          />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <Filter size={16} /> Filters
+          </button>
+        </div>
+      </div>
       {/* Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-xl">
         <table className="min-w-full text-sm border-collapse">
@@ -256,7 +272,7 @@ export const UsersTable: React.FC = () => {
                         <button
                           onClick={() => handleEdit(user.id)}
                           disabled={userDetailsLoading}
-                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-orange-600 hover:bg-red-50"
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-600 hover:bg-red-50"
                         >
                           <SquarePen size={16} /> Edit
                         </button>

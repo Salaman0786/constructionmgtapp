@@ -208,7 +208,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
       showSuccess("User created successfully!");
       onClose();
     } catch (error: any) {
-      showError(error?.data?.message || "❌ Failed to create user");
+      showError(error?.data?.message[0] || "❌ Failed to create user");
     }
   };
 
