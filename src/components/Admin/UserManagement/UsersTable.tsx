@@ -24,12 +24,13 @@ import ConfirmModal from "../../common/ConfirmModal";
 export const UsersTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
+  const [page, setPage] = useState(1);
   const { data, isLoading, isError, refetch } = useGetUsersQuery({
-    page: 1,
+    page: page,
     limit: 10,
   });
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
-  const [page, setPage] = useState(1);
+
   const limit = 10;
   const [editUserId, setEditUserId] = useState<string | null>(null);
   const [openEditModal, setOpenEditModal] = useState(false);

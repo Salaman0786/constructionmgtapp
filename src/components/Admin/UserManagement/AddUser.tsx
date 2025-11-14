@@ -207,6 +207,13 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
       await addUser(payload).unwrap();
       showSuccess("User created successfully!");
       onClose();
+      setForm({
+        username: "",
+        email: "",
+        fullName: "",
+        role: "",
+        tempPassword: "",
+      });
     } catch (error: any) {
       showError(error?.data?.message[0] || "❌ Failed to create user");
     }
