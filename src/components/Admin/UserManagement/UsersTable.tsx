@@ -1,71 +1,66 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Plus, SquarePen, Trash2 } from "lucide-react";
 import AddUser from "./AddUser";
-
-interface User {
-  id: number;
-  name: string;
-  role: string;
-  email: string;
-  status: "Active" | "Inactive";
-  position: string;
-  lastLogin: string;
-  created: string;
-}
-
-const usersData: User[] = [
-  {
-    id: 1,
-    name: "admin",
-    email: "admin@addisababa.com",
-    role: "Admin",
-    status: "Active",
-    position: "System Administrator",
-    lastLogin: "05/10/2024",
-    created: "01/01/2024",
-  },
-  {
-    id: 2,
-    name: "site_manager",
-    email: "manager@addisababa.com",
-    role: "Manager",
-    status: "Active",
-    position: "Site Manager",
-    lastLogin: "04/10/2024",
-    created: "15/02/2024",
-  },
-  {
-    id: 3,
-    name: "accountant",
-    email: "accountant@addisababa.com",
-    role: "Staff",
-    status: "Active",
-    position: "Chief Accountant",
-    lastLogin: "03/10/2024",
-    created: "01/03/2024",
-  },
-  {
-    id: 4,
-    name: "investor_portal",
-    email: "investor@example.com",
-    role: "Viewer",
-    status: "Inactive",
-    position: "Investor User",
-    lastLogin: "28/09/2024",
-    created: "10/04/2024",
-  },
-];
+import {
+  useDeleteUserMutation,
+  useGetUserByIdQuery,
+  useGetUsersQuery,
+  useUpdateUserStatusMutation,
+} from "../../../features/user/api/userApi";
+import { formatDateToDDMMYYYY } from "../../../utils/formatDate";
+import Loader from "../../common/Loader";
+import { showError, showInfo, showSuccess } from "../../../utils/toast";
+import EditUser from "./EditUser";
+import ConfirmModal from "../../common/ConfirmModal";
 
 export const UsersTable: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(usersData);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
+  const { data, isLoading, isError, refetch } = useGetUsersQuery({
+    page: 1,
+    limit: 10,
+  });
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const [editUserId, setEditUserId] = useState<string | null>(null);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const { data: userDetails, isLoading: userDetailsLoading } =
+    useGetUserByIdQuery(editUserId!, {
+      skip: !editUserId,
+    });
 
+  const pagination = data?.pagination;
+  const handlePrev = () => {
+    if (page > 1) setPage((p) => p - 1);
+  };
+  const handleDelete = async (userId: string) => {
+    setDeleteId(userId);
+    setOpenConfirm(true);
+    setActiveMenuId(null);
+  };
+  const handleConfirmDelete = async (userId: string) => {
+    if (!deleteId) return;
+    try {
+      await deleteUser(userId).unwrap();
+      showInfo("User deleted successfully!");
+      refetch();
+    } catch (error) {
+      showError(error?.data?.message || "Failed to delete user:");
+    } finally {
+      setOpenConfirm(false);
+      setDeleteId(null);
+    }
+  };
+  const handleNext = () => {
+    if (pagination?.hasNextPage) setPage((p) => p + 1);
+  };
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
 
-  // Close delete popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -81,52 +76,24 @@ export const UsersTable: React.FC = () => {
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
-
-  const handleDelete = (id: number) => {
-    setUsers((prev) => prev.filter((user) => user.id !== id));
+  const handleEdit = (id: string) => {
+    setEditUserId(id);
+    setOpenEditModal(true);
     setActiveMenuId(null);
   };
-  const selectAll = (checked: boolean) => {
-    setSelectedIds(checked ? users.map((u) => u.id) : []);
+
+  const [updateUserStatus, { isLoading: isUpdating }] =
+    useUpdateUserStatusMutation();
+  const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      await updateUserStatus({ id: userId, isActive: !currentStatus }).unwrap();
+      refetch();
+      showSuccess("Updated status successfully!!");
+    } catch (error) {
+      showError("Failed to update status:");
+    }
   };
 
-  const handleDeleteSelected = () => {
-    setUsers((prev) => prev.filter((u) => !selectedIds.includes(u.id)));
-    setSelectedIds([]);
-  };
-
-  const handleExportSelected = () => {
-    const selectedUsers = users.filter((u) => selectedIds.includes(u.id));
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      ["Name,Email,Role,Status,Last Login,Created"]
-        .concat(
-          selectedUsers.map(
-            (u) =>
-              `${u.name},${u.email},${u.role},${u.status},${u.lastLogin},${u.created}`
-          )
-        )
-        .join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "selected_users.csv");
-    document.body.appendChild(link);
-    link.click();
-  };
-
-  const handleToggleStatus = (id: number) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id
-          ? {
-              ...user,
-              status: user.status === "Active" ? "Inactive" : "Active",
-            }
-          : user
-      )
-    );
-  };
   return (
     <div className="p-6">
       {/* Header */}
@@ -154,26 +121,6 @@ export const UsersTable: React.FC = () => {
           placeholder="Search..."
           className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
         />
-
-        {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-600">
-              {selectedIds.length} item(s) selected
-            </span>
-            <button
-              onClick={handleExportSelected}
-              className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
-            >
-              Export Selected
-            </button>
-            <button
-              onClick={handleDeleteSelected}
-              className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-            >
-              Delete Selected
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Table */}
@@ -181,27 +128,8 @@ export const UsersTable: React.FC = () => {
         <table className="min-w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
-              {/* <th className="p-3">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  className="accent-purple-700"
-                  onChange={(e) => selectAll(e.target.checked)}
-                />
-              </th> */}
               <th className="p-3">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.length === users.length}
-                  onChange={() =>
-                    setSelectedIds(
-                      selectedIds.length === users.length
-                        ? []
-                        : users.map((u) => u.id)
-                    )
-                  }
-                  className="accent-purple-700"
-                />
+                <input type="checkbox" className="accent-purple-700" />
               </th>
               <th className="p-3">User</th>
               <th className="p-3">Email</th>
@@ -209,154 +137,221 @@ export const UsersTable: React.FC = () => {
               <th className="p-3">Status</th>
               <th className="p-3">Last Login</th>
               <th className="p-3">Created</th>
-              <th className="p-3"></th>
+              <th className="p-3">Action</th>
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
-              <tr
-                key={user.id}
-                className={`border-b border-gray-100 hover:bg-gray-50 transition ${
-                  selectedIds.includes(user.id) ? "bg-purple-50" : ""
-                }`}
-              >
-                <td className="p-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(user.id)}
-                    onChange={() => toggleSelect(user.id)}
-                    className="accent-purple-700"
-                  />
-                </td>
-                <td className="p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
-                      {user.name.charAt(0)}
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {user.name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {user.position}
-                      </div>
-                    </div>
+            {isLoading ? (
+              <tr>
+                <td colSpan={12} className="py-10">
+                  <div className="flex justify-center items-center w-full">
+                    <Loader />
                   </div>
-                </td>
-                <td className="p-3 text-gray-700">{user.email}</td>
-                <td className="p-3">
-                  <span className="text-xs font-medium bg-[#4b0082] text-white px-2 py-1 rounded-full">
-                    {user.role}
-                  </span>
-                </td>
-                {/* <td className="p-3">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        user.status === "Active"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only"
-                        checked={user.status === "Active"}
-                        readOnly
-                      />
-                      <div
-                        className={`w-10 h-5 rounded-full flex justify-center items-center ${
-                          user.status === "Active"
-                            ? "bg-purple-700"
-                            : "bg-gray-300"
-                        }`}
-                      >
-                        <div
-                          className={`w-3.5 h-3.5 mb-0.25 bg-white rounded-full transition-transform duration-300 ${
-                            user.status === "Active"
-                              ? "translate-x-2.5"
-                              : "-translate-x-2.5"
-                          }`}
-                        ></div>
-                      </div>
-                    </label>
-                  </div>
-                </td> */}
-                <td className="p-3">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        user.status === "Active"
-                          ? "bg-[#4b0082] text-white"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
-
-                    {/* Toggle Switch */}
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only"
-                        checked={user.status === "Active"}
-                        onChange={() => handleToggleStatus(user.id)}
-                      />
-                      <div
-                        className={`w-10 h-5 rounded-full flex items-center px-1 transition-colors duration-300 ${
-                          user.status === "Active"
-                            ? "bg-[#4b0082]"
-                            : "bg-gray-300"
-                        }`}
-                      >
-                        <div
-                          className={`w-3.5 h-3.5 mb-0.25 bg-white rounded-full shadow transform transition-transform duration-300 ${
-                            user.status === "Active"
-                              ? "translate-x-5"
-                              : "translate-x-0"
-                          }`}
-                        ></div>
-                      </div>
-                    </label>
-                  </div>
-                </td>
-                <td className="p-3 text-gray-700">{user.lastLogin}</td>
-                <td className="p-3 text-gray-700">{user.created}</td>
-
-                {/* Action menu */}
-                <td className="relative p-3 text-right">
-                  <button
-                    onClick={() =>
-                      setActiveMenuId(activeMenuId === user.id ? null : user.id)
-                    }
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <MoreHorizontal size={18} />
-                  </button>
-
-                  {activeMenuId === user.id && (
-                    <div
-                      ref={menuRef}
-                      className="absolute right-0 top-8 w-28 bg-white border border-gray-200 rounded-md shadow-md z-10"
-                    >
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 size={16} /> Delete
-                      </button>
-                    </div>
-                  )}
                 </td>
               </tr>
-            ))}
+            ) : (
+              data?.data?.users.map((user) => (
+                <tr
+                  key={user.id}
+                  className={`border-b border-gray-100 hover:bg-gray-50 transition ${
+                    selectedIds.includes(user.id) ? "bg-purple-50" : ""
+                  }`}
+                >
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(user.id)}
+                      onChange={() => toggleSelect(user.id)}
+                      className="accent-purple-700"
+                    />
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
+                        {user.fullName.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {user.userName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {user.fullName}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-3 text-gray-700">{user.email}</td>
+                  <td className="p-3">
+                    <span className="text-xs font-medium bg-[#4b0082] text-white px-2 py-1 rounded-full">
+                      {user.role.name}
+                    </span>
+                  </td>
+
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs font-medium px-2 py-1 rounded-full ${
+                          user.isActive
+                            ? "bg-[#4b0082] text-white"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {user.isActive ? "Active" : "Inactive"}
+                      </span>
+
+                      {/* Toggle Switch */}
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          checked={user.isActive}
+                          onChange={() =>
+                            handleToggleStatus(user.id, user.isActive)
+                          }
+                          disabled={isUpdating}
+                        />
+                        <div
+                          className={`w-10 h-5 rounded-full flex items-center px-1 transition-colors duration-300 ${
+                            user.isActive ? "bg-[#4b0082]" : "bg-gray-300"
+                          }`}
+                        >
+                          <div
+                            className={`w-3.5 h-3.5 bg-white rounded-full shadow transform transition-transform duration-300 ${
+                              user.isActive ? "translate-x-5" : "translate-x-0"
+                            }`}
+                          ></div>
+                        </div>
+                      </label>
+                    </div>
+                  </td>
+                  <td className="p-3 text-gray-700">
+                    {formatDateToDDMMYYYY(user.role.updatedAt)}
+                  </td>
+                  <td className="p-3 text-gray-700">
+                    {formatDateToDDMMYYYY(user.role.createdAt)}
+                  </td>
+
+                  {/* Action menu */}
+                  <td className="relative p-3 text-center">
+                    <button
+                      onClick={() =>
+                        setActiveMenuId(
+                          activeMenuId === user.id ? null : user.id
+                        )
+                      }
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <MoreHorizontal size={18} />
+                    </button>
+
+                    {activeMenuId === user.id && (
+                      <div className="absolute right-0 top-8 w-28 bg-white border border-gray-200 rounded-md shadow-md z-10">
+                        {/* <button
+                          onClick={() => handleDelete(user.id)}
+                          disabled={isDeleting}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-800 hover:bg-red-50"
+                        >
+                          <Eye size={16} /> View
+                        </button> */}
+                        <button
+                          onClick={() => handleEdit(user.id)}
+                          disabled={userDetailsLoading}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-orange-600 hover:bg-red-50"
+                        >
+                          <SquarePen size={16} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          disabled={isDeleting}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 size={16} /> Delete
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+        <div className="px-4 py-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <span className="text-sm sm:text-base">
+            {pagination ? (
+              <>
+                Showing{" "}
+                {pagination.total > 0
+                  ? `${(pagination.page - 1) * pagination.limit + 1}`
+                  : "0"}{" "}
+                to{" "}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+                of {pagination.total} results
+              </>
+            ) : (
+              "Loading..."
+            )}
+          </span>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setPage(1)}
+              disabled={page === 1}
+              className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+            >
+              «
+            </button>
+
+            <button
+              onClick={handlePrev}
+              disabled={page === 1}
+              className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+            >
+              ‹
+            </button>
+
+            <span className="px-2 text-sm font-medium">{page}</span>
+
+            <button
+              onClick={handleNext}
+              disabled={!pagination?.hasNextPage}
+              className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+            >
+              ›
+            </button>
+
+            <button
+              onClick={() => setPage(pagination?.totalPages || 1)}
+              disabled={!pagination?.hasNextPage}
+              className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+            >
+              »
+            </button>
+          </div>
+        </div>
       </div>
-      <AddUser isOpen={openModal} onClose={() => setOpenModal(false)} />
+
+      <AddUser
+        isOpen={openModal}
+        onClose={() => {
+          setOpenModal(false);
+          refetch();
+        }}
+      />
+      <EditUser
+        isOpen={openEditModal}
+        userDetails={userDetails?.data?.data}
+        userId={editUserId}
+        onClose={() => {
+          setOpenEditModal(false);
+          refetch();
+        }}
+      />
+      <ConfirmModal
+        open={openConfirm}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setOpenConfirm(false)}
+        title="Delete User?"
+      />
     </div>
   );
 };
