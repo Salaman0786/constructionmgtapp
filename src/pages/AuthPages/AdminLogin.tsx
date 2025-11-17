@@ -3,7 +3,7 @@ import { Mail, Eye, EyeOff, Building2, Clipboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../app/hooks";
 import { useLoginMutation } from "../../features/auth/api/authApi";
-import { setCredentials } from "../../features/auth/slices/authSlice";
+import { setCredentials, setRole } from "../../features/auth/slices/authSlice";
 import { showError, showSuccess } from "../../utils/toast";
 
 const AdminLogin: React.FC = () => {
@@ -26,6 +26,11 @@ const AdminLogin: React.FC = () => {
         setCredentials({
           token: userData?.data?.data?.token,
           user: userData?.data?.data?.user,
+        })
+      );
+      dispatch(
+        setRole({
+          role: userData?.data?.data?.user?.role?.name,
         })
       );
       showSuccess("Login successful!");

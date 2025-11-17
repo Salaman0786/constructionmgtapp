@@ -48,6 +48,8 @@ import Images from "../pages/UiElements/Images";
 import Videos from "../pages/UiElements/Videos";
 import LineChart from "../pages/Charts/LineChart";
 import BarChart from "../pages/Charts/BarChart";
+import RoleProtectedRoute from "../components/common/RoleProtectedRoute";
+import NotAuthorized from "../components/common/NotAuthorized";
 
 export default function AppRoutes() {
   return (
@@ -72,7 +74,17 @@ export default function AppRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route index path="/" element={<Dashboard />} />
+          <Route
+            index
+            path="/"
+            element={
+              <RoleProtectedRoute
+                allowedRoles={["SUPER_ADMIN", "MANAGER", "INVESTOR"]}
+              >
+                <Dashboard />
+              </RoleProtectedRoute>
+            }
+          />
           {/* Others Page */}
           <Route path="/profile" element={<UserProfiles />} />
           <Route path="/blank" element={<Blank />} />
@@ -89,42 +101,178 @@ export default function AppRoutes() {
           {/* Tables */}
           <Route path="/basic-tables" element={<BasicTables />} />
           {/* Project Control */}
-          <Route path="/boq" element={<BOQ />} />
-          <Route path="/gantt-scheduling" element={<GanttScheduling />} />
-          <Route path="/project" element={<Project />} />
-          <Route path="/site-diary" element={<SiteDiary />} />
-          <Route path="/task-assignment" element={<TaskAssignment />} />
+          <Route
+            path="/boq"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <BOQ />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/gantt-scheduling"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <GanttScheduling />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/project"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <Project />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/site-diary"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <SiteDiary />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/task-assignment"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <TaskAssignment />
+              </RoleProtectedRoute>
+            }
+          />
           {/* Project Control */}
-          <Route path="/investors" element={<Investors />} />
-          <Route path="/vendors" element={<Vendors />} />
-          <Route path="/invoices" element={<Invoices />} />
-          <Route path="/payments" element={<Payments />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/units" element={<Units />} />
+          <Route
+            path="/investors"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <Investors />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendors"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <Vendors />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/invoices"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "INVESTOR"]}>
+                <Invoices />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/payments"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "INVESTOR"]}>
+                <Payments />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/expenses"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <Expenses />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/units"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "INVESTOR"]}>
+                <Units />
+              </RoleProtectedRoute>
+            }
+          />
           <Route
             path="/cash-flow-projection"
-            element={<CashFlowProjection />}
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <CashFlowProjection />{" "}
+              </RoleProtectedRoute>
+            }
           />
-          <Route path="/budget-actual" element={<BudgetActual />} />
+
+          <Route
+            path="/budget-actual"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <BudgetActual />
+              </RoleProtectedRoute>
+            }
+          />
           <Route
             path="/project-cost-control"
-            element={<ProjectCostControl />}
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <ProjectCostControl />
+              </RoleProtectedRoute>
+            }
           />
           {/*  Procurement */}
-          <Route path="/purchase-request" element={<PurchaseRequest />} />
+          <Route
+            path="/purchase-request"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <PurchaseRequest />
+              </RoleProtectedRoute>
+            }
+          />
           <Route
             path="/request-for-quotation"
-            element={<RequestForQuotation />}
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <RequestForQuotation />
+              </RoleProtectedRoute>
+            }
           />
-          <Route path="/purchase-orders" element={<PurchaseOrders />} />
-          <Route path="/goods-received-note" element={<GoodsReceivedNote />} />
+          <Route
+            path="/purchase-orders"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <PurchaseOrders />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/goods-received-note"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <GoodsReceivedNote />
+              </RoleProtectedRoute>
+            }
+          />
           {/*  Admin */}
-          <Route path="/user-management" element={<AdminPanel />} />
+          <Route
+            path="/user-management"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <AdminPanel />
+              </RoleProtectedRoute>
+            }
+          />
           <Route
             path="/roles-and-permissions"
-            element={<RolesAndPermissions />}
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <RolesAndPermissions />
+              </RoleProtectedRoute>
+            }
           />
-          <Route path="/company-setting" element={<CompanySetting />} />
+          <Route
+            path="/company-setting"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <CompanySetting />
+              </RoleProtectedRoute>
+            }
+          />
           {/* <Route
               path="/tally-integration"
               element={<TallyIntegration />}
@@ -143,6 +291,7 @@ export default function AppRoutes() {
         </Route>
 
         <Route path="*" element={<NotFound />} />
+        <Route path="/not-authorized" element={<NotAuthorized />} />
       </Routes>
     </BrowserRouter>
   );

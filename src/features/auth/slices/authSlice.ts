@@ -4,12 +4,14 @@ interface AuthState {
   token: string | null;
   user: any | null;
   userEmail: any | null;
+  role: string | null;
 }
 
 const initialState: AuthState = {
   token: localStorage.getItem("token"),
   user: null,
   userEmail: null,
+  role: null,
 };
 
 const authSlice = createSlice({
@@ -30,6 +32,9 @@ const authSlice = createSlice({
     setUserToken: (state, action: PayloadAction<{ token: string }>) => {
       state.token = action.payload.token;
     },
+    setRole: (state, action: PayloadAction<{ role: string }>) => {
+      state.role = action.payload.role;
+    },
     logout: (state) => {
       state.token = null;
       state.user = null;
@@ -38,6 +43,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, setUserEmail, setUserToken } =
+export const { setCredentials, logout, setUserEmail, setUserToken, setRole } =
   authSlice.actions;
 export default authSlice.reducer;
