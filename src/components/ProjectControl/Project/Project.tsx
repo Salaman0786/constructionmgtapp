@@ -1,73 +1,131 @@
 import React, { useState } from "react";
-import { Plus, Filter, Upload, Trash2, Search } from "lucide-react";
+import {
+  Plus,
+  Filter,
+  Search,
+  Pencil,
+  Trash,
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+  Eye,
+  Trash2,
+  Edit,
+  MoreHorizontal,
+} from "lucide-react";
 import AddProject from "./AddProject";
+import {
+  useGetProjectsQuery,
+  useDeleteProjectsMutation,
+} from "../../../features/projectControll/projectsApi";
+import { useSelector } from "react-redux";
+import { renderShimmer } from "../../common/tableShimmer";
+import { getTwoWordPreview } from "../../../utils/helpers";
+import { formatToYMD } from "../../../utils/helpers";
+import { showError, showSuccess } from "../../../utils/toast";
+import ViewProjectDetailsModal from "./ViewProjectDetailsModal";
+import ConfirmModal from "./DeleteModal";
 
 interface Project {
   id: string;
   name: string;
+  country: string;
+  city: string;
   assignedTo: string;
-  status: string;
-  progress: number;
-  budget: string;
-  cost: string;
   startDate: string;
   endDate: string;
+  status: string;
+  budgetBaseline: number;
+  currency: string;
+  createdAt: string;
 }
 
-const initialProjects: Project[] = [
-  {
-    id: "PRJ-001",
-    name: "Residential Complex Phase 1",
-    assignedTo: "Designer",
-    status: "Active",
-    progress: 43,
-    budget: "$5,000,000",
-    cost: "$2,150,000",
-    startDate: "2024-01-15",
-    endDate: "2025-06-30",
-  },
-  {
-    id: "PRJ-002",
-    name: "Commercial Plaza Development",
-    assignedTo: "Hassan",
-    status: "Active",
-    progress: 20,
-    budget: "$8,500,000",
-    cost: "$1,700,000",
-    startDate: "2024-03-01",
-    endDate: "2025-12-31",
-  },
-  {
-    id: "PRJ-003",
-    name: "Infrastructure Upgrade - Block A",
-    assignedTo: "Ahmed Ali",
-    status: "Active",
-    progress: 79,
-    budget: "$1,200,000",
-    cost: "$2,150,000",
-    startDate: "2023-11-01",
-    endDate: "2024-08-30",
-  },
-  {
-    id: "PRJ-004",
-    name: "Parking Structure",
-    assignedTo: "Sara",
-    status: "Planning",
-    progress: 0,
-    budget: "$2,100,000",
-    cost: "$2,150,000",
-    startDate: "2024-06-01",
-    endDate: "2025-03-31",
-  },
-];
-
 const Project: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
+  console.log(userRole);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false);
+  // Store selected project for deleting
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  //actual filters applied to table
+  const [statusFilter, setStatusFilter] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
 
-  // ✅ Select / Deselect
+  // temporary values inside popup
+  const [tempStart, setTempStart] = useState("");
+  const [tempEnd, setTempEnd] = useState("");
+  const [tempStatus, setTempStatus] = useState("");
+
+  //pagination
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  // RTK Query GET API
+  const { data, isLoading, isError, error, refetch } = useGetProjectsQuery({
+    page,
+    limit,
+    search: searchQuery,
+    status: statusFilter,
+    startDate: startDateFilter,
+    endDate: endDateFilter,
+  });
+
+  const [deleteProjects] = useDeleteProjectsMutation();
+
+  /* 
+  Open delete modal with selected project.
+  This function is triggered when user clicks delete icon.
+*/
+  const openDeleteModal = (project: any) => {
+    setSelectedProject(project);
+    setDeleteModalOpen(true);
+  };
+
+  /*
+  This function is called when user clicks the “Delete” button in the modal.
+  We send projectId + reason to API.
+*/
+  const confirmSingleDelete = async () => {
+    try {
+      await deleteProjects([selectedProject.id]).unwrap();
+      showSuccess("Project deleted successfully!");
+    } catch (err) {
+      console.error("Error :", err);
+      showError("Delete failed");
+    }
+
+    setSingleDeleteConfirmOpen(false);
+  };
+
+  //pagination
+  const pagination = data?.pagination;
+  const totalPages = pagination?.totalPages || 1;
+  const totalItems = pagination?.total || 0;
+
+  const goToFirst = () => setPage(1);
+  const goToLast = () => setPage(totalPages);
+  const goToPrev = () => setPage((prev) => Math.max(prev - 1, 1));
+  const goToNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
+  // Extract projects from API
+  const projects: Project[] = data?.data?.projects || [];
+
+  // Error handling
+  if (isError) {
+    console.error("Error :", (error as any)?.data?.message);
+  }
+
+  // Select / Deselect
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
@@ -75,29 +133,73 @@ const Project: React.FC = () => {
   };
 
   const selectAll = (checked: boolean) => {
-    setSelectedIds(checked ? projects.map((p) => p.id) : []);
+    if (checked) {
+      setSelectedIds(filteredProjects.map((p) => p.id));
+    } else {
+      setSelectedIds([]);
+    }
   };
 
-  // ✅ Delete Selected Projects
-  const handleDeleteSelected = () => {
-    setProjects((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
-    setSelectedIds([]);
+  //status color mapping
+  const getStatusClasses = (status: string) => {
+    switch (status) {
+      case "PLANNING":
+        return "bg-blue-100 text-blue-600"; // Planning = Blue
+      case "ONGOING":
+        return "bg-green-100 text-green-600"; // Active = Green
+      case "COMPLETED":
+        return "bg-purple-100 text-purple-700"; // Completed = Purple
+      case "ON_HOLD":
+        return "bg-yellow-100 text-yellow-600"; // On Hold = Yellow
+      default:
+        return "bg-gray-100 text-gray-600"; // fallback
+    }
   };
 
-  // ✅ Export Selected to CSV
+  const toggleMenu = (id: string) => {
+    setOpenMenuId(openMenuId === id ? null : id);
+  };
+
+  //handle mutiple delete
+  const confirmBulkDelete = async () => {
+    try {
+      await deleteProjects(selectedIds).unwrap();
+      showSuccess("Selected projects deleted successfully!");
+      setSelectedIds([]);
+    } catch (err) {
+      console.error("Error :", err);
+      showError("Failed to delete selected projects");
+    }
+    setBulkDeleteConfirmOpen(false);
+  };
+
+  //handle csv export
   const handleExportSelected = () => {
-    const selectedProjects = projects.filter((p) => selectedIds.includes(p.id));
-    if (selectedProjects.length === 0) return;
+    const selectedProjects = filteredProjects.filter((p) =>
+      selectedIds.includes(p.id)
+    );
+
+    if (selectedProjects.length === 0) {
+      showError("No projects selected for export");
+      return;
+    }
+
+    const csvHeader =
+      "Project Code,Project Name,City,Country,Assigned To,Start Date,End Date,Status,Budget,Currency,Created At";
+
+    const csvRows = selectedProjects
+      .map(
+        (p) =>
+          `${p.code},${p.name},${p.city},${p.country},${
+            p.manager?.fullName || "—"
+          },${formatToYMD(p.startDate)},${formatToYMD(p.endDate)},${p.status},${
+            p.budgetBaseline
+          },${p.currency},${formatToYMD(p.createdAt)}`
+      )
+      .join("\n");
 
     const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [
-        "Project ID,Project Name,Assigned To,Status,Progress,Budget,Cost,Start Date,End Date",
-        ...selectedProjects.map(
-          (p) =>
-            `${p.id},${p.name},${p.assignedTo},${p.status},${p.progress}%,${p.budget},${p.cost},${p.startDate},${p.endDate}`
-        ),
-      ].join("\n");
+      "data:text/csv;charset=utf-8," + csvHeader + "\n" + csvRows;
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -107,10 +209,29 @@ const Project: React.FC = () => {
     link.click();
   };
 
-  // ✅ Filter projects by search
-  const filteredProjects = projects.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Search filter
+  const filteredProjects = projects.filter((p) => {
+    const q = searchQuery.toLowerCase().trim();
+
+    // SEARCH FILTER
+    const matchesSearch =
+      p.name.toLowerCase().includes(q) ||
+      p.code?.toLowerCase().includes(q) ||
+      p.manager?.fullName?.toLowerCase().includes(q);
+
+    // START DATE FILTER
+    const matchesStart =
+      !startDateFilter || new Date(p.startDate) >= new Date(startDateFilter);
+
+    // END DATE FILTER
+    const matchesEnd =
+      !endDateFilter || new Date(p.endDate) <= new Date(endDateFilter);
+
+    // STATUS FILTER
+    const matchesStatus = !statusFilter || p.status === statusFilter;
+
+    return matchesSearch && matchesStart && matchesEnd && matchesStatus;
+  });
 
   return (
     <div className="space-y-6 bg-white min-h-screen">
@@ -123,175 +244,440 @@ const Project: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
-          >
-            <Plus size={18} /> Create Project
-          </button>
-        </div>
+        {userRole === "SUPER_ADMIN" && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setSelectedProjectId(null); // VERY IMPORTANT (forces create mode)
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-1 bg-[#4b0082] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
+            >
+              <Plus size={18} /> Create Project
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Search and Filter */}
+      {/* Search */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
         <div className="relative w-full md:w-9/10">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-
           <input
             type="text"
-            placeholder="Search Project..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+            placeholder="Search by Project Name, Code or Manager..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
+            onChange={(e) => {
+              setPage(1);
+              setSearchQuery(e.target.value);
+            }}
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+        {/* Make ONLY this wrapper relative */}
+        <div className="relative min-w-max">
+          <button
+            onClick={() => {
+              setTempStart(startDateFilter);
+              setTempEnd(endDateFilter);
+              setTempStatus(statusFilter);
+              setFilterOpen(!filterOpen);
+            }}
+            className="flex items-center gap-2 px-4 py-2 border  border-[f0f0f0]  rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
+          >
             <Filter size={16} /> Filters
           </button>
+
+          {filterOpen && (
+            <div className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
+              <h3 className="text-sm font-semibold mb-3">Filter Projects</h3>
+
+              {/* GRID ROW: Start & End date */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Start Date */}
+                <div>
+                  <label className="text-xs text-gray-600">Start Date</label>
+                  <input
+                    type="date"
+                    value={tempStart}
+                    onChange={(e) => setTempStart(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                  />
+                </div>
+
+                {/* End Date */}
+                <div>
+                  <label className="text-xs text-gray-600">End Date</label>
+                  <input
+                    type="date"
+                    value={tempEnd}
+                    onChange={(e) => setTempEnd(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Status Below */}
+              <div className="mt-3">
+                <label className="text-xs text-gray-600">Status</label>
+                <select
+                  value={tempStatus}
+                  onChange={(e) => setTempStatus(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                >
+                  <option value="">All</option>
+                  <option value="PLANNING">Planning</option>
+                  <option value="ONGOING">Ongoing</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="ON_HOLD">On Hold</option>
+                </select>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-between mt-4">
+                <button
+                  className="text-sm text-gray-600 hover:underline"
+                  onClick={() => {
+                    setTempStart("");
+                    setTempEnd("");
+                    setTempStatus("");
+                  }}
+                >
+                  Reset
+                </button>
+
+                <button
+                  className="bg-[#4b0082] text-white text-sm px-4 py-2 rounded-lg"
+                  onClick={() => {
+                    setStartDateFilter(tempStart);
+                    setEndDateFilter(tempEnd);
+                    setStatusFilter(tempStatus);
+                    setFilterOpen(false);
+                  }}
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Table Section */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
-        {/* Export/Delete Toolbar */}
-        {selectedIds.length > 0 && (
-          <div className="flex justify-between items-center mb-4">
-            <p className="text-sm text-gray-600">
-              {selectedIds.length} item(s) selected
-            </p>
-            <div className="flex gap-2">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
+          <div>
+            <h2 className="text-gray-900 font-semibold text-base">
+              Project Tracking Table
+            </h2>
+            {/* <p className="text-sm text-gray-500">
+                Comprehensive management of quantities, costs, and progress
+              </p> */}
+          </div>
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2 text-sm justify-end">
+              <span className="text-gray-600">
+                {selectedIds.length} selected
+              </span>
+
               <button
                 onClick={handleExportSelected}
-                className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200"
+                className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
               >
-                <Upload size={16} /> Export Selected
+                Export Selected
               </button>
+
               <button
-                onClick={handleDeleteSelected}
-                className="flex items-center gap-2 bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200"
+                onClick={() => setBulkDeleteConfirmOpen(true)}
+                className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
               >
-                <Trash2 size={16} /> Delete Selected
+                Delete Selected
               </button>
             </div>
-          </div>
-        )}
-
-        {/* Table */}
+          )}
+        </div>
+        {/* When loading → shimmer */}
         <div className="overflow-x-auto border border-gray-200 rounded-xl">
-          <table className="min-w-full text-sm border-collapse">
+          <table className="min-w-full whitespace-nowrap text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="whitespace-nowrap">
                 <th className="p-3">
                   <input
                     type="checkbox"
-                    checked={selectedIds.length === projects.length}
+                    checked={
+                      filteredProjects.length > 0 &&
+                      selectedIds.length === filteredProjects.length
+                    }
                     onChange={(e) => selectAll(e.target.checked)}
                     className="accent-purple-600"
                   />
                 </th>
-                <th className="p-3">Project ID</th>
-                <th className="p-3">Project Name</th>
-                <th className="p-3">Assigned To</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Progress</th>
-                <th className="p-3">Budget</th>
-                <th className="p-3">Cost</th>
-                <th className="p-3 w-[">Start Date</th>
-                <th className="p-3">End Date</th>
+                <th className="p-3 text-center">S.No.</th>
+                <th className="p-3 text-center">Project ID</th>
+                <th className="p-3 text-center">Project Name</th>
+                <th className="p-3 text-center">Country</th>
+                <th className="p-3 text-center">City</th>
+                <th className="p-3 text-center">Assigned To</th>
+                <th className="p-3 text-center">Start Date</th>
+                <th className="p-3 text-center">End Date</th>
+                <th className="p-3 text-center">Status</th>
+                <th className="p-3 text-center">Budget</th>
+                <th className="p-3 text-center">Currency</th>
+                <th className="p-3 text-center">Created At</th>
+                <th className="p-3 text-center">Action</th>
               </tr>
             </thead>
+
             <tbody>
-              {filteredProjects.map((project) => (
-                <tr
-                  key={project.id}
-                  className={`border-b hover:bg-gray-50 ${
-                    selectedIds.includes(project.id) ? "bg-purple-50" : ""
-                  }`}
-                >
-                  <td className="p-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(project.id)}
-                      onChange={() => toggleSelect(project.id)}
-                      className="accent-purple-600"
-                    />
+              {isLoading ? (
+                renderShimmer()
+              ) : filteredProjects.length === 0 ? (
+                <tr>
+                  <td colSpan={12} className="text-center py-6 text-gray-500">
+                    No Projects Found
                   </td>
-                  <td className="p-3 font-medium text-gray-700">
-                    {project.id}
-                  </td>
-                  <td className="p-3">{project.name}</td>
-                  <td className="p-3">{project.assignedTo}</td>
-                  <td className="p-3">
-                    <span
-                      className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                        project.status === "Active"
-                          ? "bg-green-100 text-green-600"
-                          : "bg-purple-100 text-purple-600"
-                      }`}
-                    >
-                      {project.status}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-gray-200 rounded-full">
-                        <div
-                          className={`h-2 rounded-full ${
-                            project.progress > 0
-                              ? "bg-purple-600"
-                              : "bg-gray-300"
-                          }`}
-                          style={{ width: `${project.progress}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-gray-600 text-xs">
-                        {project.progress}%
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-3">{project.budget}</td>
-                  <td className="p-3">{project.cost}</td>
-                  <td className="p-3">{project.startDate}</td>
-                  <td className="p-3">{project.endDate}</td>
                 </tr>
-              ))}
+              ) : (
+                filteredProjects.map((project, index) => (
+                  <tr
+                    key={project.id}
+                    className={`border-b hover:bg-gray-50 ${
+                      selectedIds.includes(project.id) ? "bg-purple-50" : ""
+                    }`}
+                  >
+                    <td className="p-3  text-center align-middle">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(project.id)}
+                        onChange={() => toggleSelect(project.id)}
+                        className="accent-purple-600"
+                      />
+                    </td>
+                    <td className="p-3 text-center align-middle">
+                      {(page - 1) * limit + index + 1}
+                    </td>
+
+                    <td className="p-3  text-center align-middle">
+                      {project.code}
+                    </td>
+                    <td
+                      className="p-3 text-center align-middle"
+                      title={project.name} // full name on hover
+                    >
+                      {getTwoWordPreview(project.name)}
+                    </td>
+                    <td className="p-3  text-center align-middle">
+                      {project.country}
+                    </td>
+                    <td className="p-3  text-center align-middle">
+                      {project.city}
+                    </td>
+                    <td className="p-3  text-center align-middle">
+                      {project.manager?.fullName || "—"}
+                    </td>
+                    <td className="p-3  text-center align-middle">
+                      {formatToYMD(project.startDate)}
+                    </td>
+                    <td className="p-3  text-center align-middle">
+                      {formatToYMD(project.endDate)}
+                    </td>
+                    <td className="p-3 text-center align-middle">
+                      <span
+                        className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusClasses(
+                          project.status
+                        )}`}
+                      >
+                        {project.status}
+                      </span>
+                    </td>
+                    <td className="p-3  text-center align-middle">
+                      {project.budgetBaseline}
+                    </td>
+                    <td className="p-3  text-center align-middle">
+                      {project.currency}
+                    </td>
+                    <td className="p-3  text-center align-middle">
+                      {formatToYMD(project.createdAt)}
+                    </td>
+
+                    {/* ACTION MENU */}
+                    <td className="px-4 py-3 text-center relative">
+                      <button
+                        className="p-2 rounded-lg hover:bg-[#facf6c]"
+                        onClick={() => toggleMenu(project.id)}
+                      >
+                        <MoreHorizontal size={18} />
+                      </button>
+
+                      {openMenuId === project.id && (
+                        <div className="absolute right-4 mt-1 w-32 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                          <button
+                            onClick={() => {
+                              setSelectedProjectId(project.id);
+                              setViewModalOpen(true);
+                              setOpenMenuId(null); // 🔥 CLOSE MENU
+                            }}
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                          >
+                            <Eye size={16} className="text-gray-500" /> View
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedProjectId(project.id); // send id to modal
+                              setIsModalOpen(true);
+                              setOpenMenuId(null); // 🔥 CLOSE MENU
+                            }}
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                          >
+                            <Edit size={16} className="text-gray-500" /> Edit
+                          </button>
+                          {userRole === "SUPER_ADMIN" && (
+                            <button
+                              onClick={() => {
+                                setSelectedProject(project);
+                                setSingleDeleteConfirmOpen(true);
+                                setOpenMenuId(null); // 🔥 CLOSE MENU
+                              }}
+                              className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:text-black hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                            >
+                              <Trash2 size={16} className="text-gray-500" />{" "}
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </td>
+
+                    {/* <td className="p-3  text-center align-middle flex gap-2 justify-center">
+                      <button
+                        className="text-blue-500 hover:text-blue-700"
+                        onClick={() => {
+                          setSelectedProjectId(project.id);
+                          setViewModalOpen(true);
+                        }}
+                      >
+                        <Eye size={16} />
+                      </button>
+                      {userRole === "SUPER_ADMIN" && (
+                        <>
+                          <button
+                            className="text-blue-500 hover:text-blue-700"
+                            onClick={() => {
+                              setSelectedProjectId(project.id); // send id to modal
+                              setIsModalOpen(true);
+                            }}
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => openDeleteModal(project)}
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </>
+                      )}
+                    </td> */}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
+        {/* Pagination (static for now) */}
         {/* Pagination */}
         <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          {/* Showing text */}
           <span className="text-sm sm:text-base">
-            Showing 1 to 4 of 10 results
+            Showing {(page - 1) * limit + 1} to{" "}
+            {Math.min(page * limit, totalItems)} of {totalItems} results
           </span>
 
+          {/* Buttons */}
           <div>
-            <div className="flex items-center space-x-2 ">
-              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                «
+            <div className="flex items-center space-x-2">
+              {/* First Page */}
+              <button
+                onClick={goToFirst}
+                disabled={page === 1}
+                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronsLeft size={18} />
               </button>
 
-              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                ‹
+              {/* Prev */}
+              <button
+                onClick={goToPrev}
+                disabled={page === 1}
+                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={18} />
               </button>
-              <div>...</div>
 
-              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                ›
+              <div className="px-2 text-sm font-medium">
+                Page {page} of {totalPages}
+              </div>
+
+              {/* Next */}
+              <button
+                onClick={goToNext}
+                disabled={page === totalPages}
+                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={18} />
               </button>
 
-              <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                »
+              {/* Last Page */}
+              <button
+                onClick={goToLast}
+                disabled={page === totalPages}
+                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronsRight size={18} />
               </button>
             </div>
           </div>
         </div>
+
         <AddProject
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedProjectId(null); // reset mode
+          }}
+          projectId={selectedProjectId}
         />
       </div>
+
+      {/* SINGLE DELETE CONFIRMATION */}
+      <ConfirmModal
+        open={singleDeleteConfirmOpen}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${selectedProject?.name}"?`}
+        onConfirm={confirmSingleDelete}
+        onCancel={() => setSingleDeleteConfirmOpen(false)}
+      />
+
+      <ViewProjectDetailsModal
+        isOpen={viewModalOpen}
+        onClose={() => setViewModalOpen(false)}
+        projectId={selectedProjectId}
+      />
+
+      {/* Multiple DELETE CONFIRMATION */}
+      <ConfirmModal
+        open={bulkDeleteConfirmOpen}
+        title="Delete Selected Projects"
+        message={`Are you sure you want to delete ${selectedIds.length} project(s)?`}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setBulkDeleteConfirmOpen(false)}
+      />
     </div>
   );
 };

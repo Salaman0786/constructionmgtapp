@@ -8,7 +8,7 @@ interface AuthState {
 
 const initialState: AuthState = {
   token: localStorage.getItem("token"),
-  user: null,
+  user: JSON.parse(localStorage.getItem("user") || "null"),
   userEmail: null,
 };
 
@@ -23,6 +23,7 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.user = action.payload.user;
       localStorage.setItem("token", action.payload.token);
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
     },
     setUserEmail: (state, action: PayloadAction<{ userEmail: any }>) => {
       state.userEmail = action.payload.userEmail;
@@ -34,6 +35,7 @@ const authSlice = createSlice({
       state.token = null;
       state.user = null;
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
     },
   },
 });
