@@ -37,7 +37,7 @@ import {
   Users,
   User,
   Lock,
-  SettingsIcon
+  SettingsIcon, Truck, Bell
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -181,6 +181,37 @@ const navItems: NavItem[] = [
       },
     ],
   },
+   /*Inventory */
+  {
+    icon: <Package />,
+    name: "Inventory",
+    subItems: [
+      {
+        icon: <Package/>,
+        name: "Stock Ledger",
+        path: "/stock-ledger",
+        pro: false,
+      },
+      {
+        icon: <Truck />,
+        name: "Material Issue",
+        path: "/material-issue",
+        pro: false,
+      },
+      {
+        icon: <TrendingUp />,
+        name: "Inventory Forecast",
+        path: "/inventory-forecast",
+        pro: false,
+      },
+      {
+        icon: <Bell />,
+        name: "Reorder Alerts",
+        path: "/reorder-alerts",
+        pro: false,
+      },
+    ],
+  },
   // {
   //   icon: <Users />,
   //   name: "Investors",
@@ -211,11 +242,11 @@ const navItems: NavItem[] = [
     name: "Expenses",
     path: "/expenses",
   },
-  {
-    icon: <Box />,
-    name: "Inventory",
-    path: "/inventory",
-  },
+  // {
+  //   icon: <Box />,
+  //   name: "Inventory",
+  //   path: "/inventory",
+  // },
   {
     icon: <ChartColumn />,
     name: "Reports",
