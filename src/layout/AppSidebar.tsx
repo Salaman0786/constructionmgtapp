@@ -38,6 +38,9 @@ import {
   User,
   Lock,
   SettingsIcon,
+  SettingsIcon,
+  Truck,
+  Bell,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAppSelector } from "../app/hooks";
@@ -58,6 +61,164 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
+  {
+    icon: <LayoutDashboard />,
+    name: "Dashboard",
+    path: "/",
+  },
+  {
+    icon: <FolderGit2 />,
+    name: "Project Control",
+    subItems: [
+      {
+        icon: <FolderKanban />,
+        name: "Project",
+        path: "/project",
+        pro: false,
+      },
+      {
+        icon: <ChartColumn />,
+        name: "Gantt & Scheduling",
+        path: "/gantt-scheduling",
+        pro: false,
+      },
+      {
+        icon: <Calculator />,
+        name: "BOQ & Estimation",
+        path: "/boq",
+        pro: false,
+      },
+      {
+        icon: <NotebookText />,
+        name: "Site Diary (DPR)",
+        path: "/site-diary",
+        pro: false,
+      },
+      {
+        icon: <SquareCheckBig />,
+        name: "Task Assignment",
+        path: "/task-assignment",
+        pro: false,
+      },
+    ],
+  },
+  /*Procrument */
+  {
+    icon: <ShoppingCart />,
+    name: "Procurement",
+    subItems: [
+      {
+        icon: <ShoppingCart />,
+        name: "Purchase Request",
+        path: "/purchase-request",
+        pro: false,
+      },
+      {
+        icon: <FileQuestion />,
+        name: "Request for Quotation",
+        path: "/request-for-quotation",
+        pro: false,
+      },
+      {
+        icon: <FileText />,
+        name: "Purchase Orders",
+        path: "/purchase-orders",
+        pro: false,
+      },
+      {
+        icon: <Package />,
+        name: "Goods Received Note",
+        path: "/goods-received-note",
+        pro: false,
+      },
+    ],
+  },
+  {
+    icon: <Calculator />,
+    name: "Finance & CRM",
+    subItems: [
+      {
+        icon: <Users />,
+        name: "Investors",
+        path: "/investors",
+        pro: false,
+      },
+      {
+        icon: <Car />,
+        name: "Vendors",
+        path: "/vendors",
+        pro: false,
+      },
+      {
+        icon: <House />,
+        name: "My Units",
+        path: "/units",
+        pro: false,
+      },
+      {
+        icon: <File />,
+        name: "Invoices",
+        path: "/invoices",
+        pro: false,
+      },
+      {
+        icon: <CreditCard />,
+        name: "Payments",
+        path: "/payments",
+        pro: false,
+      },
+      {
+        icon: <TrendingUp />,
+        name: "Cash Flow Projection",
+        path: "/cash-flow-projection",
+        pro: false,
+      },
+      {
+        icon: <BadgeDollarSign />,
+        name: "Budget vs Actual",
+        path: "/budget-actual",
+        pro: false,
+      },
+      {
+        icon: <Calculator />,
+        name: "Project Cost Control",
+        path: "/project-cost-control",
+        pro: false,
+      },
+    ],
+  },
+  /*Inventory */
+  {
+    icon: <Package />,
+    name: "Inventory",
+    subItems: [
+      {
+        icon: <Package />,
+        name: "Stock Ledger",
+        path: "/stock-ledger",
+        pro: false,
+      },
+      {
+        icon: <Truck />,
+        name: "Material Issue",
+        path: "/material-issue",
+        pro: false,
+      },
+      {
+        icon: <TrendingUp />,
+        name: "Inventory Forecast",
+        path: "/inventory-forecast",
+        pro: false,
+      },
+      {
+        icon: <Bell />,
+        name: "Reorder Alerts",
+        path: "/reorder-alerts",
+        pro: false,
+      },
+    ],
+  },
+
   // {
   //   icon: <Users />,
   //   name: "Investors",
@@ -83,16 +244,25 @@ const navItems: NavItem[] = [
   //   name: "Payments",
   //   path: "/payments",
   // },
+
   // {
   //   icon: <CircleDollarSign />,
   //   name: "Expenses",
   //   path: "/expenses",
   // },
+
+  {
+    icon: <CircleDollarSign />,
+    name: "Expenses",
+    path: "/expenses",
+  },
+
   // {
   //   icon: <Box />,
   //   name: "Inventory",
   //   path: "/inventory",
   // },
+
   // {
   //   icon: <ChartColumn />,
   //   name: "Reports",
@@ -103,6 +273,18 @@ const navItems: NavItem[] = [
   //   name: "BOQ",
   //   path: "/boq",
   // },
+
+  {
+    icon: <ChartColumn />,
+    name: "Reports",
+    path: "/reports",
+  },
+  {
+    icon: <ReceiptText />,
+    name: "BOQ",
+    path: "/boq",
+  },
+
   // {
   //   icon: <UserCircleIcon />,
   //   name: "User Profile",

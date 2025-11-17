@@ -21,7 +21,6 @@ import Invoices from "../components/Finance&CRM/Invoices/Invoices";
 import Payments from "../components/Finance&CRM/Payments/Payments";
 import Expenses from "../components/Expenses/Expenses";
 import Units from "../components/Finance&CRM/Units/Units";
-import Inventory from "../components/Inventory/Inventory";
 import Reports from "../components/Reports/Reports";
 import FormElements from "../pages/Forms/FormElements";
 import BasicTables from "../pages/Tables/BasicTables";
@@ -48,8 +47,14 @@ import Images from "../pages/UiElements/Images";
 import Videos from "../pages/UiElements/Videos";
 import LineChart from "../pages/Charts/LineChart";
 import BarChart from "../pages/Charts/BarChart";
+
 import RoleProtectedRoute from "../components/common/RoleProtectedRoute";
 import NotAuthorized from "../components/common/NotAuthorized";
+
+import StockLedger from "../components/Inventory/StockLedger/StockLedger";
+import MaterialIssue from "../components/Inventory/MaterialIssue/MaterialIssue";
+import InventoryForecast from "../components/Inventory/InventoryForecast/InventoryForecast";
+import ReorderAlerts from "../components/Inventory/ReorderAlerts/ReorderAlerts";
 
 export default function AppRoutes() {
   return (
@@ -94,7 +99,6 @@ export default function AppRoutes() {
           <Route path="/payments" element={<Payments />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/units" element={<Units />} />
-          <Route path="/inventory" element={<Inventory />} />
           <Route path="/reports" element={<Reports />} />
           {/* Forms */}
           <Route path="/form-elements" element={<FormElements />} />
@@ -248,6 +252,15 @@ export default function AppRoutes() {
               </RoleProtectedRoute>
             }
           />
+
+          <Route path="/purchase-orders" element={<PurchaseOrders />} />
+          <Route path="/goods-received-note" element={<GoodsReceivedNote />} />
+          {/* Inventory */}
+          <Route path="/stock-ledger" element={<StockLedger />} />
+          <Route path="/material-issue" element={<MaterialIssue />} />
+          <Route path="/inventory-forecast" element={<InventoryForecast />} />
+          <Route path="/reorder-alerts" element={<ReorderAlerts />} />
+
           {/*  Admin */}
           <Route
             path="/user-management"
