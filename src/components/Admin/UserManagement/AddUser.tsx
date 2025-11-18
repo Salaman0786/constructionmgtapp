@@ -214,8 +214,22 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
         role: "",
         tempPassword: "",
       });
-    } catch (error: any) {
-      showError(error?.data?.message[0] || "❌ Failed to create user");
+    } catch (err: any) {
+      const errorMessage = err?.data?.message;
+
+      let displayMessage: string;
+
+      if (Array.isArray(errorMessage)) {
+        // If it's an array → join all messages (you can also take just the first one)
+        displayMessage = errorMessage.join(", ");
+        // Or just the first one: errorMessage[0]
+      } else if (typeof errorMessage === "string") {
+        displayMessage = errorMessage;
+      } else {
+        displayMessage = "Failed to add user!";
+      }
+
+      showError(displayMessage);
     }
   };
 

@@ -43,7 +43,7 @@ const AppHeader: React.FC = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 flex w-full h-12 bg-white border-gray-200 z-99 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
+    <header className="sticky top-0 flex w-full h-16  bg-white border-gray-200 z-99 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6 ">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
           <button
@@ -92,7 +92,7 @@ const AppHeader: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
             />
           </div> */}
-          <div className="font-semibold text-lg sm:hidden text-[#4b0082]">
+          <div className="font-semibold text-lg flex sm:hidden text-[#4b0082]">
             Addis Ababa Jamaat
           </div>
           {/* <Link to="/" className="lg:hidden">
@@ -167,7 +167,7 @@ const AppHeader: React.FC = () => {
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
-          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
+          } items-center justify-end bg-white sm:bg-none border-b border-gray-200 w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
           <div className="flex items-center gap-2 2xsm:gap-3">
             {/* <!-- Dark Mode Toggler --> */}

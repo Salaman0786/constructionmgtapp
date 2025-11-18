@@ -1,11 +1,11 @@
 import AdminPanelHeader from "./AdminPanelHeader";
-import AdminTabs from "./AdminTabs";
+import { UsersTable } from "./UsersTable";
 
 const AdminPanel = () => {
   return (
     <div>
       <AdminPanelHeader />
-      <AdminTabs />
+      <UsersTable />
     </div>
   );
 };

@@ -56,8 +56,23 @@ export const UsersTable: React.FC = () => {
       await deleteUser(userId).unwrap();
       showInfo("User deleted successfully!");
       refetch();
-    } catch (error) {
-      showError(error?.data?.message || "Failed to delete user:");
+    } catch (err: any) {
+      // Normalize the message: always turn it into a string
+      const errorMessage = err?.data?.message;
+
+      let displayMessage: string;
+
+      if (Array.isArray(errorMessage)) {
+        // If it's an array → join all messages (you can also take just the first one)
+        displayMessage = errorMessage.join(", ");
+        // Or just the first one: errorMessage[0]
+      } else if (typeof errorMessage === "string") {
+        displayMessage = errorMessage;
+      } else {
+        displayMessage = "Failed to delete user";
+      }
+
+      showError(displayMessage);
     } finally {
       setOpenConfirm(false);
       setDeleteId(null);
@@ -98,13 +113,28 @@ export const UsersTable: React.FC = () => {
       await updateUserStatus({ id: userId, isActive: !currentStatus }).unwrap();
       refetch();
       showSuccess("Updated status successfully!!");
-    } catch (error) {
-      showError("Failed to update status:");
+    } catch (err: any) {
+      // Normalize the message: always turn it into a string
+      const errorMessage = err?.data?.message;
+
+      let displayMessage: string;
+
+      if (Array.isArray(errorMessage)) {
+        // If it's an array → join all messages (you can also take just the first one)
+        displayMessage = errorMessage.join(", ");
+        // Or just the first one: errorMessage[0]
+      } else if (typeof errorMessage === "string") {
+        displayMessage = errorMessage;
+      } else {
+        displayMessage = "Failed to update status!";
+      }
+
+      showError(displayMessage);
     }
   };
 
   return (
-    <div className="p-6">
+    <div className="py-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
         <div>

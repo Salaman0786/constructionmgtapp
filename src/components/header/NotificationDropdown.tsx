@@ -47,7 +47,7 @@ export default function NotificationDropdown() {
           />
         </svg>
       </button>
-      <Dropdown
+      {/* <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
         className="absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark sm:w-[361px] lg:right-0"
@@ -77,7 +77,6 @@ export default function NotificationDropdown() {
           </button>
         </div>
         <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
-          {/* Example notification items */}
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
@@ -366,7 +365,6 @@ export default function NotificationDropdown() {
               </span>
             </DropdownItem>
           </li>
-          {/* Add more items as needed */}
         </ul>
         <Link
           to="/"
@@ -374,7 +372,7 @@ export default function NotificationDropdown() {
         >
           View All Notifications
         </Link>
-      </Dropdown>
+      </Dropdown> */}
     </div>
   );
 }

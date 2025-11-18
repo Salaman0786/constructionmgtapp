@@ -67,8 +67,23 @@ const EditUser: React.FC<EditUserProps> = ({
       await updateUser({ id: userId, body: payload }).unwrap();
       showSuccess("User updated successfully!");
       onClose();
-    } catch (error: any) {
-      showError(error?.data?.message[0] || "❌ Failed to update user");
+    } catch (err: any) {
+      // Normalize the message: always turn it into a string
+      const errorMessage = err?.data?.message;
+
+      let displayMessage: string;
+
+      if (Array.isArray(errorMessage)) {
+        // If it's an array → join all messages (you can also take just the first one)
+        displayMessage = errorMessage.join(", ");
+        // Or just the first one: errorMessage[0]
+      } else if (typeof errorMessage === "string") {
+        displayMessage = errorMessage;
+      } else {
+        displayMessage = "Failed to edit user!";
+      }
+
+      showError(displayMessage);
     }
   };
 
