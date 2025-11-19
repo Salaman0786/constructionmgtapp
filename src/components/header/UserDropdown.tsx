@@ -16,7 +16,7 @@ export default function UserDropdown() {
   const ROLE_LABELS: Record<string, string> = {
     SUPER_ADMIN: "Super Admin",
     MANAGER: "Project Manager",
-    INVESTOR: "Investor",
+    INVESTOR: "Buyer",
   };
   const displayRole = ROLE_LABELS[role] || role;
   function closeDropdown() {

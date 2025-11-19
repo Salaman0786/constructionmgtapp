@@ -324,7 +324,7 @@ export const UsersTable: React.FC = () => {
         </table>
         <div className="px-4 py-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <span className="text-sm sm:text-base">
-            {pagination ? (
+            {pagination && (
               <>
                 Showing{" "}
                 {pagination.total > 0
@@ -334,8 +334,6 @@ export const UsersTable: React.FC = () => {
                 {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
                 of {pagination.total} results
               </>
-            ) : (
-              "Loading..."
             )}
           </span>
 

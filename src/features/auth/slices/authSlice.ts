@@ -11,7 +11,7 @@ const initialState: AuthState = {
   token: localStorage.getItem("token"),
   user: JSON.parse(localStorage.getItem("user") || "null"),
   userEmail: null,
-  role: null,
+  role: localStorage.getItem("role"),
 };
 
 const authSlice = createSlice({
@@ -35,12 +35,14 @@ const authSlice = createSlice({
     },
     setRole: (state, action: PayloadAction<{ role: string }>) => {
       state.role = action.payload.role;
+      localStorage.setItem("role", action.payload.role);
     },
     logout: (state) => {
       state.token = null;
       state.user = null;
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      localStorage.removeItem("role");
     },
   },
 });
