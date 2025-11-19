@@ -3,8 +3,6 @@ import {
   Plus,
   Filter,
   Search,
-  Pencil,
-  Trash,
   ChevronsLeft,
   ChevronLeft,
   ChevronRight,
@@ -43,7 +41,6 @@ interface Project {
 
 const Project: React.FC = () => {
   const userRole = useSelector((state: any) => state.auth.user?.role?.name);
-  console.log(userRole);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,15 +79,6 @@ const Project: React.FC = () => {
   });
 
   const [deleteProjects] = useDeleteProjectsMutation();
-
-  /* 
-  Open delete modal with selected project.
-  This function is triggered when user clicks delete icon.
-*/
-  const openDeleteModal = (project: any) => {
-    setSelectedProject(project);
-    setDeleteModalOpen(true);
-  };
 
   /*
   This function is called when user clicks the “Delete” button in the modal.
@@ -265,7 +253,7 @@ const Project: React.FC = () => {
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search by Project Name, Code or Manager..."
+            placeholder="Search by project name / code / manager..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
             onChange={(e) => {
               setPage(1);
@@ -301,7 +289,8 @@ const Project: React.FC = () => {
                     type="date"
                     value={tempStart}
                     onChange={(e) => setTempStart(e.target.value)}
-                    className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   />
                 </div>
 
@@ -312,7 +301,8 @@ const Project: React.FC = () => {
                     type="date"
                     value={tempEnd}
                     onChange={(e) => setTempEnd(e.target.value)}
-                    className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   />
                 </div>
               </div>
@@ -323,7 +313,8 @@ const Project: React.FC = () => {
                 <select
                   value={tempStatus}
                   onChange={(e) => setTempStatus(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border rounded-lg text-sm"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 >
                   <option value="">All</option>
                   <option value="PLANNING">Planning</option>
@@ -364,7 +355,7 @@ const Project: React.FC = () => {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden p-4">
         {/* Header */}
         <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
           <div>
@@ -385,23 +376,25 @@ const Project: React.FC = () => {
                 onClick={handleExportSelected}
                 className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
               >
-                Export Selected
+                Export
               </button>
 
-              <button
-                onClick={() => setBulkDeleteConfirmOpen(true)}
-                className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-              >
-                Delete Selected
-              </button>
+              {userRole === "SUPER_ADMIN" && (
+                <button
+                  onClick={() => setBulkDeleteConfirmOpen(true)}
+                  className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           )}
         </div>
         {/* When loading → shimmer */}
-        <div className="overflow-x-auto border border-gray-200 rounded-xl">
-          <table className="min-w-full whitespace-nowrap text-sm border-collapse">
+        <div className="overflow-x-auto whitespace-nowrap border border-gray-200 rounded-xl">
+          <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
-              <tr className="whitespace-nowrap">
+              <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
                 <th className="p-3">
                   <input
                     type="checkbox"
@@ -586,7 +579,6 @@ const Project: React.FC = () => {
           </table>
         </div>
 
-        {/* Pagination (static for now) */}
         {/* Pagination */}
         <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           {/* Showing text */}
