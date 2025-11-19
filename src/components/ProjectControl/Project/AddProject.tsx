@@ -84,8 +84,6 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   const userRole = useSelector((state: any) => state.auth.user?.role?.name);
   const isManager = userRole === "MANAGER";
   const isSuperAdmin = userRole === "SUPER_ADMIN";
-  console.log(userRole);
-
   const cleanedSearch = managerSearch.trim().toLowerCase();
   const filteredManagers = managers.filter((m: any) =>
     m.fullName.toLowerCase().includes(cleanedSearch)
@@ -183,7 +181,6 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
         await updateProject({ id: projectId, payload }).unwrap();
         showSuccess("Project updated successfully!");
       } else {
-        
         await createProject(payload).unwrap();
         showSuccess("Project created successfully!");
 
@@ -348,7 +345,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   }}
                   className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700 "
                 >
-                  ✕
+                  {isManager ? "" : "✕"}
                 </button>
               )}
 

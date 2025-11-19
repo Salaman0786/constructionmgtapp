@@ -1,130 +1,201 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Search,
   Filter,
-  Sun,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  Trash2,
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
   CloudRain,
   CloudSun,
+  Sun,
   Users,
-  CheckCircle,
+  Plus,
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import AddSiteDiary from "./AddSiteDiary";
+
+import AddEditSiteDiary from "./AddEditSiteDiary";
+import ConfirmModal from "../Project/DeleteModal";
+import ViewSiteDiaryModal from "./ViewSiteDiaryModal";
+
+import {
+  useGetSiteDiariesQuery,
+  useDeleteSiteDiariesMutation,
+  useGetSiteDiaryProjectsQuery,
+} from "../../../features/siteDiary/api/siteDiaryApi";
+
+import { getTwoWordPreview, formatToYMD } from "../../../utils/helpers";
+import { renderShimmer } from "../../common/tableShimmer";
+import { useSelector } from "react-redux";
+import { showError, showSuccess } from "../../../utils/toast";
+
 const SiteDiary: React.FC = () => {
-  const data = [
-    {
-      id: 1,
-      date: "2024-10-18",
-      weather: {
-        icon: <Sun size={16} className="text-yellow-500" />,
-        label: "Sunny",
-        color: "bg-yellow-100 text-yellow-700",
-      },
-      manpower: 45,
-      tasks: 8,
-      description:
-        "Foundation excavation completed for Block A. Reinforcement bar placement started.",
-      reportedBy: "Ahmed Ali",
-    },
-    {
-      id: 2,
-      date: "2024-10-17",
-      weather: {
-        icon: <CloudSun size={16} className="text-blue-500" />,
-        label: "Partly Cloudy",
-        color: "bg-blue-100 text-blue-700",
-      },
-      manpower: 38,
-      tasks: 6,
-      description:
-        "Concrete pouring for foundation - 120 CUM completed. Quality testing samples taken.",
-      reportedBy: "Ahmed Ali",
-    },
-    {
-      id: 3,
-      date: "2024-10-16",
-      weather: {
-        icon: <CloudRain size={16} className="text-gray-500" />,
-        label: "Rainy",
-        color: "bg-gray-100 text-gray-700",
-      },
-      manpower: 32,
-      tasks: 6,
-      description:
-        "Limited work due to rain. Focus on covered area finishing work.",
-      reportedBy: "Ahmed Ali",
-    },
-  ];
-  const [users, setUsers] = useState(data);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [openModal, setOpenModal] = useState(false);
+  const userRole = useSelector((s: any) => s.auth.user?.role?.name);
 
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  /* -----------------------------------
+     Pagination + Filters
+  -----------------------------------*/
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [projectFilterId, setProjectFilterId] = useState("");
+  const [projectSearch, setProjectSearch] = useState("");
+  const [startDateFilter, setStartDateFilter] = useState("");
+  const [endDateFilter, setEndDateFilter] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
 
-  // Close delete popup when clicking outside
+  // TEMPORARY fields (added)
+  const [tempProjectFilterId, setTempProjectFilterId] = useState("");
+  const [tempProjectSearch, setTempProjectSearch] = useState("");
+  const [tempStartDateFilter, setTempStartDateFilter] = useState("");
+  const [tempEndDateFilter, setTempEndDateFilter] = useState("");
+
+  /* -----------------------------------
+     Project dropdown (same as add modal)
+  -----------------------------------*/
+  const dropdownRef = useRef<any>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
+
+  const { data: projectData } = useGetSiteDiaryProjectsQuery();
+  const allProjects = projectData?.data?.projects || [];
+
+  const filteredProjects = allProjects.filter((p: any) => {
+    if (!projectSearch.trim()) return true;
+    return (
+      p.name.toLowerCase().includes(projectSearch.toLowerCase()) ||
+      p.code.toLowerCase().includes(projectSearch.toLowerCase())
+    );
+  });
+
+  const handleSelectProject = (p: any) => {
+    setProjectFilterId(p.id);
+    setProjectSearch(`${p.code} — ${p.name}`);
+    setShowDropdown(false);
+  };
+
+  // CLOSE DROPDOWN ON CLICK OUTSIDE
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setActiveMenuId(null);
+    const handleClickOutside = (e: any) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleSelect = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+  /* -----------------------------------
+     Fetch diaries (RTK Query)
+  -----------------------------------*/
+  const { data, isLoading, refetch } = useGetSiteDiariesQuery({
+    page,
+    limit,
+    search: searchQuery, // search → project.name + weather
+    projectId: projectFilterId, // Filter by ID
+    startDate: startDateFilter,
+    endDate: endDateFilter,
+  });
+
+  const diaries = data?.data?.siteDiaryList || [];
+  const pagination = data?.pagination;
+  const totalPages = pagination?.totalPages || 1;
+  const totalItems = pagination?.total || 0;
+
+  /* -----------------------------------
+     Delete Logic
+  -----------------------------------*/
+  const [deleteDiaries] = useDeleteSiteDiariesMutation();
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedForDelete, setSelectedForDelete] = useState<any>(null);
+  const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
+
+  const openSingleDelete = (row: any) => {
+    setSelectedForDelete(row);
+    setSingleDeleteConfirmOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    setUsers((prev) => prev.filter((user) => user.id !== id));
-    setActiveMenuId(null);
-  };
-  const selectAll = (checked: boolean) => {
-    setSelectedIds(checked ? users.map((u) => u.id) : []);
+  const confirmSingleDelete = async () => {
+    try {
+      await deleteDiaries([selectedForDelete.id]).unwrap();
+      showSuccess("Entry deleted");
+      setSelectedIds((prev) => prev.filter((x) => x !== selectedForDelete.id));
+      refetch();
+    } catch {
+      showError("Delete failed");
+    }
+    setSingleDeleteConfirmOpen(false);
   };
 
-  const handleDeleteSelected = () => {
-    setUsers((prev) => prev.filter((u) => !selectedIds.includes(u.id)));
-    setSelectedIds([]);
+  const confirmBulkDelete = async () => {
+    try {
+      await deleteDiaries(selectedIds).unwrap();
+      showSuccess("Selected entries deleted");
+      setSelectedIds([]);
+      refetch();
+    } catch {
+      showError("Bulk delete failed");
+    }
+    setBulkDeleteConfirmOpen(false);
   };
 
+  /* -----------------------------------
+     Export CSV
+  -----------------------------------*/
   const handleExportSelected = () => {
-    const selectedUsers = users.filter((u) => selectedIds.includes(u.id));
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      ["Name,Email,Role,Status,Last Login,Created"]
-        .concat(
-          selectedUsers.map(
-            (u) =>
-              `${u.name},${u.email},${u.role},${u.status},${u.lastLogin},${u.created}`
-          )
-        )
-        .join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const rows = diaries.filter((d) => selectedIds.includes(d.id));
+    if (rows.length === 0) return showError("No entries selected");
+
+    const header =
+      "Date,Weather,Project,Manpower,Equipment,Work Done,Issues,Reported By,Created At";
+
+    const csv = rows
+      .map(
+        (d) =>
+          `${formatToYMD(d.date)},${d.weather},${d.project?.name || "—"},${
+            d.manpower
+          },${d.equipment},${(d.workDone || "").replace(/,/g, " ")},${(
+            d.issues || ""
+          ).replace(/,/g, " ")},${
+            d.reportedByUser?.fullName || "—"
+          },${formatToYMD(d.createdAt)}`
+      )
+      .join("\n");
+
+    const finalCSV = "data:text/csv;charset=utf-8," + header + "\n" + csv;
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "selected_users.csv");
-    document.body.appendChild(link);
+    link.href = encodeURI(finalCSV);
+    link.download = "site-diary-export.csv";
     link.click();
   };
 
-  const handleToggleStatus = (id: number) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id
-          ? {
-              ...user,
-              status: user.status === "Active" ? "Inactive" : "Active",
-            }
-          : user
-      )
+  /* -----------------------------------
+     UI Handlers
+  -----------------------------------*/
+  const toggleSelect = (id: string) =>
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
+
+  const selectAll = (checked: boolean) =>
+    setSelectedIds(checked ? diaries.map((d) => d.id) : []);
+
+  /* -----------------------------------
+     UI — Add/Edit + View
+  -----------------------------------*/
+  const [openAddEdit, setOpenAddEdit] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  /* -----------------------------------
+     SEARCH + FILTER SECTION
+  -----------------------------------*/
   return (
     <div className="bg-white min-h-screen space-y-6">
       {/* 1️⃣ Header Section */}
@@ -133,63 +204,214 @@ const SiteDiary: React.FC = () => {
           <h1 className="text-lg sm:text-2xl font-bold text-gray-800">
             Site Diary (DPR)
           </h1>
-          <p className="text-sm text-gray-500">
-            Daily Progress Reports and site activity log
-          </p>
+          <p className="text-sm text-gray-500">Daily progress reports</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setOpenModal(true)}
-            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
-          >
-            + New Entry
-          </button>
-        </div>
+        {userRole === "SUPER_ADMIN" && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                setSelectedDiaryId(null);
+                setOpenAddEdit(true);
+              }}
+              className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
+            >
+              <Plus size={18} /> New Entry
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 2️⃣ Search & Controls Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
+      {/* Search + Filter */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border mt-6">
         <div className="relative w-full md:w-9/10">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-
           <input
             type="text"
-            placeholder="Search Diary (DPR)..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+            placeholder="Search DPR by weather / project / description..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
+            onChange={(e) => {
+              setPage(1);
+              setSearchQuery(e.target.value);
+            }}
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
-            <Filter size={16} /> Filters
+        {/* FILTER BUTTON */}
+        <div className="relative">
+          <button
+            className="flex items-center gap-2 px-4 py-2 border  border-[f0f0f0]  rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
+            onClick={() => setFilterOpen(!filterOpen)}
+          >
+            <Filter size={16} />
+            Filters
           </button>
+
+          {filterOpen && (
+            <div className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
+              <h3 className="text-sm font-semibold mb-3">Filters</h3>
+
+              {/* PROJECT DROPDOWN */}
+              {userRole === "SUPER_ADMIN" && (
+                <div className="relative mb-3" ref={dropdownRef}>
+                  <label className="text-xs text-gray-600">Project</label>
+
+                  <input
+                    type="text"
+                    value={tempProjectSearch}
+                    placeholder="Search project by code or name..."
+                    onFocus={() => setShowDropdown(true)}
+                    onChange={(e) => {
+                      setTempProjectSearch(e.target.value.trimStart());
+                      setShowDropdown(true);
+                    }}
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  />
+
+                  {/* CLEAR BUTTON */}
+                  {tempProjectSearch && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempProjectSearch("");
+                        setTempProjectFilterId("");
+                      }}
+                      className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  )}
+
+                  {/* DROPDOWN */}
+                  {showDropdown && (
+                    <div className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-56 overflow-y-auto shadow-lg z-50">
+                      {filteredProjects.length === 0 && (
+                        <div className="px-4 py-3 text-gray-500 text-sm">
+                          No results found
+                        </div>
+                      )}
+
+                      {filteredProjects.map((p, index) => (
+                        <div
+                          key={p.id}
+                          onMouseEnter={() => setHighlightIndex(index)}
+                          onClick={() => {
+                            setTempProjectFilterId(p.id);
+                            setTempProjectSearch(`${p.code} — ${p.name}`);
+                            setShowDropdown(false);
+                          }}
+                          className={`px-4 py-2 cursor-pointer text-sm ${
+                            highlightIndex === index
+                              ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2]"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          <div className="font-medium">{p.code}</div>
+                          <div className="text-xs text-gray-500">{p.name}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DATE FILTERS */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-600">Start Date</label>
+                  <input
+                    type="date"
+                    value={tempStartDateFilter}
+                    onChange={(e) => setTempStartDateFilter(e.target.value)}
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-600">End Date</label>
+                  <input
+                    type="date"
+                    value={tempEndDateFilter}
+                    onChange={(e) => setTempEndDateFilter(e.target.value)}
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-between mt-4">
+                {/* RESET BUTTON */}
+                <button
+                  className="text-sm text-gray-600 hover:underline"
+                  onClick={() => {
+                    // RESET ONLY TEMP FILTERS
+                    setTempProjectFilterId("");
+                    setTempProjectSearch("");
+                    setTempStartDateFilter("");
+                    setTempEndDateFilter("");
+                  }}
+                >
+                  Reset
+                </button>
+
+                {/* APPLY BUTTON */}
+                <button
+                  className="bg-[#4b0082] text-white px-4 py-2 rounded-lg text-sm"
+                  onClick={() => {
+                    // APPLY TEMP → MAIN
+                    setProjectFilterId(tempProjectFilterId);
+                    setProjectSearch(tempProjectSearch);
+                    setStartDateFilter(tempStartDateFilter);
+                    setEndDateFilter(tempEndDateFilter);
+
+                    setFilterOpen(false);
+                    setPage(1);
+                  }}
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* 3️⃣ Table Section */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="p-6">
-          <div className="mb-3">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
+            <div>
+              <h2 className="text-gray-900 font-semibold text-base">
+                Project DPR Tracking Table
+              </h2>
+              {/* <p className="text-sm text-gray-500">
+                Comprehensive management of quantities, costs, and progress
+              </p> */}
+            </div>
             {selectedIds.length > 0 && (
-              <div className="flex items-center justify-end gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm justify-end">
                 <span className="text-gray-600">
-                  {selectedIds.length} item(s) selected
+                  {selectedIds.length} selected
                 </span>
 
                 <button
                   onClick={handleExportSelected}
-                  className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
+                  className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
                 >
-                  Export Selected
+                  Export
                 </button>
 
-                <button
-                  onClick={handleDeleteSelected}
-                  className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-                >
-                  Delete Selected
-                </button>
+                {userRole === "SUPER_ADMIN" && (
+                  <button
+                    onClick={() => setBulkDeleteConfirmOpen(true)}
+                    className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -201,102 +423,288 @@ const SiteDiary: React.FC = () => {
                   <th className="p-3">
                     <input
                       type="checkbox"
-                      checked={selectedIds.length === users.length}
-                      onChange={() =>
-                        setSelectedIds(
-                          selectedIds.length === users.length
-                            ? []
-                            : users.map((u) => u.id)
-                        )
+                      checked={
+                        diaries.length > 0 &&
+                        selectedIds.length === diaries.length
                       }
+                      onChange={(e) => selectAll(e.target.checked)}
                       className="accent-purple-700"
                     />
                   </th>
-                  <th className="p-3 min-w-[100px]">Date</th>
-                  <th className="p-3 min-w-[132px]">Weather</th>
-                  <th className="p-3">Manpower</th>
-                  <th className="p-3">Tasks Completed</th>
-                  <th className="p-3 min-w-[300px]">Description</th>
-                  <th className="p-3">Reported By</th>
+                  <th className="p-3 text-center">S. No.</th>
+                  <th className="p-3 text-center">Date</th>
+                  <th className="p-3 text-center">Weather</th>
+                  <th className="p-3 text-center">Manpower</th>
+                  <th className="p-3 text-center">Project</th>
+                  <th className="p-3 text-center">Description</th>
+                  <th className="p-3 text-center">Reported By</th>
+                  {/* <th className="p-3 text-center">Created At</th> */}
+                  <th className="p-3 text-center">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((row, index) => (
-                  <tr
-                    key={row.id}
-                    className={`border-b border-gray-100 hover:bg-gray-50 transition ${
-                      selectedIds.includes(row.id) ? "bg-purple-50" : ""
-                    }`}
-                  >
-                    <td className="p-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(row.id)}
-                        onChange={() => toggleSelect(row.id)}
-                        className="accent-purple-700"
-                      />
+                {isLoading ? (
+                  renderShimmer()
+                ) : diaries.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="p-8 text-center text-gray-500">
+                      No entries Found
                     </td>
-                    <td className="p-3 min-w-[100px]">{row.date}</td>
-                    <td className="p-3 min-w-[132px]">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${row.weather.color}`}
-                      >
-                        {row.weather.icon} {row.weather.label}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium`}
-                      >
-                        <Users size={14} /> {row.manpower}
-                      </span>
-                    </td>
-
-                    <td className="p-3">
-                      {" "}
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium `}
-                      >
-                        <CheckCircle size={14} /> {row.tasks}
-                      </span>
-                    </td>
-                    <td className="p-3">{row.description}</td>
-                    <td className="p-3">{row.reportedBy}</td>
                   </tr>
-                ))}
+                ) : (
+                  diaries.map((d, idx) => {
+                    // serial number
+                    const serial = (page - 1) * limit + idx + 1;
+                    return (
+                      <tr
+                        key={d.id}
+                        className={`border-b border-gray-100 hover:bg-gray-50 transition ${
+                          selectedIds.includes(d.id) ? "bg-purple-50" : ""
+                        }`}
+                      >
+                        <td className="p-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(d.id)}
+                            onChange={() => toggleSelect(d.id)}
+                            className="accent-purple-700"
+                          />
+                        </td>
+                        <td className="p-3  text-center align-middle">
+                          {serial}
+                        </td>
+                        <td className="p-3  text-center align-middle">
+                          {d.date ? formatToYMD(d.date) : "—"}
+                        </td>
+                        <td className="p-3 text-center align-middle">
+                          {(() => {
+                            const weather = d.weather?.toLowerCase(); // normalize case safely
+                            const displayWeather =
+                              d.weather?.toUpperCase() || ""; // ALWAYS SHOW UPPERCASE
+
+                            // color classes
+                            const colorClass =
+                              weather === "partly_cloudy"
+                                ? "bg-gray-100 text-gray-700"
+                                : weather === "sunny"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : weather === "cloudy"
+                                ? "bg-gray-200 text-gray-700"
+                                : "bg-blue-100 text-blue-700"; // rainy or others
+
+                            // icons
+                            const Icon =
+                              weather === "partly_cloudy"
+                                ? CloudSun
+                                : weather === "sunny"
+                                ? Sun
+                                : weather === "cloudy"
+                                ? CloudRain
+                                : CloudRain; // rainy/default
+
+                            return (
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
+                              >
+                                <Icon
+                                  size={16}
+                                  className={
+                                    weather === "sunny"
+                                      ? "text-yellow-500"
+                                      : weather === "partly_cloudy"
+                                      ? "text-gray-500"
+                                      : weather === "cloudy"
+                                      ? "text-gray-600"
+                                      : "text-blue-500"
+                                  }
+                                />
+
+                                {/* ALWAYS SHOW IN UPPERCASE */}
+                                {displayWeather}
+                              </span>
+                            );
+                          })()}
+                        </td>
+
+                        <td className="p-3  text-center align-middle">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium`}
+                          >
+                            <Users size={14} /> {d.manpower}
+                          </span>
+                        </td>
+                        <td
+                          className="p-3  text-center align-middle"
+                          title={d.project?.name}
+                        >
+                          {getTwoWordPreview(d.project?.name) ?? "-"}
+                        </td>
+
+                        {/* <td className="p-3  text-center align-middle">
+                          {d.equipment}
+                        </td> */}
+                        <td
+                          className="p-3  text-center align-middle"
+                          title={d.workDone}
+                        >
+                          {/* {d.workDone.length > 40
+                            ? d.workDone.slice(0, 40) + "..."
+                            : d.workDone} */}
+                          {getTwoWordPreview(d.workDone)}
+                        </td>
+                        {/* <td className="p-3 text-center">
+                          {d.createdAt
+                            ? formatDateToDDMMYYYY(d.createdAt)
+                            : "—"}
+                        </td> */}
+                        <td className="p-3  text-center align-middle">
+                          {d.reportedByUser?.fullName || "—"}
+                        </td>
+
+                        {/* ACTION MENU */}
+                        <td className="px-4 py-3 text-center relative">
+                          <button
+                            className="p-2 rounded-lg hover:bg-[#facf6c]"
+                            onClick={() =>
+                              setOpenMenuId(openMenuId === d.id ? null : d.id)
+                            }
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
+                          {openMenuId === d.id && (
+                            <div className="absolute right-4 mt-1 w-32 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                              <button
+                                className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                                onClick={() => {
+                                  setSelectedDiaryId(d.id);
+                                  setViewOpen(true);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                <Eye size={14} /> View
+                              </button>
+                              <button
+                                className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                                onClick={() => {
+                                  setSelectedDiaryId(d.id);
+                                  setOpenAddEdit(true);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                <Edit size={14} /> Edit
+                              </button>
+                              {userRole === "SUPER_ADMIN" && (
+                                <button
+                                  className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:text-black hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                                  onClick={() => openSingleDelete(d)}
+                                >
+                                  <Trash2 size={14} /> Delete
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
 
+          {/* Pagination */}
           <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            {/* Showing text */}
             <span className="text-sm sm:text-base">
-              Showing 1 to 4 of 10 results
+              Showing {(page - 1) * limit + 1} to{" "}
+              {Math.min(page * limit, totalItems)} of {totalItems} results
             </span>
 
+            {/* Buttons */}
             <div>
-              <div className="flex items-center space-x-2 ">
-                <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                  «
+              <div className="flex items-center space-x-2">
+                {/* First Page */}
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage(1)}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+                  text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronsLeft size={18} />
                 </button>
 
-                <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                  ‹
+                {/* Prev */}
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+                  text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={18} />
                 </button>
-                <div>...</div>
 
-                <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                  ›
+                <div className="px-2 text-sm font-medium">
+                  Page {page} of {totalPages}
+                </div>
+
+                {/* Next */}
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+                  text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={18} />
                 </button>
 
-                <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                  »
+                {/* Last Page */}
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage(totalPages)}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+                  text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronsRight size={18} />
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <AddSiteDiary isOpen={openModal} onClose={() => setOpenModal(false)} />
+      {/* Add/Edit modal */}
+      <AddEditSiteDiary
+        isOpen={openAddEdit}
+        onClose={() => {
+          setOpenAddEdit(false);
+          setSelectedDiaryId(null);
+        }}
+        diaryId={selectedDiaryId}
+      />
+
+      {/* View modal (you said you have one) */}
+      <ViewSiteDiaryModal
+        isOpen={viewOpen}
+        onClose={() => setViewOpen(false)}
+        diaryId={selectedDiaryId}
+      />
+
+      {/* Confirm modals */}
+      <ConfirmModal
+        open={singleDeleteConfirmOpen}
+        title="Delete Entry"
+        message={`Delete "${
+          selectedForDelete?.workDone?.slice(0, 30) || selectedForDelete?.id
+        }"?`}
+        onConfirm={confirmSingleDelete}
+        onCancel={() => setSingleDeleteConfirmOpen(false)}
+      />
+      <ConfirmModal
+        open={bulkDeleteConfirmOpen}
+        title="Delete Selected DPRs"
+        message={`Are you sure you want to delete ${selectedIds.length} DPR(s)?`}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setBulkDeleteConfirmOpen(false)}
+      />
     </div>
   );
 };
