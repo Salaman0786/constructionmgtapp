@@ -1,7 +1,17 @@
 import React, { useState } from "react";
-import { Edit, Eye, MoreHorizontal, Search, Trash2 } from "lucide-react";
+import {
+  Edit,
+  Eye,
+  Filter,
+  MoreHorizontal,
+  Search,
+  Trash2,
+} from "lucide-react";
 import StatusSummaryCard from "./StatusSummaryCard";
 import PermissionsModal from "./PermissionsModal";
+import { useGetRolesQuery } from "../../../features/role/api/roleApi";
+import { formatDateToDDMMYYYY } from "../../../utils/formatDate";
+import Loader from "../../common/Loader";
 
 interface RolesAndPermission {
   id: number; // Unique identifier for each role
@@ -44,10 +54,19 @@ const PurchaseRequestTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  // const [filterPriority, setFilterPriority] = useState<string>("All");
+  const {
+    data: rolesData,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetRolesQuery({ page, limit });
+  const roles = rolesData?.data?.roles || [];
+  const [filterPriority, setFilterPriority] = useState<string>("All");
   // const [filterStatus, setFilterStatus] = useState<string>("All");
-  // const [showFilter, setShowFilter] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
 
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
@@ -93,16 +112,21 @@ const PurchaseRequestTable: React.FC = () => {
     if (action === "View") {
       setSelectedRole(roleName);
       setIsModalOpen(true);
-    }else
-    alert(`${action} clicked for ${roleName}`);
+    } else alert(`${action} clicked for ${roleName}`);
     setOpenMenuId(null);
   };
-
+  const pagination = rolesData?.pagination;
+  const handlePrev = () => {
+    if (page > 1) setPage((p) => p - 1);
+  };
+  const handleNext = () => {
+    if (pagination?.hasNextPage) setPage((p) => p + 1);
+  };
   return (
     <>
       <div className="mt-6 space-y-6">
         {/* ✅ Search + Filter Container */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-sm border border-gray-200 bg-white p-4 rounded-lg">
+        {/* <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-sm border border-gray-200 bg-white p-4 rounded-lg">
           <div className="relative w-full">
             <Search className="absolute left-3 top-3 text-gray-400" size={18} />
             <input
@@ -114,89 +138,56 @@ const PurchaseRequestTable: React.FC = () => {
             />
           </div>
 
-          {/* Filter Dropdown */}
-          {/* <div className="flex items-center gap-3">
-          <div className="relative">
-            <button
-              onClick={() => setShowFilter(!showFilter)}
-              className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
-            >
-              <Filter size={16} /> Filters
-            </button>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button
+                onClick={() => setShowFilter(!showFilter)}
+                className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
+              >
+                <Filter size={16} /> Filters
+              </button>
 
-            {showFilter && (
-              <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg p-3 z-20">
-                <div>
-                  <label className="text-xs text-gray-600">Priority</label>
-                  <select
-                    value={filterPriority}
-                    onChange={(e) => setFilterPriority(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md mt-1 p-1.5 text-sm"
-                  >
-                    <option value="All">All</option>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Urgent">Urgent</option>
-                  </select>
+              {showFilter && (
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg p-3 z-20">
+                  <div>
+                    <label className="text-xs text-gray-600">Priority</label>
+                    <select
+                      value={filterPriority}
+                      onChange={(e) => setFilterPriority(e.target.value)}
+                      className="w-full border border-gray-300 rounded-md mt-1 p-1.5 text-sm"
+                    >
+                      <option value="All">All</option>
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Urgent">Urgent</option>
+                    </select>
+                  </div>
+                  <div className="mt-3">
+                    <label className="text-xs text-gray-600">Status</label>
+                    <select
+                      // value={filterStatus}
+                      // onChange={(e) => setFilterStatus(e.target.value)}
+                      className="w-full border border-gray-300 rounded-md mt-1 p-1.5 text-sm"
+                    >
+                      <option value="All">All</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Urgent">Urgent</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="mt-3">
-                  <label className="text-xs text-gray-600">Status</label>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md mt-1 p-1.5 text-sm"
-                  >
-                    <option value="All">All</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Urgent">Urgent</option>
-                  </select>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div> */}
-        </div>
 
-        {/* 📊 Status Summary Cards */}
         <StatusSummaryCard />
 
         {/* ✅ Table Section */}
         <div className="bg-white border overflow-x-auto  border-gray-200 rounded-xl shadow-sm">
           <div className="p-6">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
-              <div>
-                <h2 className="text-gray-900 font-semibold text-base">
-                  Purchase Request List
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Manage all purchase requests with filtering and actions.
-                </p>
-              </div>
-
-              {selectedIds.length > 0 && (
-                <div className="flex items-center gap-2 text-sm justify-end">
-                  <span className="text-gray-600">
-                    {selectedIds.length} item(s) selected
-                  </span>
-                  <button
-                    onClick={handleExportSelected}
-                    className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-md"
-                  >
-                    Export Selected
-                  </button>
-                  <button
-                    onClick={handleDeleteSelected}
-                    className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-                  >
-                    Delete Selected
-                  </button>
-                </div>
-              )}
-            </div>
-
             {/* Table */}
             <div className="overflow-x-auto border border-gray-200 rounded-xl">
               <table className="min-w-full border-collapse text-sm text-left">
@@ -205,54 +196,63 @@ const PurchaseRequestTable: React.FC = () => {
                     <th className="w-10 p-3 text-center">
                       <input
                         type="checkbox"
-                        checked={selectedIds.length === filteredRequests.length}
-                        onChange={(e) => selectAll(e.target.checked)}
+                        // checked={selectedIds.length === filteredRequests.length}
+                        //  onChange={(e) => selectAll(e.target.checked)}
                         className="accent-purple-700"
                       />
                     </th>
-                    <th className="p-3 font-medium">Role Name</th>
-                    <th className="p-3 font-medium">Description</th>
-                    <th className="p-3 font-medium text-center">Users</th>
-                    <th className="p-3 font-medium text-center">Modules</th>
-                    <th className="p-3 font-medium text-center">Created</th>
-                    <th className="p-3 font-medium text-center">Actions</th>
+                    <th className="p-3">Role Name</th>
+                    <th className="p-3">Description</th>
+                    <th className="p-3 text-center">Users</th>
+                    <th className="p-3 text-center">Modules</th>
+                    <th className="p-3 text-center">Created</th>
+                    {/* <th className="p-3 font-medium text-center">Actions</th> */}
                   </tr>
                 </thead>
 
                 <tbody>
-                  {filteredRequests.map((rp) => (
-                    <tr
-                      key={rp.id}
-                      className={`border-b border-gray-100 hover:bg-gray-50 transition-all ${
-                        selectedIds.includes(rp.id) ? "bg-purple-50" : ""
-                      }`}
-                    >
-                      <td className="w-10 p-3 text-center align-middle">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.includes(rp.id)}
-                          onChange={() => toggleSelect(rp.id)}
-                          className="accent-purple-700"
-                        />
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={12} className="py-10">
+                        <div className="flex justify-center items-center w-full">
+                          <Loader />
+                        </div>
                       </td>
-                      <td className="p-3 text-gray-700 align-middle">
-                        {rp.roleName}
-                      </td>
-                      <td className="p-3 text-gray-700 align-middle">
-                        {rp.description}
-                      </td>
-                      <td className="p-3 text-gray-700 text-center align-middle">
-                        {rp.users}
-                      </td>
-                      <td className="p-3 text-gray-700 text-center align-middle">
-                        {rp.modules}
-                      </td>
-                      <td className="p-3 text-gray-700 text-center align-middle">
-                        {rp.created}
-                      </td>
+                    </tr>
+                  ) : (
+                    roles.map((rp) => (
+                      <tr
+                        key={rp.id}
+                        className={`border-b border-gray-100 hover:bg-gray-50 transition-all ${
+                          selectedIds.includes(rp.id) ? "bg-purple-50" : ""
+                        }`}
+                      >
+                        <td className="w-10 p-3 text-center align-middle">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(rp.id)}
+                            onChange={() => toggleSelect(rp.id)}
+                            className="accent-purple-700"
+                          />
+                        </td>
+                        <td className="p-3 text-gray-700 align-middle">
+                          {rp.name}
+                        </td>
+                        <td className="p-3 text-gray-700 align-middle">
+                          {rp.description}
+                        </td>
+                        <td className="p-3 text-gray-700 text-center align-middle">
+                          {rp.userCount}
+                        </td>
+                        <td className="p-3 text-gray-700 text-center align-middle">
+                          {rp.moduleCount}
+                        </td>
+                        <td className="p-3 text-gray-700 text-center align-middle">
+                          {formatDateToDDMMYYYY(rp.createdAt)}
+                        </td>
 
-                      {/* ACTION MENU */}
-                      <td className="p-3 text-center align-middle relative">
+                        {/* ACTION MENU */}
+                        {/* <td className="p-3 text-center align-middle relative">
                         <button
                           className="p-2 rounded-full hover:bg-gray-100"
                           onClick={() => toggleMenu(rp.id)}
@@ -285,19 +285,9 @@ const PurchaseRequestTable: React.FC = () => {
                             </button>
                           </div>
                         )}
-                      </td>
-                    </tr>
-                  ))}
-
-                  {filteredRequests.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="text-center py-6 text-gray-500"
-                      >
-                        No records found
-                      </td>
-                    </tr>
+                      </td> */}
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>
@@ -306,29 +296,59 @@ const PurchaseRequestTable: React.FC = () => {
             {/* ✅ Pagination Section */}
             <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <span className="text-sm sm:text-base">
-                Showing 1 to 3 of 10 results
+                {pagination && (
+                  <>
+                    Showing{" "}
+                    {pagination.total > 0
+                      ? `${(pagination.page - 1) * pagination.limit + 1}`
+                      : "0"}{" "}
+                    to{" "}
+                    {Math.min(
+                      pagination.page * pagination.limit,
+                      pagination.total
+                    )}{" "}
+                    of {pagination.total} results
+                  </>
+                )}
               </span>
 
-              <div>
+              {pagination && (
                 <div className="flex items-center space-x-2">
-                  <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button
+                    onClick={() => setPage(1)}
+                    disabled={page === 1}
+                    className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+                  >
                     «
                   </button>
 
-                  <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button
+                    onClick={handlePrev}
+                    disabled={page === 1}
+                    className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+                  >
                     ‹
                   </button>
-                  <div>...</div>
 
-                  <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                  <span className="px-2 text-sm font-medium">{page}</span>
+
+                  <button
+                    onClick={handleNext}
+                    disabled={!pagination?.hasNextPage}
+                    className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+                  >
                     ›
                   </button>
 
-                  <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button
+                    onClick={() => setPage(pagination?.totalPages || 1)}
+                    disabled={!pagination?.hasNextPage}
+                    className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+                  >
                     »
                   </button>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

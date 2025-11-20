@@ -15,7 +15,7 @@ const PurchaseRequestDashboard: React.FC = () => {
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* <div className="flex items-center gap-3">
         <button
           onClick={() => setOpenModal(true)}
           className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
@@ -23,7 +23,7 @@ const PurchaseRequestDashboard: React.FC = () => {
           <Plus size={16} /> Add Role
         </button>
       </div>
-      <AddRole isOpen={openModal} onClose={() => setOpenModal(false)} />
+      <AddRole isOpen={openModal} onClose={() => setOpenModal(false)} /> */}
       {/*  */}
     </div>
   );

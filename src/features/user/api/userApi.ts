@@ -13,10 +13,12 @@ export const userApi = createApi({
   tagTypes: ["Users", "Roles"],
   endpoints: (builder) => ({
     getUsers: builder.query({
-      query: ({ page = 1, limit = 10 } = {}) =>
-        `/users?page=${page}&limit=${limit}`,
+      query: ({ page = 1, limit = 10, search = "", status = "", role = "" }) =>
+        `/users?page=${page}&limit=${limit}&search=${search}&status=${status}&role=${role}`,
     }),
-
+    getUsersDashboard: builder.query({
+      query: () => "/users/dashboard",
+    }),
     // ✅ POST API — add a new user
     addUser: builder.mutation({
       query: (body) => ({
@@ -69,4 +71,5 @@ export const {
   useDeleteUserMutation,
   useUpdateUserStatusMutation,
   useGetRolesQuery,
+  useGetUsersDashboardQuery,
 } = userApi;

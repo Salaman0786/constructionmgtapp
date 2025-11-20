@@ -6,6 +6,7 @@ import {
 } from "../../../features/companySettings/api/companySettingsApi";
 import { showError, showSuccess } from "../../../utils/toast";
 import { UploadCloud } from "lucide-react";
+import Loader from "../../common/Loader";
 
 // --- Company Information Form ---
 const CompanyInformationForm: React.FC = () => {
@@ -104,15 +105,7 @@ const CompanyInformationForm: React.FC = () => {
     }
   };
 
-  if (isLoading)
-    return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <div className="w-10 h-10 border-4 border-[#4B0082] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm text-gray-600 mt-4">
-          Loading company information...
-        </p>
-      </div>
-    );
+  if (isLoading) return <Loader />;
 
   return (
     <div className="bg-white w-full shadow-md rounded-xl p-6 md:p-8 mt-6">

@@ -40,6 +40,8 @@ import {
   SettingsIcon,
   Truck,
   Bell,
+  FolderOpen,
+  Files,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAppSelector } from "../app/hooks";
@@ -330,7 +332,20 @@ const navItems: NavItem[] = [
   //     },
   //   ],
   // },
-
+  {
+    icon: <FolderOpen />,
+    name: "Documents & Control",
+    roles: ["SUPER_ADMIN", "MANAGER"], // INVESTOR cannot see it
+    subItems: [
+      {
+        icon: <Files />,
+        name: "Drawings & Revisions",
+        path: "/drawings-revisions",
+        pro: false,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+    ],
+  },
   /* ADMIN MODULE → Only SUPER_ADMIN */
   {
     icon: <UserRoundCog />,

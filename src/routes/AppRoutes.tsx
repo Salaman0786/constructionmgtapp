@@ -55,6 +55,7 @@ import StockLedger from "../components/Inventory/StockLedger/StockLedger";
 import MaterialIssue from "../components/Inventory/MaterialIssue/MaterialIssue";
 import InventoryForecast from "../components/Inventory/InventoryForecast/InventoryForecast";
 import ReorderAlerts from "../components/Inventory/ReorderAlerts/ReorderAlerts";
+import DrawingsRevisions from "../components/Documents&Control/Drawings&Revisions/DrawingsRevisions";
 
 export default function AppRoutes() {
   return (
@@ -260,7 +261,15 @@ export default function AppRoutes() {
           <Route path="/material-issue" element={<MaterialIssue />} />
           <Route path="/inventory-forecast" element={<InventoryForecast />} />
           <Route path="/reorder-alerts" element={<ReorderAlerts />} />
-
+          {/* Documents and drawings */}
+          <Route
+            path="/drawings-revisions"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <DrawingsRevisions />
+              </RoleProtectedRoute>
+            }
+          />
           {/*  Admin */}
           <Route
             path="/user-management"

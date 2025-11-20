@@ -25,26 +25,37 @@ export const UsersTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, refetch } = useGetUsersQuery({
-    page: page,
-    limit: 10,
-  });
-  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [role, setRole] = useState("");
   const limit = 10;
   const [editUserId, setEditUserId] = useState<string | null>(null);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openConfirm, setOpenConfirm] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [tempStatus, setTempStatus] = useState("");
+  const [tempRole, setTempRole] = useState("");
+
   const { data: userDetails, isLoading: userDetailsLoading } =
     useGetUserByIdQuery(editUserId!, {
       skip: !editUserId,
     });
-
+  const { data, isLoading, isError, refetch } = useGetUsersQuery({
+    page: page,
+    limit: 10,
+    search: search,
+    status: statusFilter,
+    role: roleFilter,
+  });
   const pagination = data?.pagination;
   const handlePrev = () => {
     if (page > 1) setPage((p) => p - 1);
   };
+  const [filterOpen, setFilterOpen] = useState(false);
   const handleDelete = async (userId: string) => {
     setDeleteId(userId);
     setOpenConfirm(true);
@@ -160,14 +171,89 @@ export const UsersTable: React.FC = () => {
           <input
             type="text"
             placeholder="Search Project..."
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1); // Reset to page 1 when searching
+            }}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
+        <div className=" relative min-w-max">
+          <button
+            onClick={() => {
+              setTempStatus(statusFilter);
+              setTempRole(roleFilter);
+              setFilterOpen(!filterOpen);
+            }}
+            className="flex items-center gap-2 px-4 py-2 border border-[f0f0f0] rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
+          >
             <Filter size={16} /> Filters
           </button>
+
+          {/* Filter Dropdown */}
+          {filterOpen && (
+            <div className="absolute right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
+              <h3 className="text-sm font-semibold mb-3">Filter Users</h3>
+
+              {/* Status Filter */}
+              <div className="mb-3">
+                <label className="text-xs text-gray-600">Status</label>
+                <select
+                  value={tempStatus}
+                  onChange={(e) => setTempStatus(e.target.value)}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+          focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                >
+                  <option value="">All</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              {/* Role Filter */}
+              <div>
+                <label className="text-xs text-gray-600">Role</label>
+                <select
+                  value={tempRole}
+                  onChange={(e) => setTempRole(e.target.value)}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+          focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                >
+                  <option value="">All</option>
+                  <option value="SUPER_ADMIN">Super Admin</option>
+                  <option value="MANAGER">Manager</option>
+                  <option value="INVESTOR">Investor</option>
+                </select>
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex justify-between mt-4">
+                {/* Reset */}
+                <button
+                  className="text-sm text-gray-600 hover:underline"
+                  onClick={() => {
+                    setTempStatus("");
+                    setTempRole("");
+                  }}
+                >
+                  Reset
+                </button>
+
+                {/* Apply */}
+                <button
+                  className="bg-[#4b0082] text-white text-sm px-4 py-2 rounded-lg"
+                  onClick={() => {
+                    setStatusFilter(tempStatus);
+                    setRoleFilter(tempRole);
+                    setFilterOpen(false);
+                  }}
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {/* Table */}
@@ -337,41 +423,43 @@ export const UsersTable: React.FC = () => {
             )}
           </span>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setPage(1)}
-              disabled={page === 1}
-              className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
-            >
-              «
-            </button>
+          {pagination && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setPage(1)}
+                disabled={page === 1}
+                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+              >
+                «
+              </button>
 
-            <button
-              onClick={handlePrev}
-              disabled={page === 1}
-              className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
-            >
-              ‹
-            </button>
+              <button
+                onClick={handlePrev}
+                disabled={page === 1}
+                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+              >
+                ‹
+              </button>
 
-            <span className="px-2 text-sm font-medium">{page}</span>
+              <span className="px-2 text-sm font-medium">{page}</span>
 
-            <button
-              onClick={handleNext}
-              disabled={!pagination?.hasNextPage}
-              className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
-            >
-              ›
-            </button>
+              <button
+                onClick={handleNext}
+                disabled={!pagination?.hasNextPage}
+                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+              >
+                ›
+              </button>
 
-            <button
-              onClick={() => setPage(pagination?.totalPages || 1)}
-              disabled={!pagination?.hasNextPage}
-              className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
-            >
-              »
-            </button>
-          </div>
+              <button
+                onClick={() => setPage(pagination?.totalPages || 1)}
+                disabled={!pagination?.hasNextPage}
+                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+              >
+                »
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

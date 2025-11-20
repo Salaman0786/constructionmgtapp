@@ -5,6 +5,7 @@ import { companySettingsApi } from "../features/companySettings/api/companySetti
 import { userApi } from "../features/user/api/userApi";
 import { projectsApi } from "../features/projectControll/projectsApi";
 import { siteDiaryApi } from "../features/siteDiary/api/siteDiaryApi";
+import { roleApi } from "../features/role/api/roleApi";
 
 export const store = configureStore({
   reducer: {
@@ -14,12 +15,14 @@ export const store = configureStore({
     [siteDiaryApi.reducerPath]: siteDiaryApi.reducer,
     auth: authReducer,
     [userApi.reducerPath]: userApi.reducer,
+    [roleApi.reducerPath]: roleApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       authApi.middleware,
       companySettingsApi.middleware,
       userApi.middleware,
+      roleApi.middleware,
       projectsApi.middleware,
       siteDiaryApi.middleware
     ),
