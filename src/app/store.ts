@@ -6,6 +6,7 @@ import { userApi } from "../features/user/api/userApi";
 import { projectsApi } from "../features/projectControll/projectsApi";
 import { siteDiaryApi } from "../features/siteDiary/api/siteDiaryApi";
 import { roleApi } from "../features/role/api/roleApi";
+import { drawingsApi } from "../features/drawings&controls/api/drawingsApi";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     auth: authReducer,
     [userApi.reducerPath]: userApi.reducer,
     [roleApi.reducerPath]: roleApi.reducer,
+    [drawingsApi.reducerPath]: drawingsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -24,7 +26,8 @@ export const store = configureStore({
       userApi.middleware,
       roleApi.middleware,
       projectsApi.middleware,
-      siteDiaryApi.middleware
+      siteDiaryApi.middleware,
+      drawingsApi.middleware
     ),
 });
 

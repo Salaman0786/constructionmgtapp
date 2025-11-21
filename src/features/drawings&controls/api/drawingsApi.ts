@@ -14,33 +14,52 @@ export const drawingsApi = createApi({
   endpoints: (builder) => ({
     getDrawings: builder.query({
       query: ({ page = 1, limit = 10 } = {}) =>
-        `/roles?page=${page}&limit=${limit}`,
-      providesTags: ["Roles"],
+        `/drawings?page=${page}&limit=${limit}`,
+      providesTags: ["Drawings"],
     }),
-
+    getDrawingsProjects: builder.query({
+      query: () => "/drawings/projects",
+      providesTags: ["Projects"],
+    }),
     // ✅ POST API — add a new user
-    addDrawings: builder.mutation({
-      query: (body) => ({
-        url: "/roles",
+    createDrawings: builder.mutation({
+      query: (payload) => ({
+        url: `/drawings`,
         method: "POST",
-        body,
+        body: payload,
       }),
     }),
 
-    // ✅ PUT API — update user
-
     // ✅ DELETE API — delete user
     deleteDrawings: builder.mutation({
-      query: (id) => ({
-        url: `/roles/${id}`,
+      query: (ids: string[]) => ({
+        url: `/drawings`,
         method: "DELETE",
+        body: { ids },
       }),
     }),
 
     getDrawingsById: builder.query<any, string>({
       query: (id) => `/roles/${id}`,
     }),
+    uploadDrawings: builder.mutation({
+      query: (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
 
+        return {
+          url: "/drawings/upload",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
+    deleteDrawingsFile: builder.mutation({
+      query: (fileId: string) => ({
+        url: `/drawings/file-delete/${fileId}`,
+        method: "DELETE",
+      }),
+    }),
     // ⭐ Update user (PUT or PATCH)
     updateDrawings: builder.mutation({
       query: ({ id, body }) => ({
@@ -55,8 +74,11 @@ export const drawingsApi = createApi({
 
 export const {
   useGetDrawingsQuery,
+  useGetDrawingsProjectsQuery,
   useGetDrawingsByIdQuery,
-  useAddDrawingsMutation,
+  useCreateDrawingsMutation,
+  useUploadDrawingsMutation,
   useUpdateDrawingsMutation,
   useDeleteDrawingsMutation,
+  useDeleteDrawingsFileMutation,
 } = drawingsApi;

@@ -13,17 +13,18 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 
-import {
-  useGetProjectsQuery,
-  useDeleteProjectsMutation,
-} from "../../../features/projectControll/projectsApi";
 import { useSelector } from "react-redux";
 import { renderShimmer } from "../../common/tableShimmer";
-import { getTwoWordPreview } from "../../../utils/helpers";
 import { formatToYMD } from "../../../utils/helpers";
 import { showError, showSuccess } from "../../../utils/toast";
 
 import AddDrawings from "./AddDrawings";
+import EditDrawings from "./EditDrawings";
+import {
+  useDeleteDrawingsMutation,
+  useGetDrawingsQuery,
+} from "../../../features/drawings&controls/api/drawingsApi";
+import ConfirmModal from "../../common/ConfirmModal";
 
 interface Project {
   id: string;
@@ -63,34 +64,36 @@ const DrawingsRevisions: React.FC = () => {
   const [tempStart, setTempStart] = useState("");
   const [tempEnd, setTempEnd] = useState("");
   const [tempStatus, setTempStatus] = useState("");
+  const [disciplineValue, setDisciplineValue] = useState("");
 
   //pagination
   const [page, setPage] = useState(1);
   const limit = 10;
 
   // RTK Query GET API
-  const { data, isLoading, isError, error, refetch } = useGetProjectsQuery({
+  const { data, isLoading, isError, error, refetch } = useGetDrawingsQuery({
     page,
     limit,
+    discipline: disciplineValue,
     search: searchQuery,
     status: statusFilter,
     startDate: startDateFilter,
     endDate: endDateFilter,
   });
 
-  const [deleteProjects] = useDeleteProjectsMutation();
-
+  const [deleteDrawings, { isLoading: isDeleting }] =
+    useDeleteDrawingsMutation();
   /*
   This function is called when user clicks the “Delete” button in the modal.
   We send projectId + reason to API.
 */
   const confirmSingleDelete = async () => {
     try {
-      await deleteProjects([selectedProject.id]).unwrap();
-      showSuccess("Project deleted successfully!");
+      await deleteDrawings([selectedProject.id]).unwrap();
+      showSuccess("Drawing deleted successfully!");
+      refetch();
     } catch (err) {
-      console.error("Error :", err);
-      showError("Delete failed");
+      showError(err.data.message || "Delete failed");
     }
 
     setSingleDeleteConfirmOpen(false);
@@ -122,7 +125,7 @@ const DrawingsRevisions: React.FC = () => {
 
   const selectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(filteredProjects.map((p) => p.id));
+      setSelectedIds(data?.data?.drawing.map((p) => p.id));
     } else {
       setSelectedIds([]);
     }
@@ -151,19 +154,20 @@ const DrawingsRevisions: React.FC = () => {
   //handle mutiple delete
   const confirmBulkDelete = async () => {
     try {
-      await deleteProjects(selectedIds).unwrap();
-      showSuccess("Selected projects deleted successfully!");
+      await deleteDrawings(selectedIds).unwrap();
+      showSuccess("Selected drawings deleted successfully!");
       setSelectedIds([]);
+      refetch();
     } catch (err) {
       console.error("Error :", err);
-      showError("Failed to delete selected projects");
+      showError(err.data.message || "Failed to delete selected drawings");
     }
     setBulkDeleteConfirmOpen(false);
   };
 
   //handle csv export
   const handleExportSelected = () => {
-    const selectedProjects = filteredProjects.filter((p) =>
+    const selectedProjects = data?.data?.drawing.filter((p) =>
       selectedIds.includes(p.id)
     );
 
@@ -198,28 +202,28 @@ const DrawingsRevisions: React.FC = () => {
   };
 
   // Search filter
-  const filteredProjects = projects.filter((p) => {
-    const q = searchQuery.toLowerCase().trim();
+  // const filteredProjects = data?.data?.drawing.filter((p) => {
+  //   const q = searchQuery.toLowerCase().trim();
 
-    // SEARCH FILTER
-    const matchesSearch =
-      p.name.toLowerCase().includes(q) ||
-      p.code?.toLowerCase().includes(q) ||
-      p.manager?.fullName?.toLowerCase().includes(q);
+  //   // SEARCH FILTER
+  //   const matchesSearch =
+  //     p.name.toLowerCase().includes(q) ||
+  //     p.code?.toLowerCase().includes(q) ||
+  //     p.manager?.fullName?.toLowerCase().includes(q);
 
-    // START DATE FILTER
-    const matchesStart =
-      !startDateFilter || new Date(p.startDate) >= new Date(startDateFilter);
+  //   // START DATE FILTER
+  //   const matchesStart =
+  //     !startDateFilter || new Date(p.startDate) >= new Date(startDateFilter);
 
-    // END DATE FILTER
-    const matchesEnd =
-      !endDateFilter || new Date(p.endDate) <= new Date(endDateFilter);
+  //   // END DATE FILTER
+  //   const matchesEnd =
+  //     !endDateFilter || new Date(p.endDate) <= new Date(endDateFilter);
 
-    // STATUS FILTER
-    const matchesStatus = !statusFilter || p.status === statusFilter;
+  //   // STATUS FILTER
+  //   const matchesStatus = !statusFilter || p.status === statusFilter;
 
-    return matchesSearch && matchesStart && matchesEnd && matchesStatus;
-  });
+  //   return matchesSearch && matchesStart && matchesEnd && matchesStatus;
+  // });
 
   return (
     <div className="space-y-6 bg-white min-h-screen">
@@ -374,12 +378,12 @@ const DrawingsRevisions: React.FC = () => {
                 {selectedIds.length} selected
               </span>
 
-              <button
+              {/* <button
                 onClick={handleExportSelected}
                 className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
               >
                 Export
-              </button>
+              </button> */}
 
               {userRole === "SUPER_ADMIN" && (
                 <button
@@ -397,12 +401,12 @@ const DrawingsRevisions: React.FC = () => {
           <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
-                <th className="p-3">
+                <th className="p-3 text-center align-middle">
                   <input
                     type="checkbox"
                     checked={
-                      filteredProjects.length > 0 &&
-                      selectedIds.length === filteredProjects.length
+                      data?.data?.drawing.length > 0 &&
+                      selectedIds.length === data?.data?.drawing.length
                     }
                     onChange={(e) => selectAll(e.target.checked)}
                     className="accent-purple-600"
@@ -419,21 +423,21 @@ const DrawingsRevisions: React.FC = () => {
             <tbody>
               {isLoading ? (
                 renderShimmer()
-              ) : filteredProjects.length === 0 ? (
+              ) : data?.data?.drawing?.length === 0 ? (
                 <tr>
                   <td colSpan={12} className="text-center py-6 text-gray-500">
                     No Projects Found
                   </td>
                 </tr>
               ) : (
-                filteredProjects.map((project, index) => (
+                data?.data?.drawing.map((project, index) => (
                   <tr
                     key={project.id}
                     className={`border-b hover:bg-gray-50 ${
                       selectedIds.includes(project.id) ? "bg-purple-50" : ""
                     }`}
                   >
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3 text-center align-middle">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(project.id)}
@@ -441,21 +445,21 @@ const DrawingsRevisions: React.FC = () => {
                         className="accent-purple-600"
                       />
                     </td>
-                    <td className="p-3 text-center align-middle">
-                      {(page - 1) * limit + index + 1}
-                    </td>
 
                     <td className="p-3  text-center align-middle">
-                      {project.code}
+                      {project.drawingCode}
                     </td>
                     <td
                       className="p-3 text-center align-middle"
                       title={project.name} // full name on hover
                     >
-                      {getTwoWordPreview(project.name)}
+                      {project.drawingName}
                     </td>
                     <td className="p-3 text-center align-middle">
-                      {(page - 1) * limit + index + 1}
+                      {project.discipline}
+                    </td>
+                    <td className="p-3 text-center align-middle">
+                      {project.revision}
                     </td>
                     {/* ACTION MENU */}
                     <td className="px-4 py-3 text-center relative">
@@ -467,7 +471,7 @@ const DrawingsRevisions: React.FC = () => {
                       </button>
 
                       {openMenuId === project.id && (
-                        <div className="absolute right-4 mt-1 w-32 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <div className="absolute right-4 mt-1 w-32 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-9999">
                           <button
                             onClick={() => {
                               setSelectedProjectId(project.id);
@@ -493,8 +497,9 @@ const DrawingsRevisions: React.FC = () => {
                               onClick={() => {
                                 setSelectedProject(project);
                                 setSingleDeleteConfirmOpen(true);
-                                setOpenMenuId(null); // 🔥 CLOSE MENU
+                                setOpenMenuId(null);
                               }}
+                              disabled={isDeleting}
                               className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:text-black hover:bg-[#facf6c] hover:border-[#fe9a00]"
                             >
                               <Trash2 size={16} className="text-gray-500" />{" "}
@@ -504,37 +509,6 @@ const DrawingsRevisions: React.FC = () => {
                         </div>
                       )}
                     </td>
-
-                    {/* <td className="p-3  text-center align-middle flex gap-2 justify-center">
-                      <button
-                        className="text-blue-500 hover:text-blue-700"
-                        onClick={() => {
-                          setSelectedProjectId(project.id);
-                          setViewModalOpen(true);
-                        }}
-                      >
-                        <Eye size={16} />
-                      </button>
-                      {userRole === "SUPER_ADMIN" && (
-                        <>
-                          <button
-                            className="text-blue-500 hover:text-blue-700"
-                            onClick={() => {
-                              setSelectedProjectId(project.id); // send id to modal
-                              setIsModalOpen(true);
-                            }}
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => openDeleteModal(project)}
-                          >
-                            <Trash size={16} />
-                          </button>
-                        </>
-                      )}
-                    </td> */}
                   </tr>
                 ))
               )}
@@ -604,29 +578,43 @@ const DrawingsRevisions: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);
-            setSelectedProjectId(null); // reset mode
+            setSelectedProjectId(null);
+            refetch();
+          }}
+          projectId={selectedProjectId}
+        />
+        <EditDrawings
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedProjectId(null);
+            refetch();
           }}
           projectId={selectedProjectId}
         />
       </div>
 
       {/* SINGLE DELETE CONFIRMATION */}
-      {/* <ConfirmModal
+      <ConfirmModal
         open={singleDeleteConfirmOpen}
-        title="Delete Project"
-        message={`Are you sure you want to delete "${selectedProject?.name}"?`}
+        title="Delete Drawing"
+        message={`Are you sure you want to delete "${selectedProject?.drawingName}"?`}
         onConfirm={confirmSingleDelete}
-        onCancel={() => setSingleDeleteConfirmOpen(false)}
-      /> */}
+        onCancel={() => {
+          setSingleDeleteConfirmOpen(false);
+        }}
+      />
 
       {/* Multiple DELETE CONFIRMATION */}
-      {/* <ConfirmModal
+      <ConfirmModal
         open={bulkDeleteConfirmOpen}
-        title="Delete Selected Projects"
-        message={`Are you sure you want to delete ${selectedIds.length} project(s)?`}
+        title="Delete Selected Drawings"
+        message={`Are you sure you want to delete ${selectedIds.length} drawing(s)?`}
         onConfirm={confirmBulkDelete}
-        onCancel={() => setBulkDeleteConfirmOpen(false)}
-      /> */}
+        onCancel={() => {
+          setBulkDeleteConfirmOpen(false);
+        }}
+      />
     </div>
   );
 };
