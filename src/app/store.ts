@@ -5,8 +5,12 @@ import { companySettingsApi } from "../features/companySettings/api/companySetti
 import { userApi } from "../features/user/api/userApi";
 import { projectsApi } from "../features/projectControll/projectsApi";
 import { siteDiaryApi } from "../features/siteDiary/api/siteDiaryApi";
+
 import { roleApi } from "../features/role/api/roleApi";
 import { drawingsApi } from "../features/drawings&controls/api/drawingsApi";
+
+import { taskApi } from "../features/taskAssignment/api/taskAssignmentApi";
+import { dashboardApi } from "../features/dashboard/api/dashboardApi";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +18,8 @@ export const store = configureStore({
     [companySettingsApi.reducerPath]: companySettingsApi.reducer,
     [projectsApi.reducerPath]: projectsApi.reducer,
     [siteDiaryApi.reducerPath]: siteDiaryApi.reducer,
+    [taskApi.reducerPath]: taskApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
     auth: authReducer,
     [userApi.reducerPath]: userApi.reducer,
     [roleApi.reducerPath]: roleApi.reducer,
@@ -27,7 +33,11 @@ export const store = configureStore({
       roleApi.middleware,
       projectsApi.middleware,
       siteDiaryApi.middleware,
-      drawingsApi.middleware
+
+      drawingsApi.middleware,
+
+      taskApi.middleware,
+      dashboardApi.middleware
     ),
 });
 

@@ -1,6 +1,7 @@
 import React from "react";
-import { X, Sun, CloudRain, CloudSun, Users } from "lucide-react";
+import { X, Users } from "lucide-react";
 import { useGetSiteDiaryByIdQuery } from "../../../features/siteDiary/api/siteDiaryApi";
+import { renderWeatherBadge } from "./WeatherBadge";
 
 interface ViewSiteDiaryModalProps {
   isOpen: boolean;
@@ -22,35 +23,6 @@ const ViewSiteDiaryModal: React.FC<ViewSiteDiaryModalProps> = ({
   const diary = data?.data;
 
   const formatDate = (iso?: string) => (iso ? iso.split("T")[0] : "—");
-
-  const getWeatherBadge = (weather: string) => {
-    switch (weather) {
-      case "SUNNY":
-        return (
-          <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs inline-flex items-center gap-1">
-            <Sun size={14} /> SUNNY
-          </span>
-        );
-      case "RAINY":
-        return (
-          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs inline-flex items-center gap-1">
-            <CloudRain size={14} /> RAINY
-          </span>
-        );
-      case "PARTLY_CLOUDY":
-        return (
-          <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs inline-flex items-center gap-1">
-            <CloudSun size={14} /> PARTLY_CLOUDY
-          </span>
-        );
-      default:
-        return (
-          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs">
-            —
-          </span>
-        );
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black/40 z-[999] flex items-center justify-center p-4">
@@ -103,7 +75,7 @@ const ViewSiteDiaryModal: React.FC<ViewSiteDiaryModalProps> = ({
             {/* Weather */}
             <div>
               <p className="text-sm text-gray-800">Weather</p>
-              <div className="mt-1">{getWeatherBadge(diary.weather)}</div>
+              <div className="mt-1">{renderWeatherBadge(diary.weather)}</div>
             </div>
 
             {/* Project */}

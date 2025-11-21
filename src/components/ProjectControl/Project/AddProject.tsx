@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Calendar, Edit } from "lucide-react";
+import { X, Calendar} from "lucide-react";
 import {
   useCreateProjectMutation,
   useGetProjectManagersQuery,
   useGetProjectByIdQuery,
   useUpdateProjectMutation,
 } from "../../../features/projectControll/projectsApi";
-import { showError, showSuccess } from "../../../utils/toast";
+import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import { useSelector } from "react-redux";
+import { validateProject } from "../../../utils/validators/projectValidator";
+import { RequiredLabel } from "../../common/RequiredLabel";
 
 interface AddEditProjectModalProps {
   isOpen: boolean;
@@ -36,6 +38,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   projectId,
 }) => {
   const isEdit = Boolean(projectId);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   /* -----------------------------------------
         API HOOKS
@@ -145,10 +148,21 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   /* -----------------------------------------
       ON INPUT CHANGE
   ----------------------------------------- */
+  // const handleChange = (
+  //   e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  // ) => {
+  //   setForm({ ...form, [e.target.name]: e.target.value });
+  // };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   /* -----------------------------------------
@@ -158,6 +172,8 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     setManagerSearch(manager.fullName);
     setForm({ ...form, managerId: manager.id });
     setShowDropdown(false);
+
+    setErrors((prev) => ({ ...prev, managerId: "" }));
   };
 
   /* -----------------------------------------
@@ -165,6 +181,14 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   ----------------------------------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationErrors = validateProject(form, isEdit);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      showInfo("Please fill all required fields.");
+      return;
+    }
 
     const payload = {
       ...form,
@@ -243,9 +267,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
               {/*Project Code*/}
               {isEdit && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Project Code
-                  </label>
+                  <RequiredLabel label="Project Code" />
                   <input
                     type="text"
                     value={form.code}
@@ -258,47 +280,45 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
 
               {/* NAME */}
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Project Name
-                </label>
+                <RequiredLabel label="Project Name" />
                 <input
                   type="text"
                   name="name"
                   value={form.name}
                   placeholder="Enter project name"
                   onChange={handleChange}
-                  required
                   disabled={isManager}
                   className={`w-full mt-1 border border-gray-300 ${
                     isManager ? "cursor-not-allowed bg-gray-100" : ""
                   } rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                )}
               </div>
             </div>
 
             {/* TYPE + STATUS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Project Type
-                </label>
+                <RequiredLabel label="Project Type" />
                 <input
                   type="text"
                   name="type"
                   value={form.type}
                   placeholder="Residential / Commercial"
                   onChange={handleChange}
-                  required
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
+                {errors.type && (
+                  <p className="text-red-500 text-xs mt-1">{errors.type}</p>
+                )}
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Status
-                </label>
+                <RequiredLabel label="Status" />
                 <select
                   name="status"
                   value={form.status}
@@ -316,9 +336,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
 
             {/* MANAGER SEARCH */}
             <div className="relative" ref={dropdownRef}>
-              <label className="text-sm font-medium text-gray-700">
-                Project Manager
-              </label>
+              <RequiredLabel label="Project Manager" />
 
               <input
                 type="text"
@@ -328,6 +346,10 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                 onChange={(e) => {
                   setManagerSearch(e.target.value.trimStart());
                   setShowDropdown(true);
+                  // ✅ CLEAR MANAGER ERROR WHEN USER INTERACTS
+                  if (errors.managerId) {
+                    setErrors((prev) => ({ ...prev, managerId: "" }));
+                  }
                 }}
                 onFocus={() => setShowDropdown(true)}
                 className={`w-full mt-1 border border-gray-300 ${
@@ -335,6 +357,9 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                 } rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
               />
+              {errors.managerId && (
+                <p className="text-red-500 text-xs mt-1">{errors.managerId}</p>
+              )}
 
               {managerSearch && (
                 <button
@@ -391,9 +416,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
             {/* BUDGET + CURRENCY */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Budget Baseline
-                </label>
+                <RequiredLabel label="Budget Baseline" />
                 <input
                   type="number"
                   name="budgetBaseline"
@@ -401,18 +424,20 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   value={form.budgetBaseline}
                   onChange={handleChange}
                   disabled={isManager}
-                  required
                   className={`w-full mt-1 border border-gray-300 ${
                     isManager ? "cursor-not-allowed bg-gray-100" : ""
                   } rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
                 />
+                {errors.budgetBaseline && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.budgetBaseline}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Currency
-                </label>
+                <RequiredLabel label="Currency" />
                 <select
                   name="currency"
                   disabled={isManager}
@@ -432,16 +457,13 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
             {/* DATES */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Start Date
-                </label>
+                <RequiredLabel label="Start Date" />
                 <div className="relative">
                   <input
                     type="date"
                     name="startDate"
                     value={form.startDate}
                     onChange={handleChange}
-                    required
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   />
@@ -449,20 +471,22 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                     size={16}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                   />
+                  {errors.startDate && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.startDate}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  End Date
-                </label>
+                <RequiredLabel label="End Date" />
                 <div className="relative">
                   <input
                     type="date"
                     name="endDate"
                     value={form.endDate}
                     onChange={handleChange}
-                    required
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   />
@@ -470,6 +494,11 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                     size={16}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                   />
+                  {errors.endDate && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.endDate}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -477,53 +506,53 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
             {/* CITY + COUNTRY */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  City
-                </label>
+                <RequiredLabel label="City" />
                 <input
                   type="text"
                   name="city"
                   value={form.city}
                   onChange={handleChange}
                   placeholder="City"
-                  required
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
+                {errors.city && (
+                  <p className="text-red-500 text-xs mt-1">{errors.city}</p>
+                )}
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Country
-                </label>
+                <RequiredLabel label="Country" />
                 <input
                   type="text"
                   name="country"
                   value={form.country}
                   onChange={handleChange}
                   placeholder="Country"
-                  required
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
+                {errors.country && (
+                  <p className="text-red-500 text-xs mt-1">{errors.country}</p>
+                )}
               </div>
             </div>
 
             {/* ADDRESS */}
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Address
-              </label>
+              <RequiredLabel label="Address" />
               <input
                 type="text"
                 name="address"
                 value={form.address}
                 onChange={handleChange}
                 placeholder="Full address"
-                required
                 className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
          focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
               />
+              {errors.address && (
+                <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+              )}
             </div>
 
             {/* BUTTONS */}

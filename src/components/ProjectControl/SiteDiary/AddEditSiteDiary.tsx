@@ -7,8 +7,10 @@ import {
   useGetSiteDiaryProjectsQuery,
   useUpdateSiteDiaryMutation,
 } from "../../../features/siteDiary/api/siteDiaryApi";
-import { showError, showSuccess } from "../../../utils/toast";
+import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import { useSelector } from "react-redux";
+import { validateSiteDiary } from "../../../utils/validators/siteDiaryValidator";
+import { RequiredLabel } from "../../common/RequiredLabel";
 
 interface Props {
   isOpen: boolean;
@@ -38,6 +40,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
   const [createDiary, { isLoading: creating }] = useCreateSiteDiaryMutation();
   const [updateDiary, { isLoading: updating }] = useUpdateSiteDiaryMutation();
   const loading = creating || updating;
+  const [errors, setErrors] = useState<any>({});
 
   const initialForm = {
     date: "",
@@ -76,8 +79,8 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
       date: diary.date?.split("T")[0] || "",
       weather: diary.weather?.toUpperCase() || "SUNNY",
       projectId: diary.projectId || "",
-      manpower: String(diary.manpower || ""),
-      equipment: String(diary.equipment || ""),
+      manpower: String(diary.manpower ?? ""),
+      equipment: String(diary.equipment ?? ""),
       workDone: diary.workDone || "",
       issues: diary.issues || "",
     });
@@ -111,12 +114,23 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
       .includes(projectSearch.toLowerCase().trim())
   );
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
+  // const handleChange = (
+  //   e: React.ChangeEvent<
+  //     HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+  //   >
+  // ) => {
+  //   setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
+  //   setErrors((prev: any) => ({ ...prev, [e.target.name]: "" }));
+  // };
+
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (errors[name]) {
+      setErrors((prev: any) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleSelectProject = (p: any) => {
@@ -127,6 +141,16 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ✅ RUN VALIDATION FIRST
+    const validationErrors = validateSiteDiary(form);
+    setErrors(validationErrors);
+
+    // If any errors exist, stop submission
+    if (Object.keys(validationErrors).length > 0) {
+      showInfo("Please fill all required fields.");
+      return;
+    }
     const payload = {
       date: form.date,
       weather: form.weather.toUpperCase(),
@@ -179,36 +203,34 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-sm text-gray-700">Date</label>
+                <RequiredLabel label="Date" />
                 <div className="relative">
                   <input
                     type="date"
                     name="date"
                     value={form.date}
                     onChange={handleChange}
-                    disabled={isManager}
-                    className={`w-full mt-1 border border-gray-300 ${
-                      isManager ? "cursor-not-allowed bg-gray-100" : ""
-                    } rounded-md p-2 text-sm
+                    className={`w-full mt-1 border border-gray-300  rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
-                    required
                   />
                   <Calendar
                     size={16}
                     className="absolute right-3 top-3 text-gray-400 pointer-events-none"
                   />
+                  {errors.date && (
+                    <p className="text-red-500 text-xs mt-1">{errors.date}</p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <label className="text-sm text-gray-700">Weather</label>
+                <RequiredLabel label="Weather" />
                 <select
                   name="weather"
                   value={form.weather}
                   onChange={handleChange}
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                  required
                 >
                   {WEATHER_OPTIONS.map((w) => (
                     <option key={w.value} value={w.value}>
@@ -216,14 +238,15 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                     </option>
                   ))}
                 </select>
+                {errors.weather && (
+                  <p className="text-red-500 text-xs mt-1">{errors.weather}</p>
+                )}
               </div>
             </div>
 
             {/* PROJECT SEARCH */}
             <div className="relative" ref={dropdownRef}>
-              <label className="text-sm font-medium text-gray-700">
-                Project
-              </label>
+              <RequiredLabel label="Project" />
 
               <input
                 type="text"
@@ -233,14 +256,13 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                   setProjectSearch(e.target.value.trimStart());
                   setShowDropdown(true);
                 }}
-                disabled={isManager}
                 onFocus={() => setShowDropdown(true)}
-                className={`w-full mt-1 border border-gray-300 ${
-                  isManager ? "cursor-not-allowed bg-gray-100" : ""
-                } rounded-md p-2 text-sm
+                className={`w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
-                required
               />
+              {errors.projectId && (
+                <p className="text-red-500 text-xs mt-1">{errors.projectId}</p>
+              )}
 
               {/* CLEAR BUTTON */}
               {projectSearch && (
@@ -252,7 +274,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                   }}
                   className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                 >
-                  {isManager ? "" : "✕"}
+                  ✕
                 </button>
               )}
 
@@ -301,7 +323,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-sm text-gray-700">Manpower</label>
+                <RequiredLabel label="Manpower" />
                 <input
                   type="number"
                   name="manpower"
@@ -310,11 +332,13 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                   onChange={handleChange}
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                  required
                 />
+                {errors.manpower && (
+                  <p className="text-red-500 text-xs mt-1">{errors.manpower}</p>
+                )}
               </div>
               <div>
-                <label className="text-sm text-gray-700">Equipment</label>
+                <RequiredLabel label="Equipment" />
                 <input
                   type="number"
                   name="equipment"
@@ -323,13 +347,17 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                   onChange={handleChange}
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                  required
                 />
+                {errors.equipment && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.equipment}
+                  </p>
+                )}
               </div>
             </div>
 
             <div>
-              <label className="text-sm text-gray-700">Work Done</label>
+              <RequiredLabel label="Work Done" />
               <textarea
                 name="workDone"
                 value={form.workDone}
@@ -338,12 +366,14 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                 rows={3}
                 className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                required
               />
+              {errors.workDone && (
+                <p className="text-red-500 text-xs mt-1">{errors.workDone}</p>
+              )}
             </div>
 
             <div>
-              <label className="text-sm text-gray-700">Issues</label>
+              <RequiredLabel label="Issues" />
               <textarea
                 name="issues"
                 value={form.issues}
@@ -353,6 +383,9 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                 className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
               />
+              {errors.issues && (
+                <p className="text-red-500 text-xs mt-1">{errors.issues}</p>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 mt-2">

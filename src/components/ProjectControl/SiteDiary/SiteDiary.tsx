@@ -10,9 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsRight,
-  CloudRain,
-  CloudSun,
-  Sun,
   Users,
   Plus,
 } from "lucide-react";
@@ -31,6 +28,7 @@ import { getTwoWordPreview, formatToYMD } from "../../../utils/helpers";
 import { renderShimmer } from "../../common/tableShimmer";
 import { useSelector } from "react-redux";
 import { showError, showSuccess } from "../../../utils/toast";
+import { renderWeatherBadge } from "./WeatherBadge";
 
 const SiteDiary: React.FC = () => {
   const userRole = useSelector((s: any) => s.auth.user?.role?.name);
@@ -54,6 +52,9 @@ const SiteDiary: React.FC = () => {
   const [tempStartDateFilter, setTempStartDateFilter] = useState("");
   const [tempEndDateFilter, setTempEndDateFilter] = useState("");
 
+  // adjusting menu
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+
   /* -----------------------------------
      Project dropdown (same as add modal)
   -----------------------------------*/
@@ -65,18 +66,13 @@ const SiteDiary: React.FC = () => {
   const allProjects = projectData?.data?.projects || [];
 
   const filteredProjects = allProjects.filter((p: any) => {
-    if (!projectSearch.trim()) return true;
+    if (!tempProjectSearch.trim()) return true;
+
     return (
-      p.name.toLowerCase().includes(projectSearch.toLowerCase()) ||
-      p.code.toLowerCase().includes(projectSearch.toLowerCase())
+      p.name.toLowerCase().includes(tempProjectSearch.toLowerCase()) ||
+      p.code.toLowerCase().includes(tempProjectSearch.toLowerCase())
     );
   });
-
-  const handleSelectProject = (p: any) => {
-    setProjectFilterId(p.id);
-    setProjectSearch(`${p.code} — ${p.name}`);
-    setShowDropdown(false);
-  };
 
   // CLOSE DROPDOWN ON CLICK OUTSIDE
   useEffect(() => {
@@ -144,6 +140,13 @@ const SiteDiary: React.FC = () => {
     setBulkDeleteConfirmOpen(false);
   };
 
+  // Close menu when scrolling
+  useEffect(() => {
+    const handleScroll = () => setOpenMenuId(null);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   /* -----------------------------------
      Export CSV
   -----------------------------------*/
@@ -207,7 +210,7 @@ const SiteDiary: React.FC = () => {
           <p className="text-sm text-gray-500">Daily progress reports</p>
         </div>
 
-        {userRole === "SUPER_ADMIN" && (
+        {userRole === "MANAGER" && (
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
@@ -223,13 +226,13 @@ const SiteDiary: React.FC = () => {
       </div>
 
       {/* Search + Filter */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border mt-6">
-        <div className="relative w-full md:w-9/10">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 shadow p-4 rounded-lg border border-gray-200">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
             type="text"
             placeholder="Search DPR by weather / project / description..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
             onChange={(e) => {
               setPage(1);
               setSearchQuery(e.target.value);
@@ -249,72 +252,70 @@ const SiteDiary: React.FC = () => {
 
           {filterOpen && (
             <div className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
-              <h3 className="text-sm font-semibold mb-3">Filters</h3>
+              <h3 className="text-sm font-semibold mb-3">Filter DPR</h3>
 
               {/* PROJECT DROPDOWN */}
-              {userRole === "SUPER_ADMIN" && (
-                <div className="relative mb-3" ref={dropdownRef}>
-                  <label className="text-xs text-gray-600">Project</label>
+              <div className="relative mb-3" ref={dropdownRef}>
+                <label className="text-xs text-gray-600">Project</label>
 
-                  <input
-                    type="text"
-                    value={tempProjectSearch}
-                    placeholder="Search project by code or name..."
-                    onFocus={() => setShowDropdown(true)}
-                    onChange={(e) => {
-                      setTempProjectSearch(e.target.value.trimStart());
-                      setShowDropdown(true);
+                <input
+                  type="text"
+                  value={tempProjectSearch}
+                  placeholder="Search project by code or name..."
+                  onFocus={() => setShowDropdown(true)}
+                  onChange={(e) => {
+                    setTempProjectSearch(e.target.value.trimStart());
+                    setShowDropdown(true);
+                  }}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                />
+
+                {/* CLEAR BUTTON */}
+                {tempProjectSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTempProjectSearch("");
+                      setTempProjectFilterId("");
                     }}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                  />
+                    className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                )}
 
-                  {/* CLEAR BUTTON */}
-                  {tempProjectSearch && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTempProjectSearch("");
-                        setTempProjectFilterId("");
-                      }}
-                      className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700"
-                    >
-                      ✕
-                    </button>
-                  )}
+                {/* DROPDOWN */}
+                {showDropdown && (
+                  <div className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-56 overflow-y-auto shadow-lg z-50">
+                    {filteredProjects.length === 0 && (
+                      <div className="px-4 py-3 text-gray-500 text-sm">
+                        No results found
+                      </div>
+                    )}
 
-                  {/* DROPDOWN */}
-                  {showDropdown && (
-                    <div className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-56 overflow-y-auto shadow-lg z-50">
-                      {filteredProjects.length === 0 && (
-                        <div className="px-4 py-3 text-gray-500 text-sm">
-                          No results found
-                        </div>
-                      )}
-
-                      {filteredProjects.map((p, index) => (
-                        <div
-                          key={p.id}
-                          onMouseEnter={() => setHighlightIndex(index)}
-                          onClick={() => {
-                            setTempProjectFilterId(p.id);
-                            setTempProjectSearch(`${p.code} — ${p.name}`);
-                            setShowDropdown(false);
-                          }}
-                          className={`px-4 py-2 cursor-pointer text-sm ${
-                            highlightIndex === index
-                              ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2]"
-                              : "hover:bg-gray-100"
-                          }`}
-                        >
-                          <div className="font-medium">{p.code}</div>
-                          <div className="text-xs text-gray-500">{p.name}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                    {filteredProjects.map((p, index) => (
+                      <div
+                        key={p.id}
+                        onMouseEnter={() => setHighlightIndex(index)}
+                        onClick={() => {
+                          setTempProjectFilterId(p.id);
+                          setTempProjectSearch(`${p.code} — ${p.name}`);
+                          setShowDropdown(false);
+                        }}
+                        className={`px-4 py-2 cursor-pointer text-sm ${
+                          highlightIndex === index
+                            ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2]"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <div className="font-medium">{p.code}</div>
+                        <div className="text-xs text-gray-500">{p.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* DATE FILTERS */}
               <div className="grid grid-cols-2 gap-3">
@@ -324,8 +325,8 @@ const SiteDiary: React.FC = () => {
                     type="date"
                     value={tempStartDateFilter}
                     onChange={(e) => setTempStartDateFilter(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                   />
                 </div>
 
@@ -335,8 +336,8 @@ const SiteDiary: React.FC = () => {
                     type="date"
                     value={tempEndDateFilter}
                     onChange={(e) => setTempEndDateFilter(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                   />
                 </div>
               </div>
@@ -404,7 +405,7 @@ const SiteDiary: React.FC = () => {
                   Export
                 </button>
 
-                {userRole === "SUPER_ADMIN" && (
+                {userRole === "MANAGER" && (
                   <button
                     onClick={() => setBulkDeleteConfirmOpen(true)}
                     className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
@@ -477,53 +478,7 @@ const SiteDiary: React.FC = () => {
                           {d.date ? formatToYMD(d.date) : "—"}
                         </td>
                         <td className="p-3 text-center align-middle">
-                          {(() => {
-                            const weather = d.weather?.toLowerCase(); // normalize case safely
-                            const displayWeather =
-                              d.weather?.toUpperCase() || ""; // ALWAYS SHOW UPPERCASE
-
-                            // color classes
-                            const colorClass =
-                              weather === "partly_cloudy"
-                                ? "bg-gray-100 text-gray-700"
-                                : weather === "sunny"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : weather === "cloudy"
-                                ? "bg-gray-200 text-gray-700"
-                                : "bg-blue-100 text-blue-700"; // rainy or others
-
-                            // icons
-                            const Icon =
-                              weather === "partly_cloudy"
-                                ? CloudSun
-                                : weather === "sunny"
-                                ? Sun
-                                : weather === "cloudy"
-                                ? CloudRain
-                                : CloudRain; // rainy/default
-
-                            return (
-                              <span
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
-                              >
-                                <Icon
-                                  size={16}
-                                  className={
-                                    weather === "sunny"
-                                      ? "text-yellow-500"
-                                      : weather === "partly_cloudy"
-                                      ? "text-gray-500"
-                                      : weather === "cloudy"
-                                      ? "text-gray-600"
-                                      : "text-blue-500"
-                                  }
-                                />
-
-                                {/* ALWAYS SHOW IN UPPERCASE */}
-                                {displayWeather}
-                              </span>
-                            );
-                          })()}
+                          {renderWeatherBadge(d.weather)}
                         </td>
 
                         <td className="p-3  text-center align-middle">
@@ -562,19 +517,31 @@ const SiteDiary: React.FC = () => {
                         </td>
 
                         {/* ACTION MENU */}
-                        <td className="px-4 py-3 text-center relative">
+                        <td className="px-4 py-3 text-center">
                           <button
                             className="p-2 rounded-lg hover:bg-[#facf6c]"
-                            onClick={() =>
-                              setOpenMenuId(openMenuId === d.id ? null : d.id)
-                            }
+                            onClick={(e) => {
+                              const rect =
+                                e.currentTarget.getBoundingClientRect();
+                              setOpenMenuId(openMenuId === d.id ? null : d.id);
+                              setMenuPosition({
+                                top: rect.bottom + 6,
+                                left: rect.right - 140,
+                              });
+                            }}
                           >
                             <MoreHorizontal size={18} />
                           </button>
                           {openMenuId === d.id && (
-                            <div className="absolute right-4 mt-1 w-32 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                            <div
+                              className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                              style={{
+                                top: menuPosition.top,
+                                left: menuPosition.left,
+                              }}
+                            >
                               <button
-                                className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                                className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
                                 onClick={() => {
                                   setSelectedDiaryId(d.id);
                                   setViewOpen(true);
@@ -583,23 +550,26 @@ const SiteDiary: React.FC = () => {
                               >
                                 <Eye size={14} /> View
                               </button>
-                              <button
-                                className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
-                                onClick={() => {
-                                  setSelectedDiaryId(d.id);
-                                  setOpenAddEdit(true);
-                                  setOpenMenuId(null);
-                                }}
-                              >
-                                <Edit size={14} /> Edit
-                              </button>
-                              {userRole === "SUPER_ADMIN" && (
-                                <button
-                                  className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:text-black hover:bg-[#facf6c] hover:border-[#fe9a00]"
-                                  onClick={() => openSingleDelete(d)}
-                                >
-                                  <Trash2 size={14} /> Delete
-                                </button>
+                              {userRole === "MANAGER" && (
+                                <>
+                                  <button
+                                    className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                                    onClick={() => {
+                                      setSelectedDiaryId(d.id);
+                                      setOpenAddEdit(true);
+                                      setOpenMenuId(null);
+                                    }}
+                                  >
+                                    <Edit size={14} /> Edit
+                                  </button>
+
+                                  <button
+                                    className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
+                                    onClick={() => openSingleDelete(d)}
+                                  >
+                                    <Trash2 size={14} /> Delete
+                                  </button>
+                                </>
                               )}
                             </div>
                           )}
@@ -692,9 +662,7 @@ const SiteDiary: React.FC = () => {
       <ConfirmModal
         open={singleDeleteConfirmOpen}
         title="Delete Entry"
-        message={`Delete "${
-          selectedForDelete?.workDone?.slice(0, 30) || selectedForDelete?.id
-        }"?`}
+        message="Are you sure you want to delete this entry?"
         onConfirm={confirmSingleDelete}
         onCancel={() => setSingleDeleteConfirmOpen(false)}
       />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Filter,
@@ -24,6 +24,7 @@ import { formatToYMD } from "../../../utils/helpers";
 import { showError, showSuccess } from "../../../utils/toast";
 import ViewProjectDetailsModal from "./ViewProjectDetailsModal";
 import ConfirmModal from "./DeleteModal";
+import { StatusBadge } from "./StatusBadge";
 
 interface Project {
   id: string;
@@ -58,6 +59,9 @@ const Project: React.FC = () => {
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
+  
+  // adjusting action menu
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   // temporary values inside popup
   const [tempStart, setTempStart] = useState("");
@@ -128,22 +132,6 @@ const Project: React.FC = () => {
     }
   };
 
-  //status color mapping
-  const getStatusClasses = (status: string) => {
-    switch (status) {
-      case "PLANNING":
-        return "bg-blue-100 text-blue-600"; // Planning = Blue
-      case "ONGOING":
-        return "bg-green-100 text-green-600"; // Active = Green
-      case "COMPLETED":
-        return "bg-purple-100 text-purple-700"; // Completed = Purple
-      case "ON_HOLD":
-        return "bg-yellow-100 text-yellow-600"; // On Hold = Yellow
-      default:
-        return "bg-gray-100 text-gray-600"; // fallback
-    }
-  };
-
   const toggleMenu = (id: string) => {
     setOpenMenuId(openMenuId === id ? null : id);
   };
@@ -160,6 +148,13 @@ const Project: React.FC = () => {
     }
     setBulkDeleteConfirmOpen(false);
   };
+
+  // Close menu when scrolling
+  useEffect(() => {
+    const handleScroll = () => setOpenMenuId(null);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   //handle csv export
   const handleExportSelected = () => {
@@ -248,13 +243,13 @@ const Project: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
-        <div className="relative w-full md:w-9/10">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 shadow p-4 rounded-lg border border-gray-200">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
             type="text"
             placeholder="Search by project name / code / manager..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
             onChange={(e) => {
               setPage(1);
               setSearchQuery(e.target.value);
@@ -289,8 +284,8 @@ const Project: React.FC = () => {
                     type="date"
                     value={tempStart}
                     onChange={(e) => setTempStart(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                   />
                 </div>
 
@@ -301,8 +296,8 @@ const Project: React.FC = () => {
                     type="date"
                     value={tempEnd}
                     onChange={(e) => setTempEnd(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                   />
                 </div>
               </div>
@@ -313,8 +308,8 @@ const Project: React.FC = () => {
                 <select
                   value={tempStatus}
                   onChange={(e) => setTempStatus(e.target.value)}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 >
                   <option value="">All</option>
                   <option value="PLANNING">Planning</option>
@@ -476,12 +471,8 @@ const Project: React.FC = () => {
                       {formatToYMD(project.endDate)}
                     </td>
                     <td className="p-3 text-center align-middle">
-                      <span
-                        className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusClasses(
-                          project.status
-                        )}`}
-                      >
-                        {project.status}
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full">
+                        <StatusBadge status={project.status} />
                       </span>
                     </td>
                     <td className="p-3  text-center align-middle">
@@ -495,53 +486,67 @@ const Project: React.FC = () => {
                     </td>
 
                     {/* ACTION MENU */}
-                    <td className="px-4 py-3 text-center relative">
+                    <td className="px-4 py-3 text-center">
                       <button
                         className="p-2 rounded-lg hover:bg-[#facf6c]"
-                        onClick={() => toggleMenu(project.id)}
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setMenuPosition({
+                            top: rect.bottom + 6,
+                            left: rect.right - 140,
+                          });
+                          toggleMenu(project.id);
+                        }}
                       >
                         <MoreHorizontal size={18} />
                       </button>
 
                       {openMenuId === project.id && (
-                        <div className="absolute right-4 mt-1 w-32 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <div
+                          className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                          style={{
+                            top: menuPosition.top,
+                            left: menuPosition.left,
+                          }}
+                        >
                           <button
                             onClick={() => {
                               setSelectedProjectId(project.id);
                               setViewModalOpen(true);
                               setOpenMenuId(null); // 🔥 CLOSE MENU
                             }}
-                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
                           >
-                            <Eye size={16} className="text-gray-500" /> View
+                            <Eye size={16} /> View
                           </button>
+
                           <button
                             onClick={() => {
                               setSelectedProjectId(project.id); // send id to modal
                               setIsModalOpen(true);
                               setOpenMenuId(null); // 🔥 CLOSE MENU
                             }}
-                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
                           >
-                            <Edit size={16} className="text-gray-500" /> Edit
+                            <Edit size={16} /> Edit
                           </button>
+
                           {userRole === "SUPER_ADMIN" && (
                             <button
                               onClick={() => {
                                 setSelectedProject(project);
+                                setSelectedProjectId(project.id);
                                 setSingleDeleteConfirmOpen(true);
                                 setOpenMenuId(null); // 🔥 CLOSE MENU
                               }}
-                              className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:text-black hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                              className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
                             >
-                              <Trash2 size={16} className="text-gray-500" />{" "}
-                              Delete
+                              <Trash2 size={16} /> Delete
                             </button>
                           )}
                         </div>
                       )}
                     </td>
-
                     {/* <td className="p-3  text-center align-middle flex gap-2 justify-center">
                       <button
                         className="text-blue-500 hover:text-blue-700"

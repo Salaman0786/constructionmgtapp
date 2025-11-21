@@ -1,6 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 import { useGetProjectByIdQuery } from "../../../features/projectControll/projectsApi";
+import { StatusBadge } from "./StatusBadge";
 
 interface ViewProjectDetailsModalProps {
   isOpen: boolean;
@@ -22,21 +23,6 @@ const ViewProjectDetailsModal: React.FC<ViewProjectDetailsModalProps> = ({
   const project = data?.data;
 
   const formatDate = (iso: string) => iso?.split("T")[0] || "—";
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PLANNING":
-        return "bg-blue-100 text-blue-600"; // Planning = Blue
-      case "ONGOING":
-        return "bg-green-100 text-green-600"; // Active = Green
-      case "COMPLETED":
-        return "bg-purple-100 text-purple-700"; // Completed = Purple
-      case "ON_HOLD":
-        return "bg-yellow-100 text-yellow-600"; // On Hold = Yellow
-      default:
-        return "bg-gray-100 text-gray-600"; // fallback
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black/40 z-[999] flex items-center justify-center p-4">
@@ -113,15 +99,13 @@ const ViewProjectDetailsModal: React.FC<ViewProjectDetailsModalProps> = ({
                   className={`
                     inline-block 
                     mt-1 
-                    px-3 
                     py-1 
                     text-xs 
                     rounded-full 
                     font-medium 
-                    ${getStatusColor(project.status)}
                   `}
                 >
-                  {project.status}
+                  <StatusBadge status={project.status} />
                 </span>
               </div>
             </div>

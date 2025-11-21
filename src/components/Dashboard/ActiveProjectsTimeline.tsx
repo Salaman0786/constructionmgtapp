@@ -1,52 +1,37 @@
 import React from "react";
+import { calculateProgress, formatLabel } from "../../utils/helpers";
+import { ProjectShimmer } from "./ActiveProjectShimmer";
+import { StatusBadge } from "../ProjectControl/Project/StatusBadge";
+/* ---------------- TYPES ---------------- */
 
-interface Project {
+interface ApiProject {
+  id: string;
+  code: string;
   name: string;
-  due: string;
-  progress: number;
-  status: "On Track" | "At Risk" | "Planning";
+  startDate: string;
+  endDate: string;
+  status: "ONGOING" | "PLANNING" | "COMPLETED";
 }
 
-const statusColors: Record<Project["status"], string> = {
-  "On Track": "bg-purple-100 text-purple-700",
-  "At Risk": "bg-red-100 text-red-600",
-  Planning: "bg-purple-200 text-purple-800",
+interface Props {
+  projects?: ApiProject[];
+  isLoading?: boolean;
+}
+
+/* ---------------- COLORS ---------------- */
+
+const barColors: Record<string, string> = {
+  Planning: "bg-blue-500",
+  Ongoing: "bg-green-500",
+  Completed: "bg-purple-500",
+  "On Hold": "bg-yellow-500",
+  DEFAULT: "bg-gray-500",
 };
 
-const barColors: Record<Project["status"], string> = {
-  "On Track": "bg-purple-700",
-  "At Risk": "bg-red-500",
-  Planning: "bg-purple-400",
-};
+/* ---------------- COMPONENT ---------------- */
 
-const ActiveProjectsTimeline: React.FC = () => {
-  const projects: Project[] = [
-    {
-      name: "Residential Complex Phase 1",
-      due: "Jun 2025",
-      progress: 43,
-      status: "On Track",
-    },
-    {
-      name: "Commercial Plaza Development",
-      due: "Dec 2025",
-      progress: 20,
-      status: "On Track",
-    },
-    {
-      name: "Infrastructure Upgrade - Block A",
-      due: "Aug 2024",
-      progress: 79,
-      status: "At Risk",
-    },
-    {
-      name: "Parking Structure",
-      due: "Mar 2025",
-      progress: 0,
-      status: "Planning",
-    },
-  ];
-
+const ActiveProjectsTimeline: React.FC<Props> = ({ projects, isLoading }) => {
+  console.log(projects);
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
       <h2 className="text-lg font-semibold text-gray-900">
@@ -56,40 +41,67 @@ const ActiveProjectsTimeline: React.FC = () => {
         Current projects and milestones
       </p>
 
-      <div className="space-y-5">
-        {projects.map((project, index) => (
-          <div key={index}>
-            {/* Header Row */}
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-sm font-medium text-gray-800">
-                {project.name}
-              </h3>
-              <span
-                className={`text-xs font-medium px-3 py-1 rounded-full ${
-                  statusColors[project.status]
-                }`}
-              >
-                {project.status}
-              </span>
-            </div>
+      <div
+        className={`space-y-5 min-h-[200px] flex flex-col ${
+          !isLoading && (!projects || projects.length === 0)
+            ? "justify-center"
+            : "justify-start"
+        }`}
+      >
+        {isLoading ? (
+          [...Array(5)].map((_, i) => <ProjectShimmer key={i} />)
+        ) : projects && projects.length > 0 ? (
+          projects.map((project) => {
+            const progress = calculateProgress(
+              project.startDate,
+              project.endDate
+            );
 
-            {/* Progress Bar */}
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full ${barColors[project.status]}`}
-                style={{ width: `${project.progress}%` }}
-              ></div>
-            </div>
+            const uiStatus = formatLabel(project.status);
 
-            {/* Footer */}
-            <div className="flex justify-between mt-1">
-              <p className="text-xs text-gray-500">Due: {project.due}</p>
-              <p className="text-xs text-gray-700 font-medium">
-                {project.progress}%
-              </p>
-            </div>
+            return (
+              <div key={project.id}>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-sm font-medium text-gray-800">
+                    {formatLabel(project.name)}
+                  </h3>
+                  <span className="text-xs font-medium px-3 py-1 rounded-full">
+                    <StatusBadge status={project.status} />
+                  </span>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${barColors[uiStatus]} transition-all duration-500`}
+                    style={{ width: `${progress}%` }}
+                  ></div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex justify-between mt-1">
+                  <p className="text-xs text-gray-500">
+                    Due:{" "}
+                    {new Date(project.endDate).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                  <p className="text-xs text-gray-700 font-medium">
+                    {progress}%
+                  </p>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          /* ✅ Empty State (height preserved) */
+          <div className="flex items-center justify-center h-full text-sm text-gray-500">
+            No active projects found
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

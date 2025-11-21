@@ -27,6 +27,11 @@ const alerts: AlertItem[] = [
     details: "12 / 30 minimum",
     status: "Critical",
   },
+   {
+    name: "Electrical Wire (2.5mm)",
+    details: "12 / 30 minimum",
+    status: "Critical",
+  },
 ];
 
 const statusColors: Record<string, string> = {
