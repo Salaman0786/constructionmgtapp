@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Search, Filter, Calendar, Trash2 } from "lucide-react";
+import { Search, Filter, Calendar } from "lucide-react";
 import {
   DragDropContext,
   Droppable,
@@ -13,42 +13,10 @@ import {
   useGetInProgressTasksQuery,
   useGetDoneTasksQuery,
   useUpdateTaskStatusMutation,
-  useDeleteTaskMutation,
 } from "../../../features/taskAssignment/api/taskAssignmentApi";
 import { TaskSkeleton } from "./BoxShimmer";
 import { useGetProjectsQuery } from "../../../features/taskAssignment/api/taskAssignmentApi";
-import { useSelector } from "react-redux";
-import ConfirmModal from "../Project/DeleteModal";
-import { showError, showSuccess } from "../../../utils/toast";
 
-/* ================= TYPES ================= */
-
-interface Project {
-  id: string;
-  name: string;
-  code: string;
-}
-
-interface User {
-  fullName: string;
-}
-
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  priority: "HIGH" | "MEDIUM" | "LOW";
-  dueDate: string;
-  taskCode: string;
-  project?: Project;
-  assignedTo?: User;
-}
-
-type ColumnMap = {
-  todo: Task[];
-  inProgress: Task[];
-  done: Task[];
-};
 
 const TaskAssignment: React.FC = () => {
   const [localColumns, setLocalColumns] = useState<ColumnMap>({
@@ -56,13 +24,6 @@ const TaskAssignment: React.FC = () => {
     inProgress: [],
     done: [],
   });
-
-  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
-
-  //delete task
-  const [deleteTask] = useDeleteTaskMutation();
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false);
 
   // ==============================
   // PAGE STATE FOR EACH COLUMN
@@ -96,7 +57,7 @@ const TaskAssignment: React.FC = () => {
   // Dropdown ref
   const projectDropdownRef = useRef(null);
 
-  const limit = 5;
+  const limit = 10;
 
   // ==============================
   // API CALLS FOR all project
@@ -199,32 +160,6 @@ const TaskAssignment: React.FC = () => {
   }, []);
 
   // ==============================
-  //Task Delete Handler
-  // ==============================
-  const confirmSingleDelete = async () => {
-    if (!deleteId) return;
-
-    try {
-      await deleteTask(deleteId).unwrap();
-
-      // 🔥 Instant UI update (no refresh needed)
-      setLocalColumns((prev) => ({
-        todo: prev.todo.filter((t) => t.id !== deleteId),
-        inProgress: prev.inProgress.filter((t) => t.id !== deleteId),
-        done: prev.done.filter((t) => t.id !== deleteId),
-      }));
-
-      showSuccess("Task deleted successfully");
-    } catch (error) {
-      console.error("Delete failed", error);
-      showError("Failed to delete task");
-    } finally {
-      setSingleDeleteConfirmOpen(false);
-      setDeleteId(null);
-    }
-  };
-
-  // ==============================
   // DRAG & DROP HANDLER
   // ==============================
   const handleDragEnd = async (result: DropResult) => {
@@ -289,27 +224,7 @@ const TaskAssignment: React.FC = () => {
                 : "cursor-grab"
             }`}
           >
-            {/* HEADER : Title + Delete */}
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="font-semibold text-gray-800 text-sm sm:text-base break-words pr-2">
-                {task.title}
-              </h3>
-
-              {userRole === "SUPER_ADMIN" && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteId(task.id);
-                    setSingleDeleteConfirmOpen(true);
-                  }}
-                  className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
-                  title="Delete Task"
-                >
-                  <Trash2 size={14} />
-                </button>
-              )}
-            </div>
-
+            <h3 className="font-semibold text-gray-800">{task.title}</h3>
             <p className="text-sm text-gray-500 mb-3">{task.project?.name}</p>
 
             <div className="flex items-center justify-between mb-3">
@@ -350,6 +265,15 @@ const TaskAssignment: React.FC = () => {
             >
               {task.description || "No description provided"}
             </div>
+
+            {/* <div className="w-full bg-gray-100 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  task.progress === 100 ? "bg-green-500" : "bg-purple-400"
+                }`}
+                style={{ width: `${task.progress}%` }}
+              ></div>
+            </div> */}
           </div>
         )}
       </Draggable>
@@ -360,7 +284,7 @@ const TaskAssignment: React.FC = () => {
   // MAIN UI
   // ==============================
   return (
-    <div className="bg-white min-h-screen space-y-6">
+    <div className="bg-white min-h-screen p-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -369,25 +293,24 @@ const TaskAssignment: React.FC = () => {
             Kanban board for project task management
           </p>
         </div>
-        {userRole === "SUPER_ADMIN" && (
-          <button
-            onClick={() => setIsAddTaskOpen(true)}
-            className="flex items-center gap-1 bg-[#4b0082] hover:bg-[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
-          >
-            + Add Task
-          </button>
-        )}
+
+        <button
+          onClick={() => setIsAddTaskOpen(true)}
+          className="flex items-center gap-1 bg-[#4b0082] hover:bg-[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
+        >
+          + Add Task
+        </button>
       </div>
 
       {/* Search + Filters */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 shadow p-4 rounded-lg border border-gray-200">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-gray-200">
         <div className="relative w-full">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
             type="text"
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search tasks by title / project / task code / assignee...."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
           />
         </div>
 
@@ -418,7 +341,6 @@ const TaskAssignment: React.FC = () => {
               <h3 className="text-sm font-semibold mb-3">Filter Tasks</h3>
 
               {/* PROJECT SEARCHABLE DROPDOWN */}
-
               <div className="mb-3 relative" ref={projectDropdownRef}>
                 <label className="text-xs text-gray-600">Project</label>
 
@@ -437,17 +359,14 @@ const TaskAssignment: React.FC = () => {
                   onFocus={() => setShowProjectDD(true)}
                   placeholder="Search project..."
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
-       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+       focus:outline-none focus:ring-2 focus:ring-[#5b00b2]"
                 />
 
                 {/* CLEAR BUTTON */}
-                {(projectSearch || selectedProjectFilter) && (
+                {projectSearch && !selectedProjectFilter && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setProjectSearch("");
-                      setSelectedProjectFilter(null);
-                    }}
+                    onClick={() => setProjectSearch("")}
                     className="absolute right-3 top-9 text-gray-400 hover:text-gray-700"
                   >
                     ✕
@@ -504,7 +423,7 @@ const TaskAssignment: React.FC = () => {
                   value={tempPriority}
                   onChange={(e) => setTempPriority(e.target.value)}
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
-                     focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                     focus:outline-none focus:ring-2 focus:ring-[#5b00b2]"
                 >
                   <option value="">All</option>
                   <option value="HIGH">High</option>
@@ -522,7 +441,7 @@ const TaskAssignment: React.FC = () => {
                     value={tempStart}
                     onChange={(e) => setTempStart(e.target.value)}
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-                       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                       focus:outline-none focus:ring-2 focus:ring-[#5b00b2]"
                   />
                 </div>
 
@@ -533,7 +452,7 @@ const TaskAssignment: React.FC = () => {
                     value={tempEnd}
                     onChange={(e) => setTempEnd(e.target.value)}
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-                       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                       focus:outline-none focus:ring-2 focus:ring-[#5b00b2]"
                   />
                 </div>
               </div>
@@ -680,14 +599,6 @@ const TaskAssignment: React.FC = () => {
       <AddTaskModal
         isOpen={isAddTaskOpen}
         onClose={() => setIsAddTaskOpen(false)}
-      />
-
-      <ConfirmModal
-        open={singleDeleteConfirmOpen}
-        title="Delete Task"
-        message="Are you sure you want to delete this task?"
-        onConfirm={confirmSingleDelete}
-        onCancel={() => setSingleDeleteConfirmOpen(false)}
       />
     </div>
   );

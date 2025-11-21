@@ -14,7 +14,7 @@ export const projectsApi = createApi({
     },
   }),
 
-  tagTypes: ["Projects", "Managers"],
+  tagTypes: ["Projects", "Managers","Dashboard"],
 
   endpoints: (builder) => ({
     /* ------------------------------------
@@ -53,7 +53,7 @@ export const projectsApi = createApi({
         method: "POST",
         body: payload,
       }),
-      invalidatesTags: ["Projects"],
+      invalidatesTags: ["Projects","Dashboard"],
     }),
 
     /* ------------------------------------
@@ -96,7 +96,7 @@ export const projectsApi = createApi({
         method: "DELETE",
         body: { ids },
       }),
-      invalidatesTags: ["Projects"],
+      invalidatesTags: ["Projects","Dashboard"],
     }),
   }),
 });
