@@ -59,7 +59,7 @@ const Project: React.FC = () => {
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
-  
+
   // adjusting action menu
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
@@ -547,36 +547,6 @@ const Project: React.FC = () => {
                         </div>
                       )}
                     </td>
-                    {/* <td className="p-3  text-center align-middle flex gap-2 justify-center">
-                      <button
-                        className="text-blue-500 hover:text-blue-700"
-                        onClick={() => {
-                          setSelectedProjectId(project.id);
-                          setViewModalOpen(true);
-                        }}
-                      >
-                        <Eye size={16} />
-                      </button>
-                      {userRole === "SUPER_ADMIN" && (
-                        <>
-                          <button
-                            className="text-blue-500 hover:text-blue-700"
-                            onClick={() => {
-                              setSelectedProjectId(project.id); // send id to modal
-                              setIsModalOpen(true);
-                            }}
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => openDeleteModal(project)}
-                          >
-                            <Trash size={16} />
-                          </button>
-                        </>
-                      )}
-                    </td> */}
                   </tr>
                 ))
               )}

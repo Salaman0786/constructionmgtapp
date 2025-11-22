@@ -483,11 +483,11 @@ const DrawingsRevisions: React.FC = () => {
                             <Eye size={16} className="text-gray-500" /> View
                           </button>
                           <button
-                            onClick={() => {
-                              setSelectedProjectId(project.id); // send id to modal
-                              setIsModalOpen(true);
-                              setOpenMenuId(null); // 🔥 CLOSE MENU
-                            }}
+                            // onClick={() => {
+                            //   setSelectedProjectId(project.id); // send id to modal
+                            //   setIsModalOpen(true);
+                            //   setOpenMenuId(null); // 🔥 CLOSE MENU
+                            // }}
                             className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
                           >
                             <Edit size={16} className="text-gray-500" /> Edit
@@ -575,15 +575,6 @@ const DrawingsRevisions: React.FC = () => {
         </div>
 
         <AddDrawings
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedProjectId(null);
-            refetch();
-          }}
-          projectId={selectedProjectId}
-        />
-        <EditDrawings
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);

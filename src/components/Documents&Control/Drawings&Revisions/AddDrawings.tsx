@@ -1,22 +1,37 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Download, Eye, Trash2, X } from "lucide-react";
 import {
   useCreateDrawingsMutation,
   useDeleteDrawingsFileMutation,
+  useGetDrawingsByIdQuery,
   useGetDrawingsProjectsQuery,
+  useUpdateDrawingsMutation,
   useUploadDrawingsMutation,
 } from "../../../features/drawings&controls/api/drawingsApi";
 import { showError, showSuccess } from "../../../utils/toast";
-
-const AddDrawings = ({ isOpen, onClose, projectId }) => {
+interface AddEditProjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  projectId?: string | null; // if present → edit mode
+}
+const AddDrawings: React.FC<AddEditProjectModalProps> = ({
+  isOpen,
+  onClose,
+  projectId,
+}) => {
   const isEdit = Boolean(projectId);
-
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const {
     data: projectsData,
     isLoading: isManagersLoading,
     refetch,
   } = useGetDrawingsProjectsQuery(undefined);
+  const { data: projectDetails, isFetching: isProjectFetching } =
+    useGetDrawingsByIdQuery(projectId!, {
+      skip: !isEdit,
+    });
+  const [updateDrawing, { isLoading: updating }] = useUpdateDrawingsMutation();
   const [showAllFiles, setShowAllFiles] = useState([]);
   const [managerSearch, setManagerSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -32,6 +47,38 @@ const AddDrawings = ({ isOpen, onClose, projectId }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [createDrawing, { isLoading: isCreateLoading }] =
     useCreateDrawingsMutation();
+
+  useEffect(() => {
+    if (!isEdit && isOpen) {
+      setForm({
+        projectId: "",
+        drawingName: "",
+        discipline: "",
+        revision: "",
+        date: "",
+        description: "",
+      });
+    }
+  }, [isEdit, isOpen]);
+
+  /* -----------------------------------------
+          PREFILL FORM IN EDIT MODE
+      ----------------------------------------- */
+  console.log(projectDetails, "projectDetailgot");
+
+  useEffect(() => {
+    if (isEdit && projectDetails?.data) {
+      const p = projectDetails.data;
+      setForm({
+        projectId: p?.project?.projectId,
+        drawingName: p?.drawingName,
+        discipline: p?.discipline,
+        revision: p?.revision,
+        date: p?.date,
+        description: p?.description,
+      });
+    }
+  }, [projectDetails, isEdit]);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -176,6 +223,7 @@ const AddDrawings = ({ isOpen, onClose, projectId }) => {
             </label>
             <select
               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
+              value={form.projectId}
               onChange={(e) => setForm({ ...form, projectId: e.target.value })}
             >
               <option value="">Select project</option>
@@ -194,6 +242,7 @@ const AddDrawings = ({ isOpen, onClose, projectId }) => {
                 type="text"
                 placeholder="Enter Drawing Name"
                 className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                value={form.drawingName}
                 onChange={(e) =>
                   setForm({ ...form, drawingName: e.target.value })
                 }
@@ -206,6 +255,7 @@ const AddDrawings = ({ isOpen, onClose, projectId }) => {
               </label>
               <select
                 className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                value={form.discipline}
                 onChange={(e) =>
                   setForm({ ...form, discipline: e.target.value })
                 }
@@ -225,6 +275,7 @@ const AddDrawings = ({ isOpen, onClose, projectId }) => {
               </label>
               <select
                 className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                value={form.revision}
                 onChange={(e) => setForm({ ...form, revision: e.target.value })}
               >
                 <option value="">Select Revision</option>
@@ -242,6 +293,7 @@ const AddDrawings = ({ isOpen, onClose, projectId }) => {
               <input
                 type="date"
                 className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                value={form?.date}
                 onChange={(e) => setForm({ ...form, date: e.target.value })}
               />
             </div>
@@ -254,6 +306,7 @@ const AddDrawings = ({ isOpen, onClose, projectId }) => {
             <textarea
               className="w-full mt-1 border border-gray-300 rounded-md p-2 h-24"
               placeholder="Write description here..."
+              value={form?.description}
               onChange={(e) =>
                 setForm({ ...form, description: e.target.value })
               }

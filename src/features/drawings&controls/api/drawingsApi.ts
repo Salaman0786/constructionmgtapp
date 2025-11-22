@@ -40,7 +40,7 @@ export const drawingsApi = createApi({
     }),
 
     getDrawingsById: builder.query<any, string>({
-      query: (id) => `/roles/${id}`,
+      query: (id) => `/drawings/${id}`,
     }),
     uploadDrawings: builder.mutation({
       query: (file: File) => {

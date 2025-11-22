@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Calendar} from "lucide-react";
+import { X, Calendar } from "lucide-react";
 import {
   useCreateProjectMutation,
   useGetProjectManagersQuery,
