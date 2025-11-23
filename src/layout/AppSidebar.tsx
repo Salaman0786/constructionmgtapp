@@ -42,6 +42,7 @@ import {
   Bell,
   FolderOpen,
   Files,
+  Upload,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAppSelector } from "../app/hooks";
@@ -341,6 +342,13 @@ const navItems: NavItem[] = [
         icon: <Files />,
         name: "Drawings & Revisions",
         path: "/drawings-revisions",
+        pro: false,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        icon: <Upload />,
+        name: "Submittals",
+        path: "/submittals",
         pro: false,
         roles: ["SUPER_ADMIN", "MANAGER"],
       },

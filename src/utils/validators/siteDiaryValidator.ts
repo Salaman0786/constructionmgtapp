@@ -15,16 +15,28 @@ export const validateSiteDiary = (form: any) => {
   }
 
   if (equipmentStr.trim() === "") {
-    errors.equipment= "Manpower is required";
+    errors.equipment = "Manpower is required";
   } else if (!/^[0-9]\d*$/.test(equipmentStr)) {
     errors.equipment = "Manpower must be a positive";
   }
 
-  if (!form.workDone || form.workDone.length < 5)
-    errors.workDone = "Minimum 5 characters required";
+  // WORK DONE
+  if (!form.workDone?.trim()) {
+    errors.workDone = "Work done is required";
+  } else if (!/^[A-Za-z\s]+$/.test(form.workDone)) {
+    errors.workDone = "Only characters are allowed";
+  } else if (form.workDone.length < 1 || form.workDone.length > 100) {
+    errors.workDone = "Work done should not exceed 100 characters";
+  }
 
-  if (!form.issues || form.issues.length < 5)
-    errors.issues = "Minimum 5 characters required";
+  // ISSUES
+  if (!form.issues?.trim()) {
+    errors.issues = "Issues are required";
+  } else if (!/^[A-Za-z\s]+$/.test(form.issues)) {
+    errors.issues = "Only characters are allowed";
+  } else if (form.issues.length < 1 || form.issues.length > 500) {
+    errors.issues = "Issues should not exceed 500 characters";
+  }
 
   return errors;
 };

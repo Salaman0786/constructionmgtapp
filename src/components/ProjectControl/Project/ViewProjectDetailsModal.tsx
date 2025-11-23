@@ -87,14 +87,14 @@ const ViewProjectDetailsModal: React.FC<ViewProjectDetailsModalProps> = ({
                 ["Assigned To", project.manager?.fullName || "—"],
               ].map(([label, value], idx) => (
                 <div key={idx}>
-                  <p className="text-sm text-gray-800 ">{label}</p>
-                  <p className="text-sm text-gray-900 mt-1">{value}</p>
+                  <p className="text-md text-gray-900 ">{label}</p>
+                  <p className="text-sm text-[#3A3A3A]  mt-1">{value}</p>
                 </div>
               ))}
 
               {/* Status */}
               <div>
-                <p className="text-xs text-gray-500">Status</p>
+                <p className=" text-md text-gray-900 ">Status</p>
                 <span
                   className={`
                     inline-block 

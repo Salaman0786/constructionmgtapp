@@ -56,6 +56,7 @@ import MaterialIssue from "../components/Inventory/MaterialIssue/MaterialIssue";
 import InventoryForecast from "../components/Inventory/InventoryForecast/InventoryForecast";
 import ReorderAlerts from "../components/Inventory/ReorderAlerts/ReorderAlerts";
 import DrawingsRevisions from "../components/Documents&Control/Drawings&Revisions/DrawingsRevisions";
+import Submittals from "../components/Documents&Control/Submittals/Submittals";
 
 export default function AppRoutes() {
   return (
@@ -267,6 +268,14 @@ export default function AppRoutes() {
             element={
               <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
                 <DrawingsRevisions />
+              </RoleProtectedRoute>
+            }
+          />
+            <Route
+            path="/submittals"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <Submittals />
               </RoleProtectedRoute>
             }
           />
