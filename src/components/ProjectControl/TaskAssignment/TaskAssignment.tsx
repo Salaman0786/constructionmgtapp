@@ -514,9 +514,9 @@ const TaskAssignment: React.FC = () => {
               </div>
 
               {/* DATE RANGE */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-gray-600">Start Date</label>
+              <div className="grid grid-cols-1 mb-3">
+                <label className="text-xs text-gray-600">Start Date</label>
+                <div className="relative">
                   <input
                     type="date"
                     value={tempStart}
@@ -524,16 +524,38 @@ const TaskAssignment: React.FC = () => {
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
                        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                   />
+                  <Calendar
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    size={16}
+                    className="absolute right-3 top-4 text-gray-400 cursor-pointer"
+                  />
                 </div>
+              </div>
 
-                <div>
-                  <label className="text-xs text-gray-600">End Date</label>
+              <div className="grid grid-cols-1">
+                <label className="text-xs text-gray-600">End Date</label>
+                <div className="relative">
                   <input
                     type="date"
                     value={tempEnd}
                     onChange={(e) => setTempEnd(e.target.value)}
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
                        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                  />
+                  <Calendar
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    size={16}
+                    className="absolute right-3 top-4 text-gray-400 cursor-pointer"
                   />
                 </div>
               </div>

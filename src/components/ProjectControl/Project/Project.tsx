@@ -11,6 +11,7 @@ import {
   Trash2,
   Edit,
   MoreHorizontal,
+  Calendar,
 } from "lucide-react";
 import AddProject from "./AddProject";
 import {
@@ -276,10 +277,10 @@ const Project: React.FC = () => {
               <h3 className="text-sm font-semibold mb-3">Filter Projects</h3>
 
               {/* GRID ROW: Start & End date */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {/* Start Date */}
-                <div>
-                  <label className="text-xs text-gray-600">Start Date</label>
+                <label className="text-xs text-gray-600">Start Date</label>
+                <div className="relative">
                   <input
                     type="date"
                     value={tempStart}
@@ -287,17 +288,42 @@ const Project: React.FC = () => {
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                   />
+                  <Calendar
+                    size={16}
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    className="absolute right-3 top-6 -translate-y-1/2 text-gray-400 cursor-pointer"
+                  />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 gap-3">
                 {/* End Date */}
-                <div>
-                  <label className="text-xs text-gray-600">End Date</label>
+
+                <label className="text-xs text-gray-600">End Date</label>
+
+                <div className="relative">
                   <input
                     type="date"
                     value={tempEnd}
                     onChange={(e) => setTempEnd(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
-       focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm 
+focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                  />
+
+                  <Calendar
+                    size={16}
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    className="absolute right-3 top-6 -translate-y-1/2 text-gray-400 cursor-pointer"
                   />
                 </div>
               </div>
@@ -442,32 +468,32 @@ const Project: React.FC = () => {
                         className="accent-purple-600"
                       />
                     </td>
-                    <td className="p-3 text-center align-middle">
+                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
                       {(page - 1) * limit + index + 1}
                     </td>
 
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.code}
                     </td>
                     <td
-                      className="p-3 text-center align-middle"
+                      className="p-3 text-center text-[#3A3A3A]  align-middle"
                       title={project.name} // full name on hover
                     >
                       {getTwoWordPreview(project.name)}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.country}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.city}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.manager?.fullName || "—"}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {formatToYMD(project.startDate)}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A] align-middle">
                       {formatToYMD(project.endDate)}
                     </td>
                     <td className="p-3 text-center align-middle">
@@ -475,13 +501,13 @@ const Project: React.FC = () => {
                         <StatusBadge status={project.status} />
                       </span>
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.budgetBaseline}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.currency}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {formatToYMD(project.createdAt)}
                     </td>
 

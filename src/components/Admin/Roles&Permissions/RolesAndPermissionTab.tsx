@@ -12,6 +12,7 @@ import PermissionsModal from "./PermissionsModal";
 import { useGetRolesQuery } from "../../../features/role/api/roleApi";
 import { formatDateToDDMMYYYY } from "../../../utils/formatDate";
 import Loader from "../../common/Loader";
+import { renderShimmer } from "../../common/tableShimmer";
 
 interface RolesAndPermission {
   id: number; // Unique identifier for each role
@@ -212,13 +213,16 @@ const PurchaseRequestTable: React.FC = () => {
 
                 <tbody>
                   {isLoading ? (
-                    <tr>
-                      <td colSpan={12} className="py-10">
-                        <div className="flex justify-center items-center w-full">
-                          <Loader />
-                        </div>
-                      </td>
-                    </tr>
+                    // <tr>
+                    //   <td colSpan={12} className="py-10">
+                    //     <div className="flex justify-center items-center w-full">
+                    //       <Loader />
+                    //     </div>
+                    //   </td>
+                    // </tr>
+                    <>
+                    {renderShimmer()}
+                    </>
                   ) : (
                     roles.map((rp) => (
                       <tr

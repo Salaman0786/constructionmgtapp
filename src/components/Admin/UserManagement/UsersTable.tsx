@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Edit,
   Eye,
   Filter,
   MoreHorizontal,
@@ -20,6 +21,7 @@ import Loader from "../../common/Loader";
 import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import EditUser from "./EditUser";
 import ConfirmModal from "../../common/ConfirmModal";
+import { renderShimmer } from "../../common/tableShimmer";
 
 export const UsersTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -275,13 +277,14 @@ export const UsersTable: React.FC = () => {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
-                <td colSpan={12} className="py-10">
-                  <div className="flex justify-center items-center w-full">
-                    <Loader />
-                  </div>
-                </td>
-              </tr>
+              // <tr>
+              //   <td colSpan={12} className="py-10">
+              //     <div className="flex justify-center items-center w-full">
+              //       <Loader />
+              //     </div>
+              //   </td>
+              // </tr>
+              <>{renderShimmer()}</>
             ) : (
               data?.data?.users.map((user) => (
                 <tr
@@ -365,7 +368,7 @@ export const UsersTable: React.FC = () => {
                   </td>
 
                   {/* Action menu */}
-                  <td className="relative p-3 text-center">
+                  <td className="relative px-3 py-4 text-center">
                     <button
                       onClick={() =>
                         setActiveMenuId(
@@ -378,7 +381,7 @@ export const UsersTable: React.FC = () => {
                     </button>
 
                     {activeMenuId === user.id && (
-                      <div className="absolute right-0 top-8 w-28 bg-white border border-gray-200 rounded-md shadow-md z-10">
+                      <div className="absolute px-1 py-1 right-0 top-8 w-28 bg-white border border-gray-200 rounded-md shadow-md z-10">
                         {/* <button
                           onClick={() => handleDelete(user.id)}
                           disabled={isDeleting}
@@ -389,14 +392,14 @@ export const UsersTable: React.FC = () => {
                         <button
                           onClick={() => handleEdit(user.id)}
                           disabled={userDetailsLoading}
-                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-600 hover:bg-red-50"
+                          className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
                         >
-                          <SquarePen size={16} /> Edit
+                          <Edit size={16} /> Edit
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}
                           disabled={isDeleting}
-                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                          className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
                         >
                           <Trash2 size={16} /> Delete
                         </button>

@@ -12,6 +12,7 @@ import {
   ChevronsRight,
   Users,
   Plus,
+  Calendar,
 } from "lucide-react";
 
 import AddEditSiteDiary from "./AddEditSiteDiary";
@@ -318,9 +319,9 @@ const SiteDiary: React.FC = () => {
               </div>
 
               {/* DATE FILTERS */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-gray-600">Start Date</label>
+              <div className="grid grid-cols-1 mb-3">
+                <label className="text-xs text-gray-600">Start Date</label>
+                <div className="relative">
                   <input
                     type="date"
                     value={tempStartDateFilter}
@@ -328,16 +329,38 @@ const SiteDiary: React.FC = () => {
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                   />
+                  <Calendar
+                    size={16}
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    className="absolute right-3 top-6 -translate-y-1/2 text-gray-400 cursor-pointer"
+                  />
                 </div>
+              </div>
 
-                <div>
-                  <label className="text-xs text-gray-600">End Date</label>
+              <div className="grid grid-cols-1">
+                <label className="text-xs text-gray-600">End Date</label>
+                <div className="relative">
                   <input
                     type="date"
                     value={tempEndDateFilter}
                     onChange={(e) => setTempEndDateFilter(e.target.value)}
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                  />
+                  <Calendar
+                    size={16}
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    className="absolute right-3 top-6 -translate-y-1/2 text-gray-400 cursor-pointer"
                   />
                 </div>
               </div>
@@ -471,17 +494,17 @@ const SiteDiary: React.FC = () => {
                             className="accent-purple-700"
                           />
                         </td>
-                        <td className="p-3  text-center align-middle">
+                        <td className="p-3  text-center text-[#3A3A3A] align-middle">
                           {serial}
                         </td>
-                        <td className="p-3  text-center align-middle">
+                        <td className="p-3  text-center text-[#3A3A3A] align-middle">
                           {d.date ? formatToYMD(d.date) : "—"}
                         </td>
-                        <td className="p-3 text-center align-middle">
+                        <td className="p-3 text-center text-[#3A3A3A] align-middle">
                           {renderWeatherBadge(d.weather)}
                         </td>
 
-                        <td className="p-3  text-center align-middle">
+                        <td className="p-3  text-center text-[#3A3A3A] align-middle">
                           <span
                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium`}
                           >
@@ -489,7 +512,7 @@ const SiteDiary: React.FC = () => {
                           </span>
                         </td>
                         <td
-                          className="p-3  text-center align-middle"
+                          className="p-3  text-center text-[#3A3A3A] align-middle"
                           title={d.project?.name}
                         >
                           {getTwoWordPreview(d.project?.name) ?? "-"}
@@ -499,7 +522,7 @@ const SiteDiary: React.FC = () => {
                           {d.equipment}
                         </td> */}
                         <td
-                          className="p-3  text-center align-middle"
+                          className="p-3  text-center text-[#3A3A3A] align-middle"
                           title={d.workDone}
                         >
                           {/* {d.workDone.length > 40
@@ -512,7 +535,7 @@ const SiteDiary: React.FC = () => {
                             ? formatDateToDDMMYYYY(d.createdAt)
                             : "—"}
                         </td> */}
-                        <td className="p-3  text-center align-middle">
+                        <td className="p-3  text-center text-[#3A3A3A] align-middle">
                           {d.reportedByUser?.fullName || "—"}
                         </td>
 

@@ -67,6 +67,16 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
     }
   }, [isEdit, isOpen]);
 
+  /* -----------------------------------------
+        RESET Errors WHEN CLose Or Cancel Modal
+    ----------------------------------------- */
+
+  useEffect(() => {
+    if (!isOpen) {
+      setErrors({});
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isEdit || !diaryData) return;
 
@@ -214,8 +224,14 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
                   />
                   <Calendar
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
                     size={16}
-                    className="absolute right-3 top-3 text-gray-400 pointer-events-none"
+                    className="absolute right-3 top-4 text-gray-400 cursor-pointer"
                   />
                   {errors.date && (
                     <p className="text-red-500 text-xs mt-1">{errors.date}</p>

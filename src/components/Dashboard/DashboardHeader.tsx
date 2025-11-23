@@ -67,13 +67,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         Complete overview of project progress & system metrics.
       </p>
 
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${isManager ? "md:grid-cols-3" : "md:grid-cols-4"} gap-4`}>
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 ${
+          isManager ? "md:grid-cols-3" : "md:grid-cols-4"
+        } gap-4`}
+      >
         {isLoading ? (
           <>
             <StatCardShimmer />
             <StatCardShimmer />
             <StatCardShimmer />
-            <StatCardShimmer />
+            {!isManager && <StatCardShimmer />}
           </>
         ) : (
           <>

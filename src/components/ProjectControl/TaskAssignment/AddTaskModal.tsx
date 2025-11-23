@@ -12,6 +12,7 @@ import {
 
 import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import { validateTask } from "../../../utils/validators/taskValidator";
+import { RequiredLabel } from "../../common/RequiredLabel";
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -114,6 +115,16 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
     setShowAssigneeDD(false);
   };
 
+  /* -----------------------------------------
+          RESET Errors WHEN CLose Or Cancel Modal
+      ----------------------------------------- */
+
+  useEffect(() => {
+    if (!isOpen) {
+      setErrors({});
+    }
+  }, [isOpen]);
+
   /* -----------------------------------
         SUBMIT FORM
   ----------------------------------- */
@@ -179,7 +190,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
         <form className="mt-4 space-y-4">
           {/* TITLE */}
           <div>
-            <label className="text-sm font-medium text-gray-700">Title</label>
+            <RequiredLabel label="Title" />
             <input
               type="text"
               placeholder="Enter task title..."
@@ -198,7 +209,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
 
           {/* PROJECT SEARCH */}
           <div className="relative" ref={projectDropdownRef}>
-            <label className="text-sm font-medium text-gray-700">Project</label>
+            <RequiredLabel label="Project" />
 
             <input
               type="text"
@@ -281,9 +292,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
 
           {/* ASSIGNEE SEARCH */}
           <div className="relative" ref={assigneeDropdownRef}>
-            <label className="text-sm font-medium text-gray-700">
-              Assigned To
-            </label>
+            <RequiredLabel label="Assigned To" />
 
             <input
               type="text"
@@ -367,9 +376,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Due Date */}
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Due Date
-              </label>
+              <RequiredLabel label="Due Date" />
               <div className="relative">
                 <input
                   type="date"
@@ -382,8 +389,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
                 <Calendar
+                  onClick={(e) =>
+                    (
+                      e.currentTarget.previousElementSibling as HTMLInputElement
+                    )?.showPicker?.()
+                  }
                   size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute right-3 top-4 text-gray-400 cursor-pointer"
                 />
                 {errors.dueDate && (
                   <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>
@@ -393,9 +405,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
 
             {/* PRIORITY */}
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Priority
-              </label>
+              <RequiredLabel label="Priority" />
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as PriorityType)}
@@ -411,9 +421,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
 
           {/* DESCRIPTION */}
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Description
-            </label>
+            <RequiredLabel label="Description" />
             <textarea
               value={description}
               onChange={(e) => {

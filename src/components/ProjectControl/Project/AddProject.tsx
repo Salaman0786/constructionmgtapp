@@ -106,6 +106,16 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   }, [isEdit, isOpen]);
 
   /* -----------------------------------------
+      RESET Errors WHEN CLose Or Cancel Modal
+  ----------------------------------------- */
+
+  useEffect(() => {
+    if (!isOpen) {
+      setErrors({});
+    }
+  }, [isOpen]);
+
+  /* -----------------------------------------
       PREFILL FORM IN EDIT MODE
   ----------------------------------------- */
   useEffect(() => {
@@ -468,8 +478,14 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   />
                   <Calendar
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
                     size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute right-3 top-6 -translate-y-1/2 text-gray-400 cursor-pointer"
                   />
                   {errors.startDate && (
                     <p className="text-red-500 text-xs mt-1">
@@ -487,12 +503,24 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                     name="endDate"
                     value={form.endDate}
                     onChange={handleChange}
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   />
                   <Calendar
                     size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    className="absolute right-3 top-6 -translate-y-1/2 text-gray-400 cursor-pointer"
                   />
                   {errors.endDate && (
                     <p className="text-red-500 text-xs mt-1">

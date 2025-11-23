@@ -66,30 +66,30 @@ const ViewSiteDiaryModal: React.FC<ViewSiteDiaryModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-6 mt-6">
             {/* Date */}
             <div>
-              <p className="text-sm text-gray-800">Date</p>
-              <p className="text-sm text-gray-900 mt-1">
+              <p className="text-md text-gray-900 ">Date</p>
+              <p className="text-sm text-[#3A3A3A]  mt-1">
                 {formatDate(diary.date)}
               </p>
             </div>
 
             {/* Weather */}
             <div>
-              <p className="text-sm text-gray-800">Weather</p>
+              <p className="text-md text-gray-900 ">Weather</p>
               <div className="mt-1">{renderWeatherBadge(diary.weather)}</div>
             </div>
 
             {/* Project */}
             <div>
-              <p className="text-sm text-gray-800">Project</p>
-              <p className="text-sm text-gray-900 mt-1">
+              <p className="text-md text-gray-900 ">Project</p>
+              <p className="text-sm text-[#3A3A3A]  mt-1">
                 {diary.project?.name || "—"}
               </p>
             </div>
 
             {/* Manpower */}
             <div>
-              <p className="text-sm text-gray-800">Manpower</p>
-              <p className="text-sm text-gray-900 mt-1">
+              <p className="text-md text-gray-900 ">Manpower</p>
+              <p className="text-sm text-[#3A3A3A]  mt-1">
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium`}
                 >
@@ -100,45 +100,45 @@ const ViewSiteDiaryModal: React.FC<ViewSiteDiaryModalProps> = ({
 
             {/* Equipment */}
             <div>
-              <p className="text-sm text-gray-800">Equipment</p>
-              <p className="text-sm text-gray-900 mt-1">{diary.equipment}</p>
+              <p className="text-md text-gray-900 ">Equipment</p>
+              <p className="text-sm text-[#3A3A3A]  mt-1">{diary.equipment}</p>
             </div>
 
             {/* Created At */}
             <div>
-              <p className="text-sm text-gray-800">Created At</p>
-              <p className="text-sm text-gray-900 mt-1">
+              <p className="text-md text-gray-900 ">Created At</p>
+              <p className="text-sm text-[#3A3A3A]  mt-1">
                 {formatDate(diary.createdAt)}
               </p>
             </div>
 
             {/* Updated At */}
             <div>
-              <p className="text-sm text-gray-800">Updated At</p>
-              <p className="text-sm text-gray-900 mt-1">
+              <p className="text-md text-gray-900 ">Updated At</p>
+              <p className="text-sm text-[#3A3A3A]  mt-1">
                 {formatDate(diary.updatedAt)}
               </p>
             </div>
 
             {/* Work Done */}
             <div className="sm:col-span-2">
-              <p className="text-sm text-gray-800">Work Done</p>
-              <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">
+              <p className="text-md text-gray-900 ">Work Done</p>
+              <p className="text-sm text-[#3A3A3A]  mt-1 whitespace-pre-wrap">
                 {diary.workDone || "—"}
               </p>
             </div>
 
             {/* Issues */}
             <div className="sm:col-span-2">
-              <p className="text-sm text-gray-800">Issues</p>
-              <p className="text-sm text-gray-900 mt-1 whitespace-pre-wrap">
+              <p className="text-md text-gray-900 ">Issues</p>
+              <p className="text-sm text-[#3A3A3A]  mt-1 whitespace-pre-wrap">
                 {diary.issues || "—"}
               </p>
             </div>
 
             {/* Reported By */}
             <div>
-              <p className="text-sm text-gray-800">Reported By</p>
+              <p className="text-md text-gray-900 ">Reported By</p>
               <p className="text-sm text-gray-900 mt-1">
                 {diary.reportedByUser?.fullName || "—"}
               </p>
