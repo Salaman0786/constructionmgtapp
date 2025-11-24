@@ -62,10 +62,10 @@ export const drawingsApi = createApi({
     }),
     // ⭐ Update user (PUT or PATCH)
     updateDrawings: builder.mutation({
-      query: ({ id, body }) => ({
-        url: `/roles/${id}`,
+      query: ({ id, payload }) => ({
+        url: `/drawings/${id}`,
         method: "PUT", // or PATCH
-        body,
+        body: payload,
       }),
       invalidatesTags: ["Drawings", "Drawing"],
     }),

@@ -1,13 +1,12 @@
-import SubmittalDashboard from "./SubmittalDashboard"
-import SubmittalsTab from "./SubmittalsTab"
+import SubmittalDashboard from "./SubmittalDashboard";
+import SubmittalsTab from "./SubmittalsTab";
 
 const Submittals = () => {
   return (
     <div>
-        <SubmittalDashboard />
-        <SubmittalsTab />
+      <SubmittalsTab />
     </div>
-  )
-}
+  );
+};
 
-export default Submittals
+export default Submittals;

@@ -41,11 +41,18 @@ export const UsersTable: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState("");
   const [tempStatus, setTempStatus] = useState("");
   const [tempRole, setTempRole] = useState("");
-
-  const { data: userDetails, isLoading: userDetailsLoading } =
-    useGetUserByIdQuery(editUserId!, {
-      skip: !editUserId,
-    });
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+    );
+  };
+  const selectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(data?.data?.users.map((p) => p.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
   const { data, isLoading, isError, refetch } = useGetUsersQuery({
     page: page,
     limit: 10,
@@ -58,38 +65,26 @@ export const UsersTable: React.FC = () => {
     if (page > 1) setPage((p) => p - 1);
   };
   const [filterOpen, setFilterOpen] = useState(false);
-  const handleDelete = async (userId: string) => {
-    setDeleteId(userId);
-    setOpenConfirm(true);
-    setActiveMenuId(null);
-  };
-  const handleConfirmDelete = async (userId: string) => {
-    if (!deleteId) return;
+
+  const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const confirmSingleDelete = async () => {
     try {
-      await deleteUser(userId).unwrap();
-      showInfo("User deleted successfully!");
+      await deleteUser([selectedProject.id]).unwrap();
+      showSuccess("User deleted successfully!");
       refetch();
-    } catch (err: any) {
-      // Normalize the message: always turn it into a string
-      const errorMessage = err?.data?.message;
-
-      let displayMessage: string;
-
-      if (Array.isArray(errorMessage)) {
-        // If it's an array → join all messages (you can also take just the first one)
-        displayMessage = errorMessage.join(", ");
-        // Or just the first one: errorMessage[0]
-      } else if (typeof errorMessage === "string") {
-        displayMessage = errorMessage;
-      } else {
-        displayMessage = "Failed to delete user";
-      }
-
-      showError(displayMessage);
-    } finally {
-      setOpenConfirm(false);
-      setDeleteId(null);
+    } catch (err) {
+      console.error("Error :", err);
+      showError("Delete failed");
     }
+
+    setSingleDeleteConfirmOpen(false);
   };
   const handleNext = () => {
     if (pagination?.hasNextPage) setPage((p) => p + 1);
@@ -108,11 +103,6 @@ export const UsersTable: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const toggleSelect = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
   const handleEdit = (id: string) => {
     setEditUserId(id);
     setOpenEditModal(true);
@@ -145,7 +135,18 @@ export const UsersTable: React.FC = () => {
       showError(displayMessage);
     }
   };
-
+  const confirmBulkDelete = async () => {
+    try {
+      await deleteUser(selectedIds).unwrap();
+      showSuccess("Selected users deleted successfully!");
+      setSelectedIds([]);
+      refetch();
+    } catch (err) {
+      console.error("Error :", err);
+      showError("Failed to delete selected projects");
+    }
+    setBulkDeleteConfirmOpen(false);
+  };
   return (
     <div className="py-6">
       {/* Header */}
@@ -159,7 +160,10 @@ export const UsersTable: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => setOpenModal(true)}
+          onClick={() => {
+            setOpenModal(true);
+            setSelectedProjectId(null);
+          }}
           className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-sm px-3 py-2 rounded-md"
         >
           <Plus size={16} /> Add User
@@ -260,30 +264,43 @@ export const UsersTable: React.FC = () => {
       </div>
       {/* Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-xl">
+        {selectedIds.length > 0 && (
+          <div className="flex items-center gap-2 text-sm justify-end">
+            <span className="text-gray-600">{selectedIds.length} selected</span>
+
+            <button
+              onClick={() => setBulkDeleteConfirmOpen(true)}
+              className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md m-2"
+            >
+              Delete
+            </button>
+          </div>
+        )}
         <table className="min-w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
               <th className="p-3">
-                <input type="checkbox" className="accent-purple-700" />
+                <input
+                  type="checkbox"
+                  checked={
+                    data?.data?.users.length > 0 &&
+                    selectedIds.length === data?.data?.users.length
+                  }
+                  onChange={(e) => selectAll(e.target.checked)}
+                  className="accent-purple-600"
+                />
               </th>
               <th className="p-3">User</th>
               <th className="p-3">Email</th>
               <th className="p-3">Role</th>
               <th className="p-3">Status</th>
-              <th className="p-3">Last Login</th>
+
               <th className="p-3">Created</th>
               <th className="p-3">Action</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              // <tr>
-              //   <td colSpan={12} className="py-10">
-              //     <div className="flex justify-center items-center w-full">
-              //       <Loader />
-              //     </div>
-              //   </td>
-              // </tr>
               <>{renderShimmer()}</>
             ) : (
               data?.data?.users.map((user) => (
@@ -361,10 +378,7 @@ export const UsersTable: React.FC = () => {
                     </div>
                   </td>
                   <td className="p-3 text-gray-700">
-                    {formatDateToDDMMYYYY(user.role.updatedAt)}
-                  </td>
-                  <td className="p-3 text-gray-700">
-                    {formatDateToDDMMYYYY(user.role.createdAt)}
+                    {formatDateToDDMMYYYY(user.createdAt)}
                   </td>
 
                   {/* Action menu */}
@@ -391,13 +405,17 @@ export const UsersTable: React.FC = () => {
                         </button> */}
                         <button
                           onClick={() => handleEdit(user.id)}
-                          disabled={userDetailsLoading}
                           className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
                         >
                           <Edit size={16} /> Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => {
+                            setSelectedProject(user);
+                            setSelectedProjectId(user.id);
+                            setSingleDeleteConfirmOpen(true);
+                            setOpenMenuId(null); // 🔥 CLOSE MENU
+                          }}
                           disabled={isDeleting}
                           className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
                         >
@@ -475,18 +493,28 @@ export const UsersTable: React.FC = () => {
       />
       <EditUser
         isOpen={openEditModal}
-        userDetails={userDetails?.data?.data}
         userId={editUserId}
         onClose={() => {
           setOpenEditModal(false);
           refetch();
         }}
       />
+
       <ConfirmModal
-        open={openConfirm}
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setOpenConfirm(false)}
-        title="Delete User?"
+        open={singleDeleteConfirmOpen}
+        title="Delete User"
+        message={`Are you sure you want to delete "${selectedProject?.userName}"?`}
+        onConfirm={confirmSingleDelete}
+        onCancel={() => setSingleDeleteConfirmOpen(false)}
+      />
+
+      {/* Multiple DELETE CONFIRMATION */}
+      <ConfirmModal
+        open={bulkDeleteConfirmOpen}
+        title="Delete Selected Users"
+        message={`Are you sure you want to delete ${selectedIds.length} user(s)?`}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setBulkDeleteConfirmOpen(false)}
       />
     </div>
   );

@@ -3,22 +3,27 @@ import { X, Mail } from "lucide-react";
 import {
   useUpdateUserMutation,
   useGetRolesQuery,
+  useGetUserByIdQuery,
 } from "../../../features/user/api/userApi";
 import { showError, showSuccess } from "../../../utils/toast";
+import Loader from "../../common/Loader";
 
 interface EditUserProps {
   isOpen: boolean;
   onClose: () => void;
-  userDetails: string | null;
   userId: string | null;
 }
 
 const EditUser: React.FC<EditUserProps> = ({
   isOpen,
   onClose,
-  userDetails,
+
   userId,
 }) => {
+  const { data: userDetails, isLoading } = useGetUserByIdQuery(userId!, {
+    skip: !userId,
+  });
+
   const [form, setForm] = useState({
     username: "",
     email: "",
@@ -36,14 +41,14 @@ const EditUser: React.FC<EditUserProps> = ({
   useEffect(() => {
     if (userDetails) {
       setForm({
-        username: userDetails?.userName || "",
-        email: userDetails?.email || "",
-        fullName: userDetails?.fullName || "",
-        role: userDetails?.role?.name || "",
+        username: userDetails?.data?.data?.userName || "",
+        email: userDetails?.data?.data?.email || "",
+        fullName: userDetails?.data?.data?.fullName || "",
+        role: userDetails?.data?.data?.role?.id || "",
         tempPassword: "", // password is never returned
       });
     }
-  }, [userDetails]);
+  }, [userDetails, userId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -102,118 +107,107 @@ const EditUser: React.FC<EditUserProps> = ({
             <X size={20} />
           </button>
         </div>
-
         <p className="text-sm text-gray-500 mt-2 mb-4">
           Update user account details.
         </p>
+        {isLoading ? (
+          <Loader />
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username & Email */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Username *
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={form.username}
+                  onChange={handleChange}
+                  required
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+                />
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username & Email */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">
+                  Email *
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm pr-8 focus:ring-2 focus:ring-purple-600 outline-none"
+                  />
+                  <Mail
+                    size={16}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Full Name */}
             <div>
               <label className="text-sm font-medium text-gray-700">
-                Username *
+                Full Name *
               </label>
               <input
                 type="text"
-                name="username"
-                value={form.username}
+                name="fullName"
+                value={form.fullName}
                 onChange={handleChange}
                 required
                 className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
               />
             </div>
 
+            {/* Role */}
             <div>
               <label className="text-sm font-medium text-gray-700">
-                Email *
+                Role *
               </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm pr-8 focus:ring-2 focus:ring-purple-600 outline-none"
-                />
-                <Mail
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-              </div>
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                required
+                disabled={rolesLoading}
+                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+              >
+                <option value="">Select role</option>
+                {rolesData?.data?.roles?.map((role: any) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* Full Name */}
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Full Name *
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              value={form.fullName}
-              onChange={handleChange}
-              required
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
-            />
-          </div>
-
-          {/* Role */}
-          <div>
-            <label className="text-sm font-medium text-gray-700">Role *</label>
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              required
-              disabled={rolesLoading}
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
-            >
-              <option value="">Select role</option>
-              {rolesData?.data?.roles?.map((role: any) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Temporary Password */}
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              New Password (optional)
-            </label>
-            <input
-              type="password"
-              name="tempPassword"
-              placeholder="Enter new password"
-              value={form.tempPassword}
-              onChange={handleChange}
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 mt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={updating}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={updating}
-              className="px-4 py-2 bg-[#4b0082] text-white rounded-md text-sm hover:bg-[#5b00a2] disabled:opacity-50"
-            >
-              {updating ? "Saving..." : "Save Changes"}
-            </button>
-          </div>
-        </form>
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={updating}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={updating}
+                className="px-4 py-2 bg-[#4b0082] text-white rounded-md text-sm hover:bg-[#5b00a2] disabled:opacity-50"
+              >
+                {updating ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -42,23 +42,22 @@ const AddRole: React.FC<AddRoleProps> = ({ isOpen, onClose, onCreateRole }) => {
     },
     {
       category: "Inventory",
-      items: ["Stock Ledger", "Material Issues","Inventory Forecast ", "Reorder Alerts"],
-    },
-    
-      {
-      category: "Audit Logs",
       items: [
-        "Audit Logs",
+        "Stock Ledger",
+        "Material Issues",
+        "Inventory Forecast ",
+        "Reorder Alerts",
       ],
     },
 
-     {
+    {
+      category: "Audit Logs",
+      items: ["Audit Logs"],
+    },
+
+    {
       category: "Contracts & Billing",
-      items: [
-        "Work Orders",
-        "Contractor Billing",
-        "Measurement Book",
-      ],
+      items: ["Work Orders", "Contractor Billing", "Measurement Book"],
     },
     {
       category: "Finance & CRM",
@@ -73,14 +72,10 @@ const AddRole: React.FC<AddRoleProps> = ({ isOpen, onClose, onCreateRole }) => {
         "Cash Flow Projection",
       ],
     },
-   
-     {
+
+    {
       category: "Quality & Safety",
-      items: [
-        "Qa Checklists",
-        "Inspection Reports",
-        "Safety Incidents",
-      ],
+      items: ["Qa Checklists", "Inspection Reports", "Safety Incidents"],
     },
     {
       category: "Document & Controls",
@@ -180,7 +175,6 @@ const AddRole: React.FC<AddRoleProps> = ({ isOpen, onClose, onCreateRole }) => {
             <X size={20} />
           </button>
         </div>
-
         {/* 🔹 Form Body */}
         <div className="px-6 py-5 space-y-5">
           {/* Role Name */}

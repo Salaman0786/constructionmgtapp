@@ -11,6 +11,7 @@ import { drawingsApi } from "../features/drawings&controls/api/drawingsApi";
 
 import { taskApi } from "../features/taskAssignment/api/taskAssignmentApi";
 import { dashboardApi } from "../features/dashboard/api/dashboardApi";
+import { submittalsApi } from "../features/submittals/api/submittalApi";
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     [userApi.reducerPath]: userApi.reducer,
     [roleApi.reducerPath]: roleApi.reducer,
     [drawingsApi.reducerPath]: drawingsApi.reducer,
+    [submittalsApi.reducerPath]: submittalsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -33,9 +35,8 @@ export const store = configureStore({
       roleApi.middleware,
       projectsApi.middleware,
       siteDiaryApi.middleware,
-
       drawingsApi.middleware,
-
+      submittalsApi.middleware,
       taskApi.middleware,
       dashboardApi.middleware
     ),

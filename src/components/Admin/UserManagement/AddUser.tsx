@@ -69,7 +69,16 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
       showError(displayMessage);
     }
   };
-
+  const handleCancel = () => {
+    onClose();
+    setForm({
+      username: "",
+      email: "",
+      fullName: "",
+      role: "",
+      tempPassword: "",
+    });
+  };
   if (!isOpen) return null;
 
   return (
@@ -187,7 +196,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
           <div className="flex justify-end gap-3 mt-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCancel}
               disabled={isLoading}
               className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100"
             >

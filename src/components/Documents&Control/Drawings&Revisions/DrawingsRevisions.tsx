@@ -11,6 +11,8 @@ import {
   Trash2,
   Edit,
   MoreHorizontal,
+  File,
+  Files,
 } from "lucide-react";
 
 import { useSelector } from "react-redux";
@@ -25,6 +27,7 @@ import {
   useGetDrawingsQuery,
 } from "../../../features/drawings&controls/api/drawingsApi";
 import ConfirmModal from "../../common/ConfirmModal";
+import ViewDrawings from "./ViewDrawings";
 
 interface Project {
   id: string;
@@ -59,7 +62,7 @@ const DrawingsRevisions: React.FC = () => {
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
-
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   // temporary values inside popup
   const [tempStart, setTempStart] = useState("");
   const [tempEnd, setTempEnd] = useState("");
@@ -412,10 +415,13 @@ const DrawingsRevisions: React.FC = () => {
                     className="accent-purple-600"
                   />
                 </th>
+                <th className="p-3 text-center">S.No.</th>
                 <th className="p-3 text-center">Drawing ID</th>
                 <th className="p-3 text-center">Drawing Name</th>
+                <th className="p-3 text-center">Project</th>
                 <th className="p-3 text-center">Discipline</th>
                 <th className="p-3 text-center">Revision</th>
+                <th className="p-3 text-center">Date</th>
                 <th className="p-3 text-center">Action</th>
               </tr>
             </thead>
@@ -445,15 +451,23 @@ const DrawingsRevisions: React.FC = () => {
                         className="accent-purple-600"
                       />
                     </td>
-
+                    <td className="p-3  text-center align-middle">
+                      {index + 1}
+                    </td>
                     <td className="p-3  text-center align-middle">
                       {project.drawingCode}
                     </td>
                     <td
-                      className="p-3 text-center align-middle"
-                      title={project.name} // full name on hover
+                      className="p-3 text-center align-middle "
+                      // full name on hover
                     >
-                      {project.drawingName}
+                      <div className="flex items-center gap-1">
+                        {project.drawingName}
+                        <Files size={18} className="text-gray-400" />
+                      </div>
+                    </td>
+                    <td className="p-3 text-center align-middle">
+                      {project.project.name}
                     </td>
                     <td className="p-3 text-center align-middle">
                       {project.discipline}
@@ -461,17 +475,33 @@ const DrawingsRevisions: React.FC = () => {
                     <td className="p-3 text-center align-middle">
                       {project.revision}
                     </td>
+                    <td className="p-3 text-center align-middle">
+                      {project.date.split("T")[0]}
+                    </td>
                     {/* ACTION MENU */}
                     <td className="px-4 py-3 text-center relative">
                       <button
                         className="p-2 rounded-lg hover:bg-[#facf6c]"
-                        onClick={() => toggleMenu(project.id)}
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setMenuPosition({
+                            top: rect.bottom + 6,
+                            left: rect.right - 140,
+                          });
+                          toggleMenu(project.id);
+                        }}
                       >
                         <MoreHorizontal size={18} />
                       </button>
 
                       {openMenuId === project.id && (
-                        <div className="absolute right-4 mt-1 w-32 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-9999">
+                        <div
+                          className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                          style={{
+                            top: menuPosition.top,
+                            left: menuPosition.left,
+                          }}
+                        >
                           <button
                             onClick={() => {
                               setSelectedProjectId(project.id);
@@ -483,11 +513,11 @@ const DrawingsRevisions: React.FC = () => {
                             <Eye size={16} className="text-gray-500" /> View
                           </button>
                           <button
-                            // onClick={() => {
-                            //   setSelectedProjectId(project.id); // send id to modal
-                            //   setIsModalOpen(true);
-                            //   setOpenMenuId(null); // 🔥 CLOSE MENU
-                            // }}
+                            onClick={() => {
+                              setSelectedProjectId(project.id); // send id to modal
+                              setIsModalOpen(true);
+                              setOpenMenuId(null); // 🔥 CLOSE MENU
+                            }}
                             className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
                           >
                             <Edit size={16} className="text-gray-500" /> Edit
@@ -578,6 +608,15 @@ const DrawingsRevisions: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);
+            setSelectedProjectId(null);
+            refetch();
+          }}
+          projectId={selectedProjectId}
+        />
+        <ViewDrawings
+          isOpen={viewModalOpen}
+          onClose={() => {
+            setViewModalOpen(false);
             setSelectedProjectId(null);
             refetch();
           }}

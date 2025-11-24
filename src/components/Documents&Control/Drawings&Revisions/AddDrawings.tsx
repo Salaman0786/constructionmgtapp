@@ -10,6 +10,7 @@ import {
   useUploadDrawingsMutation,
 } from "../../../features/drawings&controls/api/drawingsApi";
 import { showError, showSuccess } from "../../../utils/toast";
+import Loader from "../../common/Loader";
 interface AddEditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,18 +21,18 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   onClose,
   projectId,
 }) => {
-  // const isEdit = Boolean(projectId);
-  // const [errors, setErrors] = useState<Record<string, string>>({});
+  const isEdit = Boolean(projectId);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const {
     data: projectsData,
     isLoading: isManagersLoading,
     refetch,
   } = useGetDrawingsProjectsQuery(undefined);
-  // const { data: projectDetails, isFetching: isProjectFetching } =
-  //   useGetDrawingsByIdQuery(projectId!, {
-  //     skip: !isEdit,
-  //   });
-  // const [updateDrawing, { isLoading: updating }] = useUpdateDrawingsMutation();
+  const { data: projectDetails, isFetching: isProjectFetching } =
+    useGetDrawingsByIdQuery(projectId!, {
+      skip: !isEdit,
+    });
+  const [updateDrawing, { isLoading: updating }] = useUpdateDrawingsMutation();
   const [showAllFiles, setShowAllFiles] = useState([]);
   const [managerSearch, setManagerSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -42,7 +43,14 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   const cleanedSearch = managerSearch.trim().toLowerCase();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [form, setForm] = useState();
+  const [form, setForm] = useState({
+    projectId: "",
+    drawingName: "",
+    description: "",
+    discipline: "",
+    revision: "",
+    date: "",
+  });
   const [uploadDrawings, { isLoading }] = useUploadDrawingsMutation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [createDrawing, { isLoading: isCreateLoading }] =
@@ -53,11 +61,10 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   //       projectId: "",
   //       drawingName: "",
   //     description: "",
-  //     })  discipline: "",
+  //      discipline: "",
   //       revision: "",
   //       date: "",
-  //       ;
-  //   }
+  //     )}
   // }, [isEdit, isOpen]);
 
   /* -----------------------------------------
@@ -65,19 +72,20 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
       ----------------------------------------- */
   // console.log(projectDetails, "projectDetailgot");
 
-  // useEffect(() => {
-  //   if (isEdit && projectDetails?.data) {
-  //     const p = projectDetails.data;
-  //     setForm({
-  //       projectId: p?.project?.projectId,
-  //       drawingName: p?.drawingName,
-  //       discipline: p?.discipline,
-  //       revision: p?.revision,
-  //       date: p?.date,
-  //       description: p?.description,
-  //     });
-  //   }
-  // }, [projectDetails, isEdit]);
+  useEffect(() => {
+    if (isEdit && projectDetails?.data) {
+      const p = projectDetails.data;
+      setForm({
+        projectId: p?.project?.id,
+        drawingName: p?.drawingName,
+        discipline: p?.discipline,
+        revision: p?.revision,
+        date: p?.date.split("T")[0],
+        description: p?.description,
+      });
+      setShowAllFiles(p?.files);
+    }
+  }, [projectDetails, isEdit]);
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -130,7 +138,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   const handleDelete = async (fileId) => {
     try {
       await deleteFile(fileId).unwrap();
-      setShowAllFiles((prev) => prev.filter((data) => data.uuid !== fileId));
+      setShowAllFiles((prev) => prev.filter((data) => data.id !== fileId));
       showSuccess("File deleted successfully!!");
     } catch (err) {
       console.error("Delete failed:", err);
@@ -148,8 +156,13 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     };
 
     try {
-      await createDrawing(payload).unwrap();
-      showSuccess("Drawing uploaded successfully!");
+      if (isEdit) {
+        await updateDrawing({ id: projectId, payload }).unwrap();
+        showSuccess("Project updated successfully!");
+      } else {
+        await createDrawing(payload).unwrap();
+        showSuccess("Drawing uploaded successfully!");
+      }
       onClose();
       refetch();
       setShowAllFiles([]);
@@ -162,8 +175,12 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         description: "",
       });
       setShowAllFiles([]);
-    } catch (err) {
-      showError(err?.data?.message || "Failed to upload drawing!");
+    } catch (error: any) {
+      const msg = Array.isArray(error?.data?.message)
+        ? error.data.message.join(", ")
+        : error?.data?.message;
+
+      showError(msg || "Something went wrong.");
     }
   };
   if (!isOpen) return null;
@@ -215,192 +232,208 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
             </div>
           </div>
 
-          {/* FORM FIELDS */}
-          <div className="mb-4">
-            <label className="text-sm font-medium text-gray-700">
-              Project *
-            </label>
-            <select
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
-              // value={form.projectId}
-              onChange={(e) => setForm({ ...form, projectId: e.target.value })}
-            >
-              <option value="">Select project</option>
-              {projectsData?.data?.projects.map((p) => (
-                <option value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          {isProjectFetching ? (
+            <Loader />
+          ) : (
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Drawing Name *
-              </label>
-              <input
-                type="text"
-                placeholder="Enter Drawing Name"
-                className="w-full mt-1 border border-gray-300 rounded-md p-2"
-                // value={form.drawingName}
-                onChange={(e) =>
-                  setForm({ ...form, drawingName: e.target.value })
-                }
-              />
-            </div>
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Project *
+                </label>
+                <select
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
+                  value={form?.projectId}
+                  onChange={(e) =>
+                    setForm({ ...form, projectId: e.target.value })
+                  }
+                >
+                  <option value="">Select project</option>
+                  {projectsData?.data?.projects.map((p) => (
+                    <option value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Discipline *
-              </label>
-              <select
-                className="w-full mt-1 border border-gray-300 rounded-md p-2"
-                // value={form.discipline}
-                onChange={(e) =>
-                  setForm({ ...form, discipline: e.target.value })
-                }
-              >
-                <option value="">Select Discipline</option>
-                <option value="Architecture">Architecture</option>
-                <option value="Structural">Structural</option>
-                <option value="Electrical">Electrical</option>
-              </select>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Drawing Name *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter Drawing Name"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                    value={form?.drawingName}
+                    onChange={(e) =>
+                      setForm({ ...form, drawingName: e.target.value })
+                    }
+                  />
+                </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Revision *
-              </label>
-              <select
-                className="w-full mt-1 border border-gray-300 rounded-md p-2"
-                // value={form.revision}
-                onChange={(e) => setForm({ ...form, revision: e.target.value })}
-              >
-                <option value="">Select Revision</option>
-                <option value="R1">R1</option>
-                <option value="R2">R2</option>
-                <option value="R3">R3</option>
-                <option value="R4">R4</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Date *
-              </label>
-              <input
-                type="date"
-                className="w-full mt-1 border border-gray-300 rounded-md p-2 cursor-pointer"
-                onClick={(e) => {
-                  e.currentTarget.showPicker?.(); // ✔ Allowed user gesture
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === " ") e.preventDefault(); // disable SPACE opening calendar
-                }}
-                // value={form?.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="text-sm font-medium text-gray-700">
-              Description *
-            </label>
-            <textarea
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 h-24"
-              placeholder="Write description here..."
-              // value={form?.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-            ></textarea>
-          </div>
-
-          {/* FILE UPLOAD */}
-          <div className="mb-6">
-            <label className="text-sm font-medium text-gray-700">
-              Upload Your Drawing File *
-            </label>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
-            />
-            {isLoading && (
-              <p className="text-sm text-blue-600 mt-1">Uploading...</p>
-            )}
-          </div>
-
-          {/* FILE LIST */}
-          {showAllFiles.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                Previous Documents
-              </h3>
-
-              <div className="space-y-2 bg-gray-50 p-3 rounded-md border text-sm">
-                {showAllFiles.map((doc, index) => (
-                  <div
-                    key={doc.uuid}
-                    className="flex items-center justify-between p-2 bg-white rounded border"
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Discipline *
+                  </label>
+                  <select
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                    value={form?.discipline}
+                    onChange={(e) =>
+                      setForm({ ...form, discipline: e.target.value })
+                    }
                   >
-                    <span>
-                      <span className="font-medium mr-2">{index + 1}</span>
-                      {doc.originalName}
-                    </span>
+                    <option value="">Select Discipline</option>
+                    <option value="Architecture">Architecture</option>
+                    <option value="Structural">Structural</option>
+                    <option value="Electrical">Electrical</option>
+                  </select>
+                </div>
+              </div>
 
-                    <div className="flex items-center gap-3 text-gray-600 ">
-                      <button
-                        onClick={() => window.open(doc.url, "_blank")}
-                        className="hover:text-blue-400"
-                      >
-                        <Eye />
-                      </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Revision *
+                  </label>
+                  <select
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                    value={form?.revision}
+                    onChange={(e) =>
+                      setForm({ ...form, revision: e.target.value })
+                    }
+                  >
+                    <option value="">Select Revision</option>
+                    <option value="R1">R1</option>
+                    <option value="R2">R2</option>
+                    <option value="R3">R3</option>
+                    <option value="R4">R4</option>
+                  </select>
+                </div>
 
-                      <button
-                        // href={doc.url}
-                        // download
-                        // target="_blank"
-                        onClick={() => handleDownload(doc.url)}
-                        className="hover:text-blue-400"
-                      >
-                        <Download />
-                      </button>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 cursor-pointer"
+                    onClick={(e) => {
+                      e.currentTarget.showPicker?.(); // ✔ Allowed user gesture
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === " ") e.preventDefault(); // disable SPACE opening calendar
+                    }}
+                    value={form?.date}
+                    onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  />
+                </div>
+              </div>
 
-                      <button
-                        onClick={() => handleDelete(doc.uuid)}
-                        disabled={isDeleteLoading}
-                        className="hover:text-blue-400"
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Description *
+                </label>
+                <textarea
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 h-24"
+                  placeholder="Write description here..."
+                  value={form?.description}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
+                ></textarea>
+              </div>
+
+              {/* FILE UPLOAD */}
+              <div className="mb-6">
+                <label className="text-sm font-medium text-gray-700">
+                  Upload Your Drawing File *
+                </label>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
+                />
+                {isLoading && (
+                  <p className="text-sm text-blue-600 mt-1">Uploading...</p>
+                )}
+              </div>
+
+              {/* FILE LIST */}
+              {showAllFiles.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                    Previous Documents
+                  </h3>
+
+                  <div className="space-y-2 bg-gray-50 p-3 rounded-md border text-sm">
+                    {showAllFiles.map((doc, index) => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between p-2 bg-white rounded border"
                       >
-                        <Trash2 />
-                      </button>
-                    </div>
+                        <span>
+                          <span className="font-medium mr-2">{index + 1}</span>
+                          {doc.originalName}
+                        </span>
+
+                        <div className="flex items-center gap-3 text-gray-600 ">
+                          <button
+                            onClick={() => window.open(doc.url, "_blank")}
+                            className="hover:text-blue-400"
+                          >
+                            <Eye />
+                          </button>
+
+                          <button
+                            // href={doc.url}
+                            // download
+                            // target="_blank"
+                            onClick={() => handleDownload(doc.url)}
+                            className="hover:text-blue-400"
+                          >
+                            <Download />
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(doc.id)}
+                            disabled={isDeleteLoading}
+                            className="hover:text-blue-400"
+                          >
+                            <Trash2 />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+              )}
+
+              {/* ACTION BUTTONS */}
+              <div className="flex justify-end gap-3">
+                <button
+                  className="px-4 py-2 border rounded-md text-sm"
+                  onClick={handleClose}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={handleSubmit}
+                  className="px-4 py-2 bg-purple-700 text-white rounded-md text-sm"
+                  disabled={isCreateLoading}
+                >
+                  {/* {isCreateLoading ? "Saving..." : "Upload Drawing"} */}
+                  {isEdit
+                    ? updating
+                      ? "Updating..."
+                      : "Update Drawing"
+                    : isCreateLoading
+                    ? "Saving..."
+                    : "Upload Drawing"}
+                </button>
               </div>
             </div>
           )}
-
-          {/* ACTION BUTTONS */}
-          <div className="flex justify-end gap-3">
-            <button
-              className="px-4 py-2 border rounded-md text-sm"
-              onClick={handleClose}
-            >
-              Cancel
-            </button>
-
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-purple-700 text-white rounded-md text-sm"
-              disabled={isCreateLoading}
-            >
-              {isCreateLoading ? "Saving..." : "Upload Drawing"}
-            </button>
-          </div>
         </div>
       </div>
     </div>

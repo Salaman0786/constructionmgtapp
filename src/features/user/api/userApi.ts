@@ -32,10 +32,12 @@ export const userApi = createApi({
 
     // ✅ DELETE API — delete user
     deleteUser: builder.mutation({
-      query: (id) => ({
-        url: `/users/${id}`,
+      query: (ids: string[]) => ({
+        url: "/users",
         method: "DELETE",
+        body: { ids },
       }),
+      invalidatesTags: ["Projects", "Dashboard"],
     }),
     updateUserStatus: builder.mutation({
       query: ({ id, isActive }: { id: string; isActive: boolean }) => ({

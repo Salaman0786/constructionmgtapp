@@ -13,6 +13,7 @@ import { useGetRolesQuery } from "../../../features/role/api/roleApi";
 import { formatDateToDDMMYYYY } from "../../../utils/formatDate";
 import Loader from "../../common/Loader";
 import { renderShimmer } from "../../common/tableShimmer";
+import RolePermissionUI from "./RolePermissionUI";
 
 interface RolesAndPermission {
   id: number; // Unique identifier for each role
@@ -53,7 +54,6 @@ const rolesAndPermission: RolesAndPermission[] = [
 const PurchaseRequestTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -68,7 +68,7 @@ const PurchaseRequestTable: React.FC = () => {
   const [filterPriority, setFilterPriority] = useState<string>("All");
   // const [filterStatus, setFilterStatus] = useState<string>("All");
   const [showFilter, setShowFilter] = useState(false);
-
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
   const toggleSelect = (id: number) => {
@@ -76,7 +76,10 @@ const PurchaseRequestTable: React.FC = () => {
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
   const selectAll = (checked: boolean) => {
     setSelectedIds(checked ? filteredRequests.map((pr) => pr.id) : []);
   };
@@ -207,7 +210,7 @@ const PurchaseRequestTable: React.FC = () => {
                     <th className="p-3 text-center">Users</th>
                     <th className="p-3 text-center">Modules</th>
                     <th className="p-3 text-center">Created</th>
-                    {/* <th className="p-3 font-medium text-center">Actions</th> */}
+                    <th className="p-3 text-center">Actions</th>
                   </tr>
                 </thead>
 
@@ -220,11 +223,9 @@ const PurchaseRequestTable: React.FC = () => {
                     //     </div>
                     //   </td>
                     // </tr>
-                    <>
-                    {renderShimmer()}
-                    </>
+                    <>{renderShimmer()}</>
                   ) : (
-                    roles.map((rp) => (
+                    roles.map((rp, index) => (
                       <tr
                         key={rp.id}
                         className={`border-b border-gray-100 hover:bg-gray-50 transition-all ${
@@ -256,40 +257,61 @@ const PurchaseRequestTable: React.FC = () => {
                         </td>
 
                         {/* ACTION MENU */}
-                        {/* <td className="p-3 text-center align-middle relative">
-                        <button
-                          className="p-2 rounded-full hover:bg-gray-100"
-                          onClick={() => toggleMenu(rp.id)}
-                        >
-                          <MoreHorizontal size={18} />
-                        </button>
+                        <td className="p-3 text-center align-middle relative">
+                          <button
+                            className="p-2 rounded-full hover:bg-gray-100"
+                            onClick={(e) => {
+                              const rect =
+                                e.currentTarget.getBoundingClientRect();
+                              setMenuPosition({
+                                top: rect.bottom + 6,
+                                left: rect.right - 140,
+                              });
+                              toggleMenu(rp.id);
+                            }}
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
 
-                        {openMenuId === rp.id && (
-                          <div className="absolute right-3 top-10 w-32 py-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                            <button
-                              onClick={() => handleAction("View", rp.roleName)}
-                              className="flex items-center gap-2 w-full px-3 py-1.5 text-left text-sm rounded-md hover:bg-[#facf6c]"
+                          {openMenuId === rp.id && (
+                            <div
+                              className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                              style={{
+                                top: menuPosition.top,
+                                left: menuPosition.left,
+                              }}
                             >
-                              <Eye size={16} className="text-gray-500" /> View
-                            </button>
-                            <button
-                              onClick={() => handleAction("Edit", rp.roleName)}
-                              className="flex items-center gap-2 w-full px-3 py-1.5 text-left text-sm rounded-md hover:bg-[#facf6c]"
-                            >
-                              <Edit size={16} className="text-gray-500" /> Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleAction("Delete", rp.roleName)
-                              }
-                              className="flex items-center gap-2 w-full px-3 py-1.5 text-left text-sm rounded-md text-red-600 hover:text-black hover:bg-[#facf6c]"
-                            >
-                              <Trash2 size={16} className="text-gray-500" />{" "}
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </td> */}
+                              {/* <button
+                                onClick={() =>
+                                  handleAction("View", rp.roleName)
+                                }
+                                className="flex items-center gap-2 w-full px-3 py-1.5 text-left text-sm rounded-md hover:bg-[#facf6c]"
+                              >
+                                <Eye size={16} className="text-gray-500" /> View
+                              </button> */}
+                              <button
+                                onClick={() => {
+                                  setSelectedProjectId(rp.id);
+                                  setIsModalOpen(true);
+                                  setOpenMenuId(null);
+                                }}
+                                className="flex items-center gap-2 w-full px-3 py-1.5 text-left text-sm rounded-md hover:bg-[#facf6c]"
+                              >
+                                <Edit size={16} className="text-gray-500" />{" "}
+                                Edit
+                              </button>
+                              {/* <button
+                                onClick={() =>
+                                  handleAction("Delete", rp.roleName)
+                                }
+                                className="flex items-center gap-2 w-full px-3 py-1.5 text-left text-sm rounded-md text-red-600 hover:text-black hover:bg-[#facf6c]"
+                              >
+                                <Trash2 size={16} className="text-gray-500" />{" "}
+                                Delete
+                              </button> */}
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -357,12 +379,20 @@ const PurchaseRequestTable: React.FC = () => {
           </div>
         </div>
       </div>
+      <RolePermissionUI
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProjectId(null); // reset mode
+        }}
+        projectId={selectedProjectId}
+      />
       {/* Modal */}
-      <PermissionsModal
+      {/* <PermissionsModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         roleName={selectedRole}
-      />
+      /> */}
     </>
   );
 };

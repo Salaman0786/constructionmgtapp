@@ -194,7 +194,7 @@ const CompanyInformationForm: React.FC = () => {
                hover:bg-[#4B0082]/90 transition-all
                disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSaving ? "Saving..." : "Save Changes"}
+            {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
       </form>
@@ -323,7 +323,7 @@ const NotificationSettings: React.FC = () => {
                hover:bg-[#4B0082]/90 transition-all
                disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Saving..." : "Save Settings"}
+            {isLoading ? "Saving..." : "Save"}
           </button>
         </div>
       </form>
