@@ -138,7 +138,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     try {
       if (isEdit) {
         await updateDrawing({ id: projectId, payload }).unwrap();
-        showSuccess("Project updated successfully!");
+        showSuccess("Drawing updated successfully!");
       } else {
         await createDrawing(payload).unwrap();
         showSuccess("Drawing uploaded successfully!");
@@ -161,8 +161,17 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
       const msg = Array.isArray(error?.data?.message)
         ? error.data.message.join(", ")
         : error?.data?.message;
-
-      showError(msg || "Something went wrong.");
+      showError(msg);
+    } finally {
+      setForm({
+        projectId: "",
+        drawingName: "",
+        discipline: "",
+        revision: "",
+        date: "",
+        description: "",
+      });
+      setShowAllFiles([]);
     }
   };
   if (!isOpen) return null;

@@ -13,8 +13,20 @@ export const drawingsApi = createApi({
   tagTypes: ["Documents"],
   endpoints: (builder) => ({
     getDrawings: builder.query({
-      query: ({ page = 1, limit = 10 } = {}) =>
-        `/drawings?page=${page}&limit=${limit}`,
+      query: ({
+        page = 1,
+        limit = 10,
+        projectId = "",
+        category = "",
+        search = "",
+      } = {}) => {
+        let url = `/drawings?page=${page}&limit=${limit}`;
+        if (projectId) url += `&projectId=${projectId}`;
+        if (category) url += `&discipline=${category}`;
+        if (search) url += `&search=${search}`;
+
+        return url;
+      },
       providesTags: ["Drawings"],
     }),
     getDrawingsProjects: builder.query({

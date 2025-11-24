@@ -45,7 +45,7 @@ const ViewSubmittals: React.FC<AddEditProjectModalProps> = ({
         department: p?.department,
         date: p?.date.split("T")[0],
         description: p?.description,
-        linkedDrawingId: p?.linkedDrawingId,
+        linkedDrawingId: p?.linkedDrawing?.drawingName,
       });
       setShowAllFiles(p?.files);
     }

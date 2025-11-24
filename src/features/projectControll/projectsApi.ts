@@ -14,7 +14,7 @@ export const projectsApi = createApi({
     },
   }),
 
-  tagTypes: ["Projects", "Managers","Dashboard"],
+  tagTypes: ["Projects", "Managers", "Dashboard"],
 
   endpoints: (builder) => ({
     /* ------------------------------------
@@ -53,7 +53,7 @@ export const projectsApi = createApi({
         method: "POST",
         body: payload,
       }),
-      invalidatesTags: ["Projects","Dashboard"],
+      invalidatesTags: ["Projects", "Dashboard"],
     }),
 
     /* ------------------------------------
@@ -85,18 +85,13 @@ export const projectsApi = createApi({
       }),
       invalidatesTags: ["Projects"],
     }),
-
-    /* ------------------------------------
-       Delete PROJECT
-       DELETE /projects/:id
-    ------------------------------------- */
     deleteProjects: builder.mutation({
       query: (ids: string[]) => ({
         url: "/projects",
         method: "DELETE",
         body: { ids },
       }),
-      invalidatesTags: ["Projects","Dashboard"],
+      invalidatesTags: ["Projects", "Dashboard"],
     }),
   }),
 });

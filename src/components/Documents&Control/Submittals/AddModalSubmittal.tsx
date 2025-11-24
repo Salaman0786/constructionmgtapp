@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+
 import { Download, Eye, Trash2, X } from "lucide-react";
 import { showError, showSuccess } from "../../../utils/toast";
-import axios from "axios";
+
 import {
   useCreateSubmittalsMutation,
   useDeleteSubmittalsFileMutation,
@@ -125,10 +125,10 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
     try {
       if (isEdit) {
         await updateSubmittals({ id: projectId, payload }).unwrap();
-        showSuccess("Project updated successfully!");
+        showSuccess("Submittal updated successfully!");
       } else {
         await createSubmittals(payload).unwrap();
-        showSuccess("Drawing uploaded successfully!");
+        showSuccess("Submittal uploaded successfully!");
       }
       onClose();
       refetch();
@@ -149,7 +149,18 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
         ? error.data.message.join(", ")
         : error?.data?.message;
 
-      showError(msg || "Something went wrong.");
+      showError(msg);
+    } finally {
+      setForm({
+        projectId: "",
+        title: "",
+        category: "",
+        department: "",
+        date: "",
+        description: "",
+        linkedDrawingId: "",
+      });
+      setShowAllFiles([]);
     }
   };
   if (!isOpen) return null;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Filter,
@@ -24,6 +24,7 @@ import AddDrawings from "./AddDrawings";
 
 import {
   useDeleteDrawingsMutation,
+  useGetDrawingsProjectsQuery,
   useGetDrawingsQuery,
 } from "../../../features/drawings&controls/api/drawingsApi";
 import ConfirmModal from "../../common/ConfirmModal";
@@ -51,6 +52,8 @@ const DrawingsRevisions: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const dropdownRef = React.useRef<HTMLDivElement | null>(null);
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false);
@@ -63,25 +66,40 @@ const DrawingsRevisions: React.FC = () => {
   const [endDateFilter, setEndDateFilter] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [tempProjectSearch, setTempProjectSearch] = useState("");
+  const [tempCategory, setTempCategory] = useState("");
   // temporary values inside popup
   const [tempStart, setTempStart] = useState("");
   const [tempEnd, setTempEnd] = useState("");
   const [tempStatus, setTempStatus] = useState("");
-  const [disciplineValue, setDisciplineValue] = useState("");
-
+  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [projectFilter, setProjectFilter] = useState("");
+  const [tempProjectFilterId, setTempProjectFilterId] = useState("");
   //pagination
   const [page, setPage] = useState(1);
   const limit = 10;
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+        setHighlightIndex(-1);
+      }
+    };
 
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   // RTK Query GET API
   const { data, isLoading, isError, error, refetch } = useGetDrawingsQuery({
     page,
     limit,
-    discipline: disciplineValue,
     search: searchQuery,
-    status: statusFilter,
-    startDate: startDateFilter,
-    endDate: endDateFilter,
+    category: categoryFilter,
+    projectId: projectFilter,
   });
 
   const [deleteDrawings, { isLoading: isDeleting }] =
@@ -204,29 +222,19 @@ const DrawingsRevisions: React.FC = () => {
     link.click();
   };
 
-  // Search filter
-  // const filteredProjects = data?.data?.drawing.filter((p) => {
-  //   const q = searchQuery.toLowerCase().trim();
+  const {
+    data: projectsData,
+    isLoading: isManagersLoading,
+    refetch: fetchProject,
+  } = useGetDrawingsProjectsQuery(undefined);
+  console.log(projectsData, "projectDatagot");
 
-  //   // SEARCH FILTER
-  //   const matchesSearch =
-  //     p.name.toLowerCase().includes(q) ||
-  //     p.code?.toLowerCase().includes(q) ||
-  //     p.manager?.fullName?.toLowerCase().includes(q);
-
-  //   // START DATE FILTER
-  //   const matchesStart =
-  //     !startDateFilter || new Date(p.startDate) >= new Date(startDateFilter);
-
-  //   // END DATE FILTER
-  //   const matchesEnd =
-  //     !endDateFilter || new Date(p.endDate) <= new Date(endDateFilter);
-
-  //   // STATUS FILTER
-  //   const matchesStatus = !statusFilter || p.status === statusFilter;
-
-  //   return matchesSearch && matchesStart && matchesEnd && matchesStatus;
-  // });
+  const allProjects = projectsData?.data?.projects || [];
+  const filteredProjects = allProjects.filter((p: any) =>
+    `${p.code} ${p.name}`
+      .toLowerCase()
+      .includes(tempProjectSearch.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 bg-white min-h-screen">
@@ -241,19 +249,17 @@ const DrawingsRevisions: React.FC = () => {
           </p>
         </div>
 
-        {userRole === "SUPER_ADMIN" && (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                setSelectedProjectId(null); // VERY IMPORTANT (forces create mode)
-                setIsModalOpen(true);
-              }}
-              className="flex items-center gap-1 bg-[#4b0082] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
-            >
-              <Plus size={18} /> Add Drawing
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setSelectedProjectId(null); // VERY IMPORTANT (forces create mode)
+              setIsModalOpen(true);
+            }}
+            className="flex items-center gap-1 bg-[#4b0082] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
+          >
+            <Plus size={18} /> Add Drawing
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -262,7 +268,7 @@ const DrawingsRevisions: React.FC = () => {
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search by project name / code / manager..."
+            placeholder="Search by drawing name / id ..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
             onChange={(e) => {
               setPage(1);
@@ -286,61 +292,92 @@ const DrawingsRevisions: React.FC = () => {
           </button>
 
           {filterOpen && (
-            <div className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
-              <h3 className="text-sm font-semibold mb-3">Filter Projects</h3>
+            <div className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50">
+              <h3 className="text-sm font-semibold mb-3">Filter Drawings</h3>
 
-              {/* GRID ROW: Start & End date */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Start Date */}
-                <div>
-                  <label className="text-xs text-gray-600">Start Date</label>
-                  <input
-                    type="date"
-                    value={tempStart}
-                    onChange={(e) => setTempStart(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                  />
-                </div>
+              {/* ✅ SEARCHABLE PROJECT FILTER */}
+              <div className="relative mb-4" ref={dropdownRef}>
+                <label className="text-xs text-gray-600">Project</label>
 
-                {/* End Date */}
-                <div>
-                  <label className="text-xs text-gray-600">End Date</label>
-                  <input
-                    type="date"
-                    value={tempEnd}
-                    onChange={(e) => setTempEnd(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={tempProjectSearch}
+                  placeholder="Search project by code or name..."
+                  onFocus={() => setShowDropdown(true)}
+                  onChange={(e) => {
+                    setTempProjectSearch(e.target.value.trimStart());
+                    setShowDropdown(true);
+                  }}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                />
+
+                {tempProjectSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTempProjectSearch("");
+                      setTempProjectFilterId("");
+                    }}
+                    className="absolute right-3 top-9 text-gray-400 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                )}
+
+                {showDropdown && (
+                  <div className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-56 overflow-y-auto shadow-lg z-50">
+                    {filteredProjects.length === 0 && (
+                      <div className="px-4 py-3 text-gray-500 text-sm">
+                        No results found
+                      </div>
+                    )}
+
+                    {filteredProjects.map((p: any, index: number) => (
+                      <div
+                        key={p.id}
+                        onMouseEnter={() => setHighlightIndex(index)}
+                        onClick={() => {
+                          setTempProjectFilterId(p.id);
+                          setTempProjectSearch(`${p.code} — ${p.name}`);
+                          setShowDropdown(false);
+                        }}
+                        className={`px-4 py-2 cursor-pointer text-sm ${
+                          highlightIndex === index
+                            ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2]"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <div className="font-medium">{p.code}</div>
+                        <div className="text-xs text-gray-500">{p.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Status Below */}
-              <div className="mt-3">
-                <label className="text-xs text-gray-600">Status</label>
+              {/* ✅ CATEGORY FILTER */}
+              <div>
+                <label className="text-xs text-gray-600">Discipline</label>
                 <select
-                  value={tempStatus}
-                  onChange={(e) => setTempStatus(e.target.value)}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  value={tempCategory}
+                  onChange={(e) => setTempCategory(e.target.value)}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
                 >
                   <option value="">All</option>
-                  <option value="PLANNING">Planning</option>
-                  <option value="ONGOING">Ongoing</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="ON_HOLD">On Hold</option>
+                  <option value="Architecture">Architecture</option>
+                  <option value="Structural">Structural</option>
+                  <option value="Electrical">Electrical</option>
                 </select>
               </div>
 
-              {/* Buttons */}
+              {/* ✅ ACTION BUTTONS */}
               <div className="flex justify-between mt-4">
                 <button
                   className="text-sm text-gray-600 hover:underline"
                   onClick={() => {
-                    setTempStart("");
-                    setTempEnd("");
-                    setTempStatus("");
+                    setTempProjectSearch("");
+                    setTempProjectFilterId("");
+                    setTempCategory("");
                   }}
                 >
                   Reset
@@ -349,9 +386,9 @@ const DrawingsRevisions: React.FC = () => {
                 <button
                   className="bg-[#4b0082] text-white text-sm px-4 py-2 rounded-lg"
                   onClick={() => {
-                    setStartDateFilter(tempStart);
-                    setEndDateFilter(tempEnd);
-                    setStatusFilter(tempStatus);
+                    setProjectFilter(tempProjectFilterId);
+                    setCategoryFilter(tempCategory);
+                    setPage(1);
                     setFilterOpen(false);
                   }}
                 >
@@ -369,7 +406,7 @@ const DrawingsRevisions: React.FC = () => {
         <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
           <div>
             <h2 className="text-gray-900 font-semibold text-base">
-              Drawing Revision Records
+              Drawing Revision
             </h2>
             {/* <p className="text-sm text-gray-500">
                 Comprehensive management of quantities, costs, and progress
@@ -432,7 +469,7 @@ const DrawingsRevisions: React.FC = () => {
               ) : data?.data?.drawing?.length === 0 ? (
                 <tr>
                   <td colSpan={12} className="text-center py-6 text-gray-500">
-                    No Projects Found
+                    No Drawings & Revision Found
                   </td>
                 </tr>
               ) : (
@@ -461,7 +498,7 @@ const DrawingsRevisions: React.FC = () => {
                       className="p-3 text-center align-middle "
                       // full name on hover
                     >
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         {project.drawingName}
                         <Files size={18} className="text-gray-400" />
                       </div>
@@ -522,20 +559,19 @@ const DrawingsRevisions: React.FC = () => {
                           >
                             <Edit size={16} className="text-gray-500" /> Edit
                           </button>
-                          {userRole === "SUPER_ADMIN" && (
-                            <button
-                              onClick={() => {
-                                setSelectedProject(project);
-                                setSingleDeleteConfirmOpen(true);
-                                setOpenMenuId(null);
-                              }}
-                              disabled={isDeleting}
-                              className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:text-black hover:bg-[#facf6c] hover:border-[#fe9a00]"
-                            >
-                              <Trash2 size={16} className="text-gray-500" />{" "}
-                              Delete
-                            </button>
-                          )}
+
+                          <button
+                            onClick={() => {
+                              setSelectedProject(project);
+                              setSingleDeleteConfirmOpen(true);
+                              setOpenMenuId(null);
+                            }}
+                            disabled={isDeleting}
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:text-black hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                          >
+                            <Trash2 size={16} className="text-gray-500" />{" "}
+                            Delete
+                          </button>
                         </div>
                       )}
                     </td>
