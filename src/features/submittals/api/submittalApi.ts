@@ -13,8 +13,21 @@ export const submittalsApi = createApi({
   tagTypes: ["Documents"],
   endpoints: (builder) => ({
     getSubmittals: builder.query({
-      query: ({ page = 1, limit = 10 } = {}) =>
-        `/submittals?page=${page}&limit=${limit}`,
+      query: ({
+        page = 1,
+        limit = 10,
+        projectId = "",
+        category = "",
+        search = "",
+      } = {}) => {
+        let url = `/submittals?page=${page}&limit=${limit}`;
+
+        if (projectId) url += `&projectId=${projectId}`;
+        if (category) url += `&category=${category}`;
+        if (search) url += `&search=${search}`;
+
+        return url;
+      },
       providesTags: ["Submittals"],
     }),
     getSubmittalsProjects: builder.query({

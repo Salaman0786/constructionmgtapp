@@ -16,6 +16,7 @@ import {
 import { useSelector } from "react-redux";
 import {
   useDeleteSubmittalsMutation,
+  useGetSubmittalsProjectsQuery,
   useGetSubmittalsQuery,
 } from "../../../features/submittals/api/submittalApi";
 import { showError, showSuccess } from "../../../utils/toast";
@@ -36,39 +37,6 @@ export interface SubmittalRecord {
   date: string;
   status: "Approved" | "Submitted" | "Rejected" | "Draft";
 }
-const submittalData: SubmittalRecord[] = [
-  {
-    id: 1,
-    submittalNo: "SUB-2025-001",
-    title: "Structural Steel Shop Drawings",
-    category: "Material",
-    linkedDrawing: "View",
-    department: "Structural",
-    date: "2025-01-15",
-    status: "Approved",
-  },
-  {
-    id: 2,
-    submittalNo: "SUB-2025-002",
-    title: "HVAC System Layout",
-    category: "Drawing",
-    linkedDrawing: "View",
-    department: "MEP",
-    date: "2025-01-16",
-    status: "Submitted",
-  },
-  {
-    id: 3,
-    submittalNo: "SUB-2025-003",
-    title: "Concrete Mix Design",
-    category: "Material",
-    linkedDrawing: "View",
-    department: "Civil",
-    date: "2025-01-14",
-    status: "Rejected",
-  },
-];
-
 const SubmittalTable: React.FC = () => {
   // adjusting action menu
 
@@ -97,18 +65,22 @@ const SubmittalTable: React.FC = () => {
   // Store selected project for deleting
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  //actual filters applied to table
-  const [statusFilter, setStatusFilter] = useState("");
-  const [startDateFilter, setStartDateFilter] = useState("");
-  const [endDateFilter, setEndDateFilter] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
-  // temporary values inside popup
-  const [tempStart, setTempStart] = useState("");
-  const [tempEnd, setTempEnd] = useState("");
-  const [tempStatus, setTempStatus] = useState("");
-  const [disciplineValue, setDisciplineValue] = useState("");
 
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [projectFilter, setProjectFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  // temp values inside popup
+  const [tempCategory, setTempCategory] = useState("");
+
+  const [tempProjectSearch, setTempProjectSearch] = useState("");
+
+  const [tempProjectFilterId, setTempProjectFilterId] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const dropdownRef = React.useRef<HTMLDivElement | null>(null);
   //pagination
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -117,11 +89,10 @@ const SubmittalTable: React.FC = () => {
   const { data, isLoading, isError, error, refetch } = useGetSubmittalsQuery({
     page,
     limit,
-    discipline: disciplineValue,
+
     search: searchQuery,
-    status: statusFilter,
-    startDate: startDateFilter,
-    endDate: endDateFilter,
+    category: categoryFilter,
+    projectId: projectFilter,
   });
 
   const [deleteSubmittals, { isLoading: isDeleting }] =
@@ -142,6 +113,16 @@ const SubmittalTable: React.FC = () => {
     setSingleDeleteConfirmOpen(false);
   };
 
+  //fetch all the projects
+  const { data: projectListData } = useGetSubmittalsProjectsQuery(undefined);
+  const allProjects = projectListData?.data?.projects || [];
+
+  const filteredProjects = allProjects.filter((p: any) =>
+    `${p.code} ${p.name}`
+      .toLowerCase()
+      .includes(tempProjectSearch.toLowerCase())
+  );
+
   //pagination
   const pagination = data?.pagination;
   const totalPages = pagination?.totalPages || 1;
@@ -151,8 +132,6 @@ const SubmittalTable: React.FC = () => {
   const goToLast = () => setPage(totalPages);
   const goToPrev = () => setPage((prev) => Math.max(prev - 1, 1));
   const goToNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
-  // Extract projects from API
-  const projects: Project[] = data?.data?.projects || [];
 
   // Error handling
   if (isError) {
@@ -174,25 +153,25 @@ const SubmittalTable: React.FC = () => {
     }
   };
 
-  //status color mapping
-  const getStatusClasses = (status: string) => {
-    switch (status) {
-      case "PLANNING":
-        return "bg-blue-100 text-blue-600"; // Planning = Blue
-      case "ONGOING":
-        return "bg-green-100 text-green-600"; // Active = Green
-      case "COMPLETED":
-        return "bg-purple-100 text-purple-700"; // Completed = Purple
-      case "ON_HOLD":
-        return "bg-yellow-100 text-yellow-600"; // On Hold = Yellow
-      default:
-        return "bg-gray-100 text-gray-600"; // fallback
-    }
-  };
-
   const toggleMenu = (id: string) => {
     setOpenMenuId(openMenuId === id ? null : id);
   };
+
+  //close seach dropdown when click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+        setHighlightIndex(-1);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   //handle mutiple delete
   const confirmBulkDelete = async () => {
@@ -208,7 +187,6 @@ const SubmittalTable: React.FC = () => {
     setBulkDeleteConfirmOpen(false);
   };
 
-  //handle csv export
   // const handleExportSelected = () => {
   //   const selectedProjects = data?.data?.drawing.filter((p) =>
   //     selectedIds.includes(p.id)
@@ -547,82 +525,107 @@ const SubmittalTable: React.FC = () => {
             placeholder="Search by submittal name / code / manager..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
             onChange={(e) => {
-              setPage(1);
               setSearchQuery(e.target.value);
+              setPage(1);
             }}
           />
         </div>
 
-        {/* Make ONLY this wrapper relative */}
         <div className="relative min-w-max">
           <button
-            onClick={() => {
-              setTempStart(startDateFilter);
-              setTempEnd(endDateFilter);
-              setTempStatus(statusFilter);
-              setFilterOpen(!filterOpen);
-            }}
-            className="flex items-center gap-2 px-4 py-2 border  border-[f0f0f0]  rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
+            onClick={() => setFilterOpen(!filterOpen)}
+            className="flex items-center gap-2 px-4 py-2 border border-[f0f0f0] rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
           >
             <Filter size={16} /> Filters
           </button>
 
           {filterOpen && (
-            <div className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
-              <h3 className="text-sm font-semibold mb-3">Filter Projects</h3>
+            <div className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50">
+              <h3 className="text-sm font-semibold mb-3">Filter Submittals</h3>
 
-              {/* GRID ROW: Start & End date */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Start Date */}
-                <div>
-                  <label className="text-xs text-gray-600">Start Date</label>
-                  <input
-                    type="date"
-                    value={tempStart}
-                    onChange={(e) => setTempStart(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-    focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                  />
-                </div>
+              {/* ✅ SEARCHABLE PROJECT FILTER */}
+              <div className="relative mb-4" ref={dropdownRef}>
+                <label className="text-xs text-gray-600">Project</label>
 
-                {/* End Date */}
-                <div>
-                  <label className="text-xs text-gray-600">End Date</label>
-                  <input
-                    type="date"
-                    value={tempEnd}
-                    onChange={(e) => setTempEnd(e.target.value)}
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-    focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={tempProjectSearch}
+                  placeholder="Search project by code or name..."
+                  onFocus={() => setShowDropdown(true)}
+                  onChange={(e) => {
+                    setTempProjectSearch(e.target.value.trimStart());
+                    setShowDropdown(true);
+                  }}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                />
+
+                {tempProjectSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTempProjectSearch("");
+                      setTempProjectFilterId("");
+                    }}
+                    className="absolute right-3 top-9 text-gray-400 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                )}
+
+                {showDropdown && (
+                  <div className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-56 overflow-y-auto shadow-lg z-50">
+                    {filteredProjects.length === 0 && (
+                      <div className="px-4 py-3 text-gray-500 text-sm">
+                        No results found
+                      </div>
+                    )}
+
+                    {filteredProjects.map((p: any, index: number) => (
+                      <div
+                        key={p.id}
+                        onMouseEnter={() => setHighlightIndex(index)}
+                        onClick={() => {
+                          setTempProjectFilterId(p.id);
+                          setTempProjectSearch(`${p.code} — ${p.name}`);
+                          setShowDropdown(false);
+                        }}
+                        className={`px-4 py-2 cursor-pointer text-sm ${
+                          highlightIndex === index
+                            ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2]"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <div className="font-medium">{p.code}</div>
+                        <div className="text-xs text-gray-500">{p.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Status Below */}
-              <div className="mt-3">
-                <label className="text-xs text-gray-600">Status</label>
+              {/* ✅ CATEGORY FILTER */}
+              <div>
+                <label className="text-xs text-gray-600">Category</label>
                 <select
-                  value={tempStatus}
-                  onChange={(e) => setTempStatus(e.target.value)}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-    focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  value={tempCategory}
+                  onChange={(e) => setTempCategory(e.target.value)}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
                 >
                   <option value="">All</option>
-                  <option value="PLANNING">Planning</option>
-                  <option value="ONGOING">Ongoing</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="ON_HOLD">On Hold</option>
+                  <option value="Material">Material</option>
+                  <option value="Drawing">Drawing</option>
+                  <option value="General">General</option>
                 </select>
               </div>
 
-              {/* Buttons */}
+              {/* ✅ ACTION BUTTONS */}
               <div className="flex justify-between mt-4">
                 <button
                   className="text-sm text-gray-600 hover:underline"
                   onClick={() => {
-                    setTempStart("");
-                    setTempEnd("");
-                    setTempStatus("");
+                    setTempProjectSearch("");
+                    setTempProjectFilterId("");
+                    setTempCategory("");
                   }}
                 >
                   Reset
@@ -631,9 +634,9 @@ const SubmittalTable: React.FC = () => {
                 <button
                   className="bg-[#4b0082] text-white text-sm px-4 py-2 rounded-lg"
                   onClick={() => {
-                    setStartDateFilter(tempStart);
-                    setEndDateFilter(tempEnd);
-                    setStatusFilter(tempStatus);
+                    setProjectFilter(tempProjectFilterId);
+                    setCategoryFilter(tempCategory);
+                    setPage(1);
                     setFilterOpen(false);
                   }}
                 >
