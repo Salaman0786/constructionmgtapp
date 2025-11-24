@@ -4,8 +4,8 @@ export const validateProject = (form: any, isEdit: boolean) => {
   // Project Name Validation
   if (!form.name.trim()) {
     errors.name = "Project name is required";
-  } else if (!/^[A-Za-z\s]+$/.test(form.name)) {
-    errors.name = "Only characters are allowed";
+  } else if (!/^[A-Za-z0-9 .,_()\/&\-:+#'"\[\]]+$/.test(form.name)) {
+    errors.name = "Project name can contain letters, numbers and a few special characters only";
   } else if (form.name.length < 1 || form.name.length > 100) {
     errors.name = "Project name should not exceed 100 characters";
   }
@@ -64,9 +64,11 @@ export const validateProject = (form: any, isEdit: boolean) => {
     errors.address = "Address is required";
   } else if (form.address.length > 150) {
     errors.address = "Address should not exceed 150 characters";
-  } else if (!/^[\p{L}0-9\s,.\-/#'()&]+$/u.test(form.address)) {
-    errors.address = "Address contains invalid characters";
-  }
+  } 
+  
+  // else if (!/^[A-Za-z0-9 .,_()\/&\-:+#'"\[\]]+$/.test(form.address)) {
+  //   errors.address = "Address can contain letters, numbers and a few special characters only";
+  // }
 
   if (isEdit && !form.code) errors.code = "Project code missing";
 

@@ -426,7 +426,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
             {/* BUDGET + CURRENCY */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <RequiredLabel label="Budget Baseline" />
+                <RequiredLabel label="Budget" />
                 <input
                   type="number"
                   name="budgetBaseline"
