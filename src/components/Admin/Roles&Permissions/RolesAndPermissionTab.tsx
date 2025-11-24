@@ -1,17 +1,9 @@
 import React, { useState } from "react";
-import {
-  Edit,
-  Eye,
-  Filter,
-  MoreHorizontal,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Edit, MoreHorizontal } from "lucide-react";
 import StatusSummaryCard from "./StatusSummaryCard";
-import PermissionsModal from "./PermissionsModal";
+
 import { useGetRolesQuery } from "../../../features/role/api/roleApi";
 import { formatDateToDDMMYYYY } from "../../../utils/formatDate";
-import Loader from "../../common/Loader";
 import { renderShimmer } from "../../common/tableShimmer";
 import RolePermissionUI from "./RolePermissionUI";
 
@@ -98,12 +90,6 @@ const PurchaseRequestTable: React.FC = () => {
     const trimmedSearch = searchTerm.trim().toLowerCase();
     const matchesSearch =
       trimmedSearch === "" || rp.roleName.toLowerCase().includes(trimmedSearch);
-
-    // const matchesPriority =
-    //   filterPriority === "All" || rp.priority === filterPriority;
-    // const matchesStatus = filterStatus === "All" || rp.status === filterStatus;
-
-    // return matchesSearch && matchesPriority && matchesStatus;
 
     return matchesSearch;
   });
@@ -387,12 +373,6 @@ const PurchaseRequestTable: React.FC = () => {
         }}
         projectId={selectedProjectId}
       />
-      {/* Modal */}
-      {/* <PermissionsModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        roleName={selectedRole}
-      /> */}
     </>
   );
 };

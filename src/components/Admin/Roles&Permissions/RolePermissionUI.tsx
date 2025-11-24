@@ -6,6 +6,7 @@ import {
 import { showError, showSuccess } from "../../../utils/toast";
 import { X } from "lucide-react";
 import Loader from "../../common/Loader";
+import { RequiredLabel } from "../../common/RequiredLabel";
 
 interface AddEditProjectModalProps {
   isOpen: boolean;
@@ -125,10 +126,8 @@ const RolePermissionUI: React.FC<AddEditProjectModalProps> = ({
         ) : (
           <div>
             {/* ROLE NAME */}
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Role Name *
-              </label>
+            <div className="mt-3">
+              <RequiredLabel label="Role Name" />
               <input
                 type="text"
                 value={data?.data?.name}
@@ -138,10 +137,8 @@ const RolePermissionUI: React.FC<AddEditProjectModalProps> = ({
             </div>
 
             {/* DESCRIPTION */}
-            <div>
-              <label className="text-sm font-medium text-gray-700">
-                Description
-              </label>
+            <div className="mt-3">
+              <RequiredLabel label="Description" />
               <textarea
                 className="w-full mt-1 border border-gray-300 rounded-md p-2"
                 value={descriptionValue}
@@ -152,8 +149,8 @@ const RolePermissionUI: React.FC<AddEditProjectModalProps> = ({
               ></textarea>
             </div>
 
-            <h2 className="text-md font-semibold text-gray-900 mt-6">
-              Permission *
+            <h2 className="my-2">
+              <RequiredLabel label="Permission" />
             </h2>
 
             {/* PERMISSION ACCORDIONS */}

@@ -7,11 +7,13 @@ import {
   useCreateSubmittalsMutation,
   useDeleteSubmittalsFileMutation,
   useGetSubmittalsByIdQuery,
+  useGetSubmittalsProjectsDrawingsQuery,
   useGetSubmittalsProjectsQuery,
   useUpdateSubmittalsMutation,
   useUploadSubmittalsMutation,
 } from "../../../features/submittals/api/submittalApi";
 import Loader from "../../common/Loader";
+import { RequiredLabel } from "../../common/RequiredLabel";
 interface AddEditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,10 +31,20 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
     isLoading: isManagersLoading,
     refetch,
   } = useGetSubmittalsProjectsQuery(undefined);
-  const { data: projectDetails, isFetching: isProjectFetching } =
-    useGetSubmittalsByIdQuery(projectId!, {
-      skip: !isEdit,
-    });
+  const {
+    data: projectDetails,
+    isFetching: isProjectFetching,
+    refetch: newFetch,
+  } = useGetSubmittalsByIdQuery(projectId!, {
+    skip: !isEdit,
+  });
+  const [submittalId, setSubmittalId] = useState("");
+  const {
+    data: projectDrawings,
+    isFetching: isProjectDrawings,
+    refetch: newFetchDrawings,
+  } = useGetSubmittalsProjectsDrawingsQuery(submittalId);
+
   const [updateSubmittals, { isLoading: updating }] =
     useUpdateSubmittalsMutation();
   const [showAllFiles, setShowAllFiles] = useState([]);
@@ -44,6 +56,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
     category: "",
     department: "",
     date: "",
+    linkedDrawingId: "",
   });
   const [uploadSubmittals, { isLoading }] = useUploadSubmittalsMutation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -60,6 +73,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
         department: p?.department,
         date: p?.date.split("T")[0],
         description: p?.description,
+        linkedDrawingId: p?.linkedDrawingId,
       });
       setShowAllFiles(p?.files);
     }
@@ -83,33 +97,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
       }
     }
   };
-  const downloadFile = async (url: string) => {
-    try {
-      const response = await fetch(url, {
-        mode: "cors",
-      });
 
-      if (!response.ok) throw new Error("Network response was not ok");
-
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = blobUrl;
-
-      // Automatically extract filename from URL
-      link.download = url.split("/").pop() || "downloaded-file";
-
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      // Cleanup blob URL
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.error("Download failed:", err);
-    }
-  };
   const [deleteFile, { isLoading: isDeleteLoading }] =
     useDeleteSubmittalsFileMutation();
 
@@ -123,51 +111,6 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
     }
   };
   const handleSubmit = async () => {
-    // const data = JSON.stringify({
-    //   projectId: "cd3df544-5164-417b-a9a2-3f518225fbd9",
-    //   drawingName: "Final structure2",
-    //   discipline: "Electrical",
-    //   revision: "R1",
-    //   date: "2020-02-15",
-    //   description: "completed2",
-    //   files: [
-    //     {
-    //       id: "0e0f4025-a4fd-4091-8cfb-f3b14d4a0e0f",
-    //       url: "https://addisababa-store-s3.s3.ap-southeast-1.amazonaws.com/drawing-revisions/db4143a2-6046-4086-8fe6-23184b796b3a-backgroundImage.jpg%22%22",
-    //       originalName: "backgroundImage.jpg",
-    //     },
-    //     {
-    //       id: "a21ec3a0-ad7f-4a51-bfde-e483ae65fef5",
-    //       url: "https://addisababa-store-s3.s3.ap-southeast-1.amazonaws.com/drawing-revisions/5af9ae5e-d2ec-4c39-8077-6c34a29122f5-Screenshot%20(3).png%22%22",
-    //       originalName: "Screenshot (3).png",
-    //     },
-    //     {
-    //       id: "ad841e9f-c1ed-4a7b-8502-8bc5a2eec3a3",
-    //       url: "https://addisababa-store-s3.s3.ap-southeast-1.amazonaws.com/drawing-revisions/a2c6b4f3-7327-4b37-a9d5-6a95ea354887-backgroundImage.jpg%22%22",
-    //       originalName: "backgroundImage.jpg",
-    //     },
-    //   ],
-    // });
-
-    // const config = {
-    //   method: "put",
-    //   maxBodyLength: Infinity,
-    //   url: "https://construction-api-stg.addisababadbohra.com/api/drawings/0564d651-081f-4328-b978-fdc2c3325f88",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: "••••••",
-    //   },
-    //   data: data,
-    // };
-
-    // axios
-    //   .request(config)
-    //   .then((response) => {
-    //     console.log(JSON.stringify(response.data));
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //   });
     const payload = {
       projectId: form.projectId,
       title: form.title,
@@ -176,8 +119,8 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
       date: form.date,
       description: form.description,
       files: showAllFiles,
+      linkedDrawingId: form.linkedDrawingId,
     };
-    console.log(payload, "allpayloadvaluegot");
 
     try {
       if (isEdit) {
@@ -189,6 +132,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
       }
       onClose();
       refetch();
+      newFetch();
       setShowAllFiles([]);
       setForm({
         projectId: "",
@@ -197,6 +141,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
         department: "",
         date: "",
         description: "",
+        linkedDrawingId: "",
       });
       setShowAllFiles([]);
     } catch (error: any) {
@@ -216,6 +161,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
       department: "",
       date: "",
       description: "",
+      linkedDrawingId: "",
     });
     setShowAllFiles([]);
     onClose();
@@ -250,7 +196,9 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
         <div className="w-full max-w-xl mx-auto bg-white">
           {/* HEADER */}
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold mb-4">New Submittal</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {isEdit ? "Update Submittal" : "New Submittal"}
+            </h2>
             <div onClick={handleClose} className="cursor-pointer text-xl">
               <X />
             </div>
@@ -261,15 +209,15 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
             <div>
               {/* FORM FIELDS */}
               <div className="mb-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Project *
-                </label>
+                <RequiredLabel label="Project" />
                 <select
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
                   value={form?.projectId}
-                  onChange={(e) =>
-                    setForm({ ...form, projectId: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setForm({ ...form, projectId: e.target.value });
+                    setSubmittalId(e.target.value);
+                    newFetchDrawings();
+                  }}
                 >
                   <option value="">Select project</option>
                   {projectsData?.data?.projects.map((p) => (
@@ -278,9 +226,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                 </select>
               </div>
               <div className="mb-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Title *
-                </label>
+                <RequiredLabel label="Title" />
                 <input
                   type="text"
                   placeholder="Enter title"
@@ -290,9 +236,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                 />
               </div>
               <div className="mb-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Category *
-                </label>
+                <RequiredLabel label="Category" />
                 <select
                   className="w-full mt-1 border border-gray-300 rounded-md p-2"
                   value={form?.category}
@@ -309,9 +253,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Department *
-                  </label>
+                  <RequiredLabel label="Department" />
                   <select
                     className="w-full mt-1 border border-gray-300 rounded-md p-2"
                     value={form?.department}
@@ -328,9 +270,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Date *
-                  </label>
+                  <RequiredLabel label=" Date" />
                   <input
                     type="date"
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 cursor-pointer"
@@ -349,23 +289,22 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                 <label className="text-sm font-medium text-gray-700">
                   Linked Drawing (Optional)
                 </label>
+
                 <select
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
-                  value={form?.projectId}
+                  value={form?.linkedDrawingId}
                   onChange={(e) =>
-                    setForm({ ...form, projectId: e.target.value })
+                    setForm({ ...form, linkedDrawingId: e.target.value })
                   }
                 >
-                  <option value="">Select project</option>
-                  {projectsData?.data?.projects.map((p) => (
-                    <option value={p.id}>{p.name}</option>
+                  <option value="">Select Drawing</option>
+                  {projectDrawings?.data?.drawings?.map((p) => (
+                    <option value={p.id}>{p.drawingName}</option>
                   ))}
                 </select>
               </div>
               <div className="mb-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Description *
-                </label>
+                <RequiredLabel label="Description" />
                 <textarea
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 h-24"
                   placeholder="Write description here..."
@@ -378,9 +317,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
 
               {/* FILE UPLOAD */}
               <div className="mb-6">
-                <label className="text-sm font-medium text-gray-700">
-                  Upload Your Submittal File *
-                </label>
+                <RequiredLabel label="Upload Your Submittal File" />
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -475,217 +412,3 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
 };
 
 export default AddModalSubmittal;
-
-// import React, { useState } from "react";
-// import { X, Upload } from "lucide-react";
-// import { RequiredLabel } from "../../common/RequiredLabel";
-
-// interface SubmittalProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-// }
-
-// const SubmittalModal: React.FC<SubmittalProps> = ({
-//   isOpen,
-//   onClose,
-// }) => {
-//   const [form, setForm] = useState({
-//     project: "",
-//     title: "",
-//     category: "",
-//     linkedDrawing: "",
-//     department: "",
-//     description: "",
-//   });
-
-//   const handleChange = (
-//     e: React.ChangeEvent<
-//       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-//     >
-//   ) => {
-//     setForm({ ...form, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     console.log("New Submittal:", form);
-//     onClose();
-//   };
-
-//   if (!isOpen) return null;
-
-//   return (
-//     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40">
-//       <div className="relative bg-white rounded-xl shadow-lg w-full max-w-[380px] sm:max-w-xl p-6 max-h-[90vh] overflow-y-auto">
-//         {/* Header */}
-//         <div className="flex justify-between items-center border-b pb-3">
-//           <h2 className="text-base font-semibold text-gray-800">
-//             New Submittal
-//           </h2>
-//           <button
-//             onClick={onClose}
-//             className="text-gray-500 hover:text-gray-700"
-//           >
-//             <X size={20} />
-//           </button>
-//         </div>
-
-//         {/* Form */}
-//         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-//           {/* Select Project */}
-//           <div>
-//             <RequiredLabel label="Select Project" />
-//             <select
-//               name="project"
-//               value={form.project}
-//               onChange={handleChange}
-//               required
-//               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-//   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-//             >
-//               <option value="">Choose a project</option>
-//               <option value="Project A">Project A</option>
-//               <option value="Project B">Project B</option>
-//             </select>
-//           </div>
-
-//           {/* Title */}
-//           <div>
-//             <RequiredLabel label="Title" />
-//             <input
-//               type="text"
-//               name="title"
-//               value={form.title}
-//               onChange={handleChange}
-//               placeholder="Enter submittal title"
-//               required
-//               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-//   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-//             />
-//           </div>
-
-//           {/* Category */}
-//           <div>
-//             <RequiredLabel label="Category" />
-//             <select
-//               name="category"
-//               value={form.category}
-//               onChange={handleChange}
-//               required
-//               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-//   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-//             >
-//               <option value="">Select category</option>
-//               <option value="Structural">Structural</option>
-//               <option value="Electrical">Electrical</option>
-//             </select>
-//           </div>
-
-//           {/* Linked Drawing */}
-//           <div>
-//             <label className="text-sm text-gray-700">
-//               Linked Drawing (Optional)
-//             </label>
-//             <select
-//               name="linkedDrawing"
-//               value={form.linkedDrawing}
-//               onChange={handleChange}
-//               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-//   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-//             >
-//               <option value="">Select a drawing</option>
-//               <option value="Drawing A">Drawing A</option>
-//             </select>
-//           </div>
-
-//           {/* Department */}
-//           <div>
-//             <RequiredLabel label="Department" />
-//             <select
-//               name="department"
-//               value={form.department}
-//               onChange={handleChange}
-//               required
-//               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-//   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-//             >
-//               <option value="">Select department</option>
-//               <option value="Structural">Structural</option>
-//               <option value="Mechanical">Mechanical</option>
-//             </select>
-//           </div>
-
-//           {/* Description */}
-//           <div>
-//             <RequiredLabel label="Description" />
-//             <textarea
-//               name="description"
-//               value={form.description}
-//               onChange={handleChange}
-//               placeholder="Enter detailed description"
-//               rows={3}
-//               required
-//               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-//   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-//             />
-//           </div>
-
-//           {/* Upload Files */}
-//           <div>
-//             <RequiredLabel label="Upload Files " />
-//             <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-//               <Upload className="mx-auto mb-2 text-gray-500" />
-//               <p className="text-xs text-gray-500">
-//                 Drag and drop your drawing file here or click to upload
-//               </p>
-//               <button
-//                 type="button"
-//                 className="mt-2 px-3 py-1 border rounded text-sm"
-//               >
-//                 Upload
-//               </button>
-//             </div>
-//           </div>
-
-//           {/* Previous Documents */}
-//           {/* <div>
-//             <h4 className="text-sm font-medium text-gray-700 mb-2">
-//               Previous Documents
-//             </h4>
-//             <div className="space-y-2">
-//               <div className="flex justify-between items-center bg-gray-100 p-2 rounded">
-//                 <span className="text-xs">floor-plan-v2.pdf</span>
-//                 <div className="flex gap-2">
-//                   <button className="text-xs border px-2 py-1 rounded">View File</button>
-//                   <button className="text-xs border px-2 py-1 rounded">Download</button>
-//                 </div>
-//               </div>
-//             </div>
-//           </div> */}
-
-//           {/* Buttons */}
-//           <div className="flex justify-end gap-3 mt-6">
-//             <button
-//               type="button"
-//               onClick={onClose}
-//               className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700
-//               hover:bg-[#facf6c] hover:border-[#fe9a00]"
-//             >
-//               Cancel
-//             </button>
-
-//             <button
-//               type="submit"
-//               className="px-4 py-2 bg-[#5b00b2] text-white rounded-md text-sm hover:bg-[#4b0082]
-//               disabled:opacity-60 disabled:cursor-not-allowed"
-//             >
-//               Submit
-//             </button>
-//           </div>
-//         </form>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SubmittalModal;

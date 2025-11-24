@@ -11,6 +11,7 @@ import {
 } from "../../../features/drawings&controls/api/drawingsApi";
 import { showError, showSuccess } from "../../../utils/toast";
 import Loader from "../../common/Loader";
+import { RequiredLabel } from "../../common/RequiredLabel";
 interface AddEditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,21 +29,16 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     isLoading: isManagersLoading,
     refetch,
   } = useGetDrawingsProjectsQuery(undefined);
-  const { data: projectDetails, isFetching: isProjectFetching } =
-    useGetDrawingsByIdQuery(projectId!, {
-      skip: !isEdit,
-    });
+  const {
+    data: projectDetails,
+    isFetching: isProjectFetching,
+    refetch: newFetch,
+  } = useGetDrawingsByIdQuery(projectId!, {
+    skip: !isEdit,
+  });
   const [updateDrawing, { isLoading: updating }] = useUpdateDrawingsMutation();
   const [showAllFiles, setShowAllFiles] = useState([]);
-  const [managerSearch, setManagerSearch] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [highlightIndex, setHighlightIndex] = useState(-1);
-  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
-  const isManager = userRole === "MANAGER";
-  const isSuperAdmin = userRole === "SUPER_ADMIN";
-  const cleanedSearch = managerSearch.trim().toLowerCase();
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState({
     projectId: "",
     drawingName: "",
@@ -55,22 +51,6 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [createDrawing, { isLoading: isCreateLoading }] =
     useCreateDrawingsMutation();
-  // useEffect(() => {
-  //   if (!isEdit && isOpen) {
-  //     setForm({
-  //       projectId: "",
-  //       drawingName: "",
-  //     description: "",
-  //      discipline: "",
-  //       revision: "",
-  //       date: "",
-  //     )}
-  // }, [isEdit, isOpen]);
-
-  /* -----------------------------------------
-          PREFILL FORM IN EDIT MODE
-      ----------------------------------------- */
-  // console.log(projectDetails, "projectDetailgot");
 
   useEffect(() => {
     if (isEdit && projectDetails?.data) {
@@ -163,8 +143,10 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         await createDrawing(payload).unwrap();
         showSuccess("Drawing uploaded successfully!");
       }
+
       onClose();
       refetch();
+      newFetch();
       setShowAllFiles([]);
       setForm({
         projectId: "",
@@ -226,7 +208,9 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         <div className="w-full max-w-xl mx-auto bg-white">
           {/* HEADER */}
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold mb-4">Upload New Drawing</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {isEdit ? "Update Drawing" : "Upload New Drawing"}
+            </h2>
             <div onClick={handleClose} className="cursor-pointer text-xl">
               <X />
             </div>
@@ -237,9 +221,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
           ) : (
             <div>
               <div className="mb-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Project *
-                </label>
+                <RequiredLabel label="Project" />
                 <select
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
                   value={form?.projectId}
@@ -256,9 +238,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Drawing Name *
-                  </label>
+                  <RequiredLabel label="Drawing Name" />
                   <input
                     type="text"
                     placeholder="Enter Drawing Name"
@@ -271,9 +251,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Discipline *
-                  </label>
+                  <RequiredLabel label=" Discipline" />
                   <select
                     className="w-full mt-1 border border-gray-300 rounded-md p-2"
                     value={form?.discipline}
@@ -291,9 +269,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Revision *
-                  </label>
+                  <RequiredLabel label="Revision" />
                   <select
                     className="w-full mt-1 border border-gray-300 rounded-md p-2"
                     value={form?.revision}
@@ -310,9 +286,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Date *
-                  </label>
+                  <RequiredLabel label="Date" />
                   <input
                     type="date"
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 cursor-pointer"
@@ -329,9 +303,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
               </div>
 
               <div className="mb-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Description *
-                </label>
+                <RequiredLabel label="Description" />
                 <textarea
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 h-24"
                   placeholder="Write description here..."
@@ -344,9 +316,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
 
               {/* FILE UPLOAD */}
               <div className="mb-6">
-                <label className="text-sm font-medium text-gray-700">
-                  Upload Your Drawing File *
-                </label>
+                <RequiredLabel label="Upload Your Drawing File" />
                 <input
                   type="file"
                   ref={fileInputRef}

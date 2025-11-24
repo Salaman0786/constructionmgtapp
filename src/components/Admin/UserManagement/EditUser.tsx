@@ -7,6 +7,7 @@ import {
 } from "../../../features/user/api/userApi";
 import { showError, showSuccess } from "../../../utils/toast";
 import Loader from "../../common/Loader";
+import { RequiredLabel } from "../../common/RequiredLabel";
 
 interface EditUserProps {
   isOpen: boolean;
@@ -117,9 +118,7 @@ const EditUser: React.FC<EditUserProps> = ({
             {/* Username & Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Username *
-                </label>
+                <RequiredLabel label="Username" />
                 <input
                   type="text"
                   name="username"
@@ -131,9 +130,7 @@ const EditUser: React.FC<EditUserProps> = ({
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Email *
-                </label>
+                <RequiredLabel label="Email" />
                 <div className="relative">
                   <input
                     type="email"
@@ -153,9 +150,7 @@ const EditUser: React.FC<EditUserProps> = ({
 
             {/* Full Name */}
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Full Name *
-              </label>
+              <RequiredLabel label="Full Name" />
               <input
                 type="text"
                 name="fullName"
@@ -168,9 +163,8 @@ const EditUser: React.FC<EditUserProps> = ({
 
             {/* Role */}
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Role *
-              </label>
+              <RequiredLabel label="Role" />
+
               <select
                 name="role"
                 value={form.role}

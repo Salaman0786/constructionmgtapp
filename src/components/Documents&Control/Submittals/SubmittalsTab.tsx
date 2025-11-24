@@ -897,6 +897,15 @@ const SubmittalTable: React.FC = () => {
           }}
           projectId={selectedProjectId}
         />
+        <ViewDrawings
+          isOpen={viewModalOpen}
+          onClose={() => {
+            setViewModalOpen(false);
+            setSelectedProjectId(null);
+            refetch();
+          }}
+          projectId={selectedProjectId}
+        />
         <ViewSubmittals
           isOpen={viewModalOpen}
           onClose={() => {

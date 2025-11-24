@@ -5,6 +5,7 @@ import {
   useGetRolesQuery,
 } from "../../../features/user/api/userApi";
 import { showError, showSuccess } from "../../../utils/toast";
+import { RequiredLabel } from "../../common/RequiredLabel";
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -105,9 +106,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
           {/* Username & Email */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Username *
-              </label>
+              <RequiredLabel label="Username" />
               <input
                 type="text"
                 name="username"
@@ -119,9 +118,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Email *
-              </label>
+              <RequiredLabel label="Email" />
               <div className="relative">
                 <input
                   type="email"
@@ -142,9 +139,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
 
           {/* Full Name */}
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Full Name *
-            </label>
+            <RequiredLabel label="Full Name" />
             <input
               type="text"
               name="fullName"
@@ -158,7 +153,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
 
           {/* Role */}
           <div>
-            <label className="text-sm font-medium text-gray-700">Role *</label>
+            <RequiredLabel label="Role" />
             <select
               name="role"
               value={form.role}
@@ -178,9 +173,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
 
           {/* Temporary Password */}
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Temporary Password *
-            </label>
+            <RequiredLabel label="Temporary Password" />
             <input
               type="password"
               name="tempPassword"
