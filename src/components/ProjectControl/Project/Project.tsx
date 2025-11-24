@@ -377,15 +377,11 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
 
       {/* Table Section */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden p-4">
-        {/* Header */}
         <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
           <div>
             <h2 className="text-gray-900 font-semibold text-base">
               Project Tracking Table
             </h2>
-            {/* <p className="text-sm text-gray-500">
-                Comprehensive management of quantities, costs, and progress
-              </p> */}
           </div>
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 text-sm justify-end">
@@ -411,8 +407,8 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
             </div>
           )}
         </div>
-        {/* When loading → shimmer */}
-        <div className="overflow-x-auto whitespace-nowrap border border-gray-200 rounded-xl">
+
+        <div className="overflow-x-auto whitespace-nowrap border border-gray-200 rounded-xl max-w-[1130px]">
           <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
@@ -477,7 +473,7 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                     </td>
                     <td
                       className="p-3 text-center text-[#3A3A3A]  align-middle"
-                      title={project.name} // full name on hover
+                      title={project.name}
                     >
                       {getTwoWordPreview(project.name)}
                     </td>
@@ -511,7 +507,6 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                       {formatToYMD(project.createdAt)}
                     </td>
 
-                    {/* ACTION MENU */}
                     <td className="px-4 py-3 text-center">
                       <button
                         className="p-2 rounded-lg hover:bg-[#facf6c]"
@@ -580,18 +575,14 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {/* Showing text */}
           <span className="text-sm sm:text-base">
             Showing {(page - 1) * limit + 1} to{" "}
             {Math.min(page * limit, totalItems)} of {totalItems} results
           </span>
 
-          {/* Buttons */}
           <div>
             <div className="flex items-center space-x-2">
-              {/* First Page */}
               <button
                 onClick={goToFirst}
                 disabled={page === 1}
@@ -601,7 +592,6 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 <ChevronsLeft size={18} />
               </button>
 
-              {/* Prev */}
               <button
                 onClick={goToPrev}
                 disabled={page === 1}
@@ -615,7 +605,6 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 Page {page} of {totalPages}
               </div>
 
-              {/* Next */}
               <button
                 onClick={goToNext}
                 disabled={page === totalPages}
@@ -625,7 +614,6 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 <ChevronRight size={18} />
               </button>
 
-              {/* Last Page */}
               <button
                 onClick={goToLast}
                 disabled={page === totalPages}
