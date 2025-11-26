@@ -55,6 +55,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   isLoading,
 }) => {
   const userRole = useSelector((state: any) => state.auth.user?.role?.name);
+  const isInvestor = userRole === "INVESTOR";
   const isManager = userRole === "MANAGER";
   const isSuperAdmin = userRole === "SUPER_ADMIN";
 
@@ -69,7 +70,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
       <div
         className={`grid grid-cols-1 sm:grid-cols-2 ${
-          isManager ? "md:grid-cols-3" : "md:grid-cols-4"
+          (isManager || isInvestor) ? "md:grid-cols-3" : "md:grid-cols-4"
         } gap-4`}
       >
         {isLoading ? (
@@ -77,7 +78,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <StatCardShimmer />
             <StatCardShimmer />
             <StatCardShimmer />
-            {!isManager && <StatCardShimmer />}
+            {(!isManager || !isInvestor) && <StatCardShimmer />}
           </>
         ) : (
           <>

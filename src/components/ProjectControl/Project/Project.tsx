@@ -26,6 +26,7 @@ import { showError, showSuccess } from "../../../utils/toast";
 import ViewProjectDetailsModal from "./ViewProjectDetailsModal";
 import ConfirmModal from "./DeleteModal";
 import { StatusBadge } from "./StatusBadge";
+import AccessDenied from "../../common/AccessDenied";
 
 interface Project {
   id: string;
@@ -216,6 +217,25 @@ const Project: React.FC = () => {
 
     return matchesSearch && matchesStart && matchesEnd && matchesStatus;
   });
+
+  //handle project view permission
+
+  const permissionErrorMessage = (error as any)?.data?.message;
+
+  // ONLY READ permission check
+  const noReadAccess = /READ access/i.test(permissionErrorMessage || "");
+
+  // Block entire page if READ denied
+  if (noReadAccess) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message={
+          permissionErrorMessage || "You do not have READ access to Projects."
+        }
+      />
+    );
+  }
 
   return (
     <div className="space-y-6 bg-white min-h-screen">

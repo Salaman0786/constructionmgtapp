@@ -150,9 +150,10 @@ const SubmittalTable: React.FC = () => {
     );
   };
 
-  const selectAll = (checked: boolean) => {
+  const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(data?.data?.drawing.map((p) => p.id));
+      const allIds = data?.data?.submittals?.map((item) => item.id) || [];
+      setSelectedIds(allIds);
     } else {
       setSelectedIds([]);
     }
@@ -615,7 +616,7 @@ const SubmittalTable: React.FC = () => {
                 <select
                   value={tempCategory}
                   onChange={(e) => setTempCategory(e.target.value)}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 >
                   <option value="">All</option>
                   <option value="Material">Material</option>
@@ -702,7 +703,7 @@ const SubmittalTable: React.FC = () => {
                       data?.data?.submittals.length > 0 &&
                       selectedIds.length === data?.data?.submittals.length
                     }
-                    onChange={(e) => selectAll(e.target.checked)}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
                     className="accent-purple-600"
                   />
                 </th>
@@ -721,10 +722,10 @@ const SubmittalTable: React.FC = () => {
             <tbody>
               {isLoading ? (
                 renderShimmer()
-              ) : data?.data?.drawing?.length === 0 ? (
+              ) : data?.data?.submittals?.length === 0 ? (
                 <tr>
                   <td colSpan={12} className="text-center py-6 text-gray-500">
-                    No Projects Found
+                    No Record Found
                   </td>
                 </tr>
               ) : (

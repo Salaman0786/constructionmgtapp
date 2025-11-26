@@ -120,11 +120,11 @@ const AdminLogin: React.FC = () => {
           {/* Remember me + Forgot */}
           <div className="flex flex-col sm:flex-row justify-between items-center mb-5 text-sm">
             <label className="flex items-center text-gray-600 mb-4 sm:mb-0">
-              <input
+              {/* <input
                 type="checkbox"
                 className="mr-2 rounded accent-purple-700"
               />
-              Remember me
+              Remember me */}
             </label>
             <button
               onClick={handleForgotPassword}

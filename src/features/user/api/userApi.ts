@@ -10,7 +10,7 @@ export const userApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Users", "Roles"],
+  tagTypes: ["Users", "Roles", "UsersDashboard"],
   endpoints: (builder) => ({
     getUsers: builder.query({
       query: ({ page = 1, limit = 10, search = "", status = "", role = "" }) =>
@@ -18,6 +18,7 @@ export const userApi = createApi({
     }),
     getUsersDashboard: builder.query({
       query: () => "/users/dashboard",
+      providesTags: ["UsersDashboard"],
     }),
     // ✅ POST API — add a new user
     addUser: builder.mutation({
@@ -26,6 +27,7 @@ export const userApi = createApi({
         method: "POST",
         body,
       }),
+      invalidatesTags: ["UsersDashboard", "Users"],  
     }),
 
     // ✅ PUT API — update user
@@ -37,7 +39,7 @@ export const userApi = createApi({
         method: "DELETE",
         body: { ids },
       }),
-      invalidatesTags: ["Projects", "Dashboard"],
+      invalidatesTags: ["UsersDashboard", "Users"],
     }),
     updateUserStatus: builder.mutation({
       query: ({ id, isActive }: { id: string; isActive: boolean }) => ({
@@ -45,6 +47,7 @@ export const userApi = createApi({
         method: "PATCH",
         body: { isActive },
       }),
+      invalidatesTags: ["UsersDashboard", "Users"],
     }),
     getRoles: builder.query({
       query: () => `/users/roles`,

@@ -27,12 +27,11 @@ import {
 
 import { getTwoWordPreview, formatToYMD } from "../../../utils/helpers";
 import { renderShimmer } from "../../common/tableShimmer";
-import { useSelector } from "react-redux";
 import { showError, showSuccess } from "../../../utils/toast";
 import { renderWeatherBadge } from "./WeatherBadge";
+import AccessDenied from "../../common/AccessDenied";
 
 const SiteDiary: React.FC = () => {
-  const userRole = useSelector((s: any) => s.auth.user?.role?.name);
 
   /* -----------------------------------
      Pagination + Filters
@@ -89,7 +88,7 @@ const SiteDiary: React.FC = () => {
   /* -----------------------------------
      Fetch diaries (RTK Query)
   -----------------------------------*/
-  const { data, isLoading, refetch } = useGetSiteDiariesQuery({
+  const { data, isLoading, refetch, error } = useGetSiteDiariesQuery({
     page,
     limit,
     search: searchQuery, // search → project.name + weather
@@ -123,8 +122,9 @@ const SiteDiary: React.FC = () => {
       showSuccess("Entry deleted");
       setSelectedIds((prev) => prev.filter((x) => x !== selectedForDelete.id));
       refetch();
-    } catch {
-      showError("Delete failed");
+    } catch (err) {
+      showError(err?.data?.message || "Something went wrong");
+      setOpenMenuId(null);
     }
     setSingleDeleteConfirmOpen(false);
   };
@@ -135,8 +135,9 @@ const SiteDiary: React.FC = () => {
       showSuccess("Selected entries deleted");
       setSelectedIds([]);
       refetch();
-    } catch {
-      showError("Bulk delete failed");
+    } catch (err) {
+      showError(err?.data?.message || "Something went wrong");
+      setOpenMenuId(null);
     }
     setBulkDeleteConfirmOpen(false);
   };
@@ -198,6 +199,28 @@ const SiteDiary: React.FC = () => {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   /* -----------------------------------
+     Handle view Permission
+  -----------------------------------*/
+
+  const permissionErrorMessage = (error as any)?.data?.message;
+
+  // ONLY READ permission check
+  const noReadAccess = /READ access/i.test(permissionErrorMessage || "");
+
+  // Block page if READ access is denied
+  if (noReadAccess) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message={
+          permissionErrorMessage ||
+          "You do not have READ access to Site Diary (DPR)."
+        }
+      />
+    );
+  }
+
+  /* -----------------------------------
      SEARCH + FILTER SECTION
   -----------------------------------*/
   return (
@@ -211,19 +234,17 @@ const SiteDiary: React.FC = () => {
           <p className="text-sm text-gray-500">Daily progress reports</p>
         </div>
 
-        {userRole === "MANAGER" && (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                setSelectedDiaryId(null);
-                setOpenAddEdit(true);
-              }}
-              className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
-            >
-              <Plus size={18} /> New Entry
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setSelectedDiaryId(null);
+              setOpenAddEdit(true);
+            }}
+            className="flex items-center gap-1 bg-[#4b0082] hover:[#4b0089] text-white text-xs sm:text-sm px-3 py-2 rounded-md"
+          >
+            <Plus size={18} /> New Entry
+          </button>
+        </div>
       </div>
 
       {/* Search + Filter */}
@@ -420,22 +441,19 @@ const SiteDiary: React.FC = () => {
                 <span className="text-gray-600">
                   {selectedIds.length} selected
                 </span>
-
                 <button
                   onClick={handleExportSelected}
                   className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
                 >
                   Export
                 </button>
-
-                {userRole === "MANAGER" && (
-                  <button
-                    onClick={() => setBulkDeleteConfirmOpen(true)}
-                    className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
-                  >
-                    Delete
-                  </button>
-                )}
+                (
+                <button
+                  onClick={() => setBulkDeleteConfirmOpen(true)}
+                  className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
+                >
+                  Delete
+                </button>
               </div>
             )}
           </div>
@@ -573,27 +591,26 @@ const SiteDiary: React.FC = () => {
                               >
                                 <Eye size={14} /> View
                               </button>
-                              {userRole === "MANAGER" && (
-                                <>
-                                  <button
-                                    className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
-                                    onClick={() => {
-                                      setSelectedDiaryId(d.id);
-                                      setOpenAddEdit(true);
-                                      setOpenMenuId(null);
-                                    }}
-                                  >
-                                    <Edit size={14} /> Edit
-                                  </button>
 
-                                  <button
-                                    className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
-                                    onClick={() => openSingleDelete(d)}
-                                  >
-                                    <Trash2 size={14} /> Delete
-                                  </button>
-                                </>
-                              )}
+                              <>
+                                <button
+                                  className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                                  onClick={() => {
+                                    setSelectedDiaryId(d.id);
+                                    setOpenAddEdit(true);
+                                    setOpenMenuId(null);
+                                  }}
+                                >
+                                  <Edit size={14} /> Edit
+                                </button>
+
+                                <button
+                                  className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
+                                  onClick={() => openSingleDelete(d)}
+                                >
+                                  <Trash2 size={14} /> Delete
+                                </button>
+                              </>
                             </div>
                           )}
                         </td>

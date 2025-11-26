@@ -20,6 +20,7 @@ import { useGetProjectsQuery } from "../../../features/taskAssignment/api/taskAs
 import { useSelector } from "react-redux";
 import ConfirmModal from "../Project/DeleteModal";
 import { showError, showSuccess } from "../../../utils/toast";
+import AccessDenied from "../../common/AccessDenied";
 
 /* ================= TYPES ================= */
 
@@ -107,7 +108,11 @@ const TaskAssignment: React.FC = () => {
   // ==============================
   // API CALLS FOR EACH COLUMN
   // ==============================
-  const { data: todoData, isLoading: loadingTodo } = useGetTodoTasksQuery({
+  const {
+    data: todoData,
+    isLoading: loadingTodo,
+    error: todoError,
+  } = useGetTodoTasksQuery({
     page: todoPage,
     limit,
     projectId: projectFilter,
@@ -117,18 +122,25 @@ const TaskAssignment: React.FC = () => {
     search,
   });
 
-  const { data: progressData, isLoading: loadingProgress } =
-    useGetInProgressTasksQuery({
-      page: progressPage,
-      limit,
-      projectId: projectFilter,
-      priority: priorityFilter,
-      startDate: startDateFilter,
-      endDate: endDateFilter,
-      search,
-    });
+  const {
+    data: progressData,
+    isLoading: loadingProgress,
+    error: progressError,
+  } = useGetInProgressTasksQuery({
+    page: progressPage,
+    limit,
+    projectId: projectFilter,
+    priority: priorityFilter,
+    startDate: startDateFilter,
+    endDate: endDateFilter,
+    search,
+  });
 
-  const { data: doneData, isLoading: loadingDone } = useGetDoneTasksQuery({
+  const {
+    data: doneData,
+    isLoading: loadingDone,
+    error: doneError,
+  } = useGetDoneTasksQuery({
     page: donePage,
     limit,
     projectId: projectFilter,
@@ -260,6 +272,31 @@ const TaskAssignment: React.FC = () => {
       status: statusMap[end],
     });
   };
+
+  // ==============================
+  // Handle view Permissions
+  // ==============================
+
+  const permissionErrorMessage =
+    (todoError as any)?.data?.message ||
+    (progressError as any)?.data?.message ||
+    (doneError as any)?.data?.message;
+
+  // ONLY check for READ access
+  const noReadAccess = /READ access/i.test(permissionErrorMessage || "");
+
+  // If user has no READ access → block entire page
+  if (noReadAccess) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message={
+          permissionErrorMessage ||
+          "You do not have READ access to Task Assignment."
+        }
+      />
+    );
+  }
 
   // ==============================
   // LOADING STATES
