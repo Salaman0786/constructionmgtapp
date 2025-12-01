@@ -6,6 +6,7 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useAppSelector } from "../../app/hooks";
 import { useDispatch } from "react-redux";
 import { logout } from "../../features/auth/slices/authSlice";
+import { resetAllApis } from "../../utils/refechApis";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +27,8 @@ export default function UserDropdown() {
   const dispatch = useDispatch();
   const handleLogout = () => {
     dispatch(logout());
+    resetAllApis(dispatch); //clears ALL RTK Query cache
+    localStorage.clear();
     navigate("/signin");
   };
   return (

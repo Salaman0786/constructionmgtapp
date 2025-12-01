@@ -158,9 +158,18 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
       showSuccess("Task created successfully!");
       resetForm();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      showError("Failed to create task.");
+
+      const message = err?.data?.message;
+
+      if (message?.includes("CREATE access")) {
+        showError(message); // Shows backend message
+        onClose(); // Optional: close modal since user can't create
+        return;
+      }
+
+      showError(message || "Failed to create task.");
     }
   };
 

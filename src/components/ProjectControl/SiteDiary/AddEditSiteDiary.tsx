@@ -8,7 +8,6 @@ import {
   useUpdateSiteDiaryMutation,
 } from "../../../features/siteDiary/api/siteDiaryApi";
 import { showError, showInfo, showSuccess } from "../../../utils/toast";
-import { useSelector } from "react-redux";
 import { validateSiteDiary } from "../../../utils/validators/siteDiaryValidator";
 import { RequiredLabel } from "../../common/RequiredLabel";
 
@@ -34,9 +33,6 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
   const { data: diaryData, isFetching } = useGetSiteDiaryByIdQuery(diaryId!, {
     skip: !isEdit,
   });
-  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
-  const isManager = userRole === "MANAGER";
-  const isSuperAdmin = userRole === "SUPER_ADMIN";
   const [createDiary, { isLoading: creating }] = useCreateSiteDiaryMutation();
   const [updateDiary, { isLoading: updating }] = useUpdateSiteDiaryMutation();
   const loading = creating || updating;
@@ -185,6 +181,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
     } catch (err: any) {
       console.error(err);
       showError(err?.data?.message || "Something went wrong");
+      onClose();
     }
   };
 
