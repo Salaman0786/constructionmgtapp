@@ -23,7 +23,7 @@ const AddInvoice: React.FC<AddInvoiceModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("New Invoice Data:", form);
+    
     onClose();
   };
 

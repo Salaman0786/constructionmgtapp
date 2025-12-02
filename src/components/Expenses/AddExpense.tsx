@@ -27,7 +27,7 @@ const AddExpense: React.FC<RecordExpenseModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Expense Recorded:", form);
+    
     onClose();
   };
 

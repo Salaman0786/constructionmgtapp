@@ -25,7 +25,7 @@ const CreatePR: React.FC<AddBOQProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Purchase Request:", form);
+    
     onClose();
   };
 

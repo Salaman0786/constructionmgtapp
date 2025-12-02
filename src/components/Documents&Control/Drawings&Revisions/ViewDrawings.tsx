@@ -177,14 +177,14 @@ const ViewDrawings: React.FC<AddEditProjectModalProps> = ({
                         <div className="flex items-center gap-3 text-gray-600 ">
                           <button
                             onClick={() => window.open(doc.url, "_blank")}
-                            className="hover:text-blue-400"
+                            className="text-blue-400 hover:text-blue-600"
                           >
                             <Eye />
                           </button>
 
                           <button
                             onClick={() => handleDownload(doc.url)}
-                            className="hover:text-blue-400"
+                            className="text-gray-700 hover:text-gray-900"
                           >
                             <Download />
                           </button>
@@ -198,7 +198,8 @@ const ViewDrawings: React.FC<AddEditProjectModalProps> = ({
               {/* ACTION BUTTONS */}
               <div className="flex justify-end gap-3">
                 <button
-                  className="px-4 py-2 border rounded-md text-sm hover:bg-gray-300"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700
+              hover:bg-[#facf6c] hover:border-[#fe9a00]"
                   onClick={onClose}
                 >
                   Cancel

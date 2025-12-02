@@ -23,7 +23,6 @@ const CreateGRN: React.FC<AddRoleProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Purchase Request:", form);
     onClose();
   };
 

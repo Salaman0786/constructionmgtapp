@@ -23,7 +23,7 @@ const Dashboard = () => {
     showError("Failed to loading Dashboard");
   }
   const dashboard = data?.data;
-  console.log(dashboard);
+  
   return (
     <div>
       <DashboardHeader topStats={dashboard?.topStats} isLoading={isLoading} />

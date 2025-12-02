@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { Download, Eye, Trash2, X } from "lucide-react";
+import { Calendar, Download, Eye, Trash2, X } from "lucide-react";
 import {
   useCreateDrawingsMutation,
   useDeleteDrawingsFileMutation,
@@ -23,6 +23,13 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   projectId,
 }) => {
   const isEdit = Boolean(projectId);
+
+  //project searchable state
+  const [projectSearch, setProjectSearch] = useState("");
+  const [showProjectDropdown, setShowProjectDropdown] = useState(false);
+  const [highlightProjectIndex, setHighlightProjectIndex] = useState(-1);
+  const projectDropdownRef = useRef(null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const {
     data: projectsData,
@@ -64,8 +71,49 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         description: p?.description,
       });
       setShowAllFiles(p?.files);
+      // ⭐ THIS WAS MISSING → FIXES PROJECT NAME SHOWING IN EDIT MODE
+      setProjectSearch(
+        p?.project?.code
+          ? `${p.project.code} - ${p.project.name}`
+          : p.project.name
+      );
     }
   }, [projectDetails, isEdit]);
+
+  // Reset state when opening ADD modal (not edit)
+  useEffect(() => {
+    if (isOpen && !isEdit) {
+      setForm({
+        projectId: "",
+        drawingName: "",
+        discipline: "",
+        revision: "",
+        date: "",
+        description: "",
+      });
+
+      setShowAllFiles([]);
+      setProjectSearch("");
+      setShowProjectDropdown(false);
+      setHighlightProjectIndex(-1);
+    }
+  }, [isOpen, isEdit]);
+
+  //to close searchable dropdown
+  useEffect(() => {
+    function handleClick(e) {
+      if (
+        projectDropdownRef.current &&
+        !projectDropdownRef.current.contains(e.target)
+      ) {
+        setShowProjectDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -85,6 +133,17 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
       }
     }
   };
+
+  //handle select project in searchable project dropdown
+  const handleSelectProject = (p) => {
+    setForm({ ...form, projectId: p.id });
+
+    // Show text in input
+    setProjectSearch(p.code ? `${p.code} - ${p.name}` : p.name);
+
+    setShowProjectDropdown(false);
+  };
+
   const downloadFile = async (url: string) => {
     try {
       const response = await fetch(url, {
@@ -172,6 +231,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         description: "",
       });
       setShowAllFiles([]);
+      setProjectSearch("");
     }
   };
   if (!isOpen) return null;
@@ -185,6 +245,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
       description: "",
     });
     setShowAllFiles([]);
+    setProjectSearch("");
     onClose();
   };
   const handleDownload = async (fileUrl) => {
@@ -211,6 +272,15 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
       console.error("Download error:", error);
     }
   };
+
+  //filter project based on search
+  const filteredProjects =
+    projectsData?.data?.projects?.filter((p) =>
+      `${p.code || ""} ${p.name}`
+        .toLowerCase()
+        .includes(projectSearch.toLowerCase())
+    ) || [];
+
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 p-4">
       <div className="relative bg-white rounded-lg shadow-lg w-full max-w-[350px] sm:max-w-lg p-6 max-h-[90vh] overflow-y-auto">
@@ -229,7 +299,68 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
             <Loader />
           ) : (
             <div>
-              <div className="mb-4">
+              {/** searchable project dropdown */}
+
+              <div className="relative mb-4" ref={projectDropdownRef}>
+                <RequiredLabel label="Project" />
+
+                <input
+                  type="text"
+                  value={projectSearch}
+                  placeholder="Search project by name or code..."
+                  onFocus={() => setShowProjectDropdown(true)}
+                  onChange={(e) => {
+                    setProjectSearch(e.target.value.trimStart());
+                    setShowProjectDropdown(true);
+                  }}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
+                />
+
+                {/* CLEAR BUTTON */}
+                {projectSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProjectSearch("");
+                      setForm({ ...form, projectId: "" });
+                    }}
+                    className="absolute right-3 top-9 text-gray-400 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                )}
+
+                {/* DROPDOWN */}
+                {showProjectDropdown && (
+                  <div className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-56 overflow-y-auto shadow-lg z-50">
+                    {/* EMPTY */}
+                    {filteredProjects.length === 0 && (
+                      <div className="px-4 py-3 text-gray-500 text-sm">
+                        No results found
+                      </div>
+                    )}
+
+                    {/* LIST */}
+                    {filteredProjects.map((p, index) => (
+                      <div
+                        key={p.id}
+                        onClick={() => handleSelectProject(p)}
+                        onMouseEnter={() => setHighlightProjectIndex(index)}
+                        className={`px-4 py-2 cursor-pointer text-sm ${
+                          highlightProjectIndex === index
+                            ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2]"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <div className="font-medium">{p.code || "—"}</div>
+                        <div className="text-xs text-gray-500">{p.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* <div className="mb-4">
                 <RequiredLabel label="Project" />
                 <select
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
@@ -243,7 +374,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     <option value={p.id}>{p.name}</option>
                   ))}
                 </select>
-              </div>
+              </div> */}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -296,18 +427,30 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
 
                 <div>
                   <RequiredLabel label="Date" />
-                  <input
-                    type="date"
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 cursor-pointer"
-                    onClick={(e) => {
-                      e.currentTarget.showPicker?.(); // ✔ Allowed user gesture
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === " ") e.preventDefault(); // disable SPACE opening calendar
-                    }}
-                    value={form?.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      className="w-full mt-1 border border-gray-300 rounded-md p-2 cursor-pointer"
+                      onKeyDown={(e) => {
+                        if (e.key === " ") e.preventDefault(); // keep your space-block logic
+                      }}
+                      value={form?.date}
+                      onChange={(e) =>
+                        setForm({ ...form, date: e.target.value })
+                      }
+                    />
+
+                    {/* Calendar Icon triggers showPicker() */}
+                    <Calendar
+                      onClick={(e) => {
+                        const input = e.currentTarget
+                          .previousElementSibling as HTMLInputElement;
+                        input?.showPicker?.(); // open picker only when clicking icon
+                      }}
+                      size={16}
+                      className="absolute right-3 top-4 text-gray-400 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -358,7 +501,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                         <div className="flex items-center gap-3 text-gray-600 ">
                           <button
                             onClick={() => window.open(doc.url, "_blank")}
-                            className="hover:text-blue-400"
+                            className="text-blue-400 hover:text-blue-600"
                           >
                             <Eye />
                           </button>
@@ -368,7 +511,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                             // download
                             // target="_blank"
                             onClick={() => handleDownload(doc.url)}
-                            className="hover:text-blue-400"
+                            className="text-gray-700 hover:text-gray-900"
                           >
                             <Download />
                           </button>
@@ -376,7 +519,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                           <button
                             onClick={() => handleDelete(doc.id)}
                             disabled={isDeleteLoading}
-                            className="hover:text-blue-400"
+                            className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 />
                           </button>
@@ -390,7 +533,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
               {/* ACTION BUTTONS */}
               <div className="flex justify-end gap-3">
                 <button
-                  className="px-4 py-2 border rounded-md text-sm"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700
+              hover:bg-[#facf6c] hover:border-[#fe9a00]"
                   onClick={handleClose}
                 >
                   Cancel

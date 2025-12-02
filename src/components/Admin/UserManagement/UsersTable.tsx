@@ -170,7 +170,7 @@ export const UsersTable: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 my-4">
+      <div className="flex flex-col items-end md:flex-row md:items-center md:justify-between gap-3 my-4">
         <div className="relative w-full md:w-9/10">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
 
@@ -181,7 +181,7 @@ export const UsersTable: React.FC = () => {
               setSearch(e.target.value);
               setPage(1); // Reset to page 1 when searching
             }}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2] outline-none"
           />
         </div>
 
@@ -290,142 +290,150 @@ export const UsersTable: React.FC = () => {
                   className="accent-purple-600"
                 />
               </th>
+               <th className="p-3 text-center">S.No.</th>
               <th className="p-3">User</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Role</th>
-              <th className="p-3">Status</th>
+              <th className="p-3 text-center">Email</th>
+              <th className="p-3 text-center">Role</th>
+              <th className="p-3 text-center">Status</th>
 
-              <th className="p-3">Created</th>
-              <th className="p-3">Action</th>
+              <th className="p-3 text-center">Created</th>
+              <th className="p-3 text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <>{renderShimmer()}</>
             ) : (
-              data?.data?.users.map((user) => (
-                <tr
-                  key={user.id}
-                  className={`border-b border-gray-100 hover:bg-gray-50 transition ${
-                    selectedIds.includes(user.id) ? "bg-purple-50" : ""
-                  }`}
-                >
-                  <td className="p-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(user.id)}
-                      onChange={() => toggleSelect(user.id)}
-                      className="accent-purple-700"
-                    />
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
-                        {user.fullName.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {user.userName}
+              data?.data?.users.map((user,index) => {
+                const serialNo =
+                  (pagination.page - 1) * pagination.limit + (index + 1);
+                return (
+                  <tr
+                    key={user.id}
+                    className={`border-b border-gray-100 hover:bg-gray-50 transition ${
+                      selectedIds.includes(user.id) ? "bg-purple-50" : ""
+                    }`}
+                  >
+                    <td className="p-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(user.id)}
+                        onChange={() => toggleSelect(user.id)}
+                        className="accent-purple-700"
+                      />
+                    </td>
+                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">{serialNo}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
+                          {user.fullName.charAt(0)}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {user.fullName}
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {user.userName}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {user.fullName}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="p-3 text-gray-700">{user.email}</td>
-                  <td className="p-3">
-                    <span className="text-xs font-medium bg-[#4b0082] text-white px-2 py-1 rounded-full">
-                      {user.role.name}
-                    </span>
-                  </td>
-
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full ${
-                          user.isActive
-                            ? "bg-[#4b0082] text-white"
-                            : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {user.isActive ? "Active" : "Inactive"}
+                    </td>
+                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">{user.email}</td>
+                    <td className="p-3 text-center align-middle">
+                      <span className="text-xs font-medium bg-[#4b0082] text-white px-2 py-1 rounded-full ">
+                        {user.role.name}
                       </span>
+                    </td>
 
-                      {/* Toggle Switch */}
-                      <label className="inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="sr-only"
-                          checked={user.isActive}
-                          onChange={() =>
-                            handleToggleStatus(user.id, user.isActive)
-                          }
-                          disabled={isUpdating}
-                        />
-                        <div
-                          className={`w-10 h-5 rounded-full flex items-center px-1 transition-colors duration-300 ${
-                            user.isActive ? "bg-[#4b0082]" : "bg-gray-300"
+                    <td className="p-3">
+                      <div className="flex items-center justify-center gap-2">
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            user.isActive
+                              ? "bg-[#4b0082] text-white"
+                              : "bg-gray-100 text-gray-500"
                           }`}
                         >
+                          {user.isActive ? "Active" : "Inactive"}
+                        </span>
+
+                        {/* Toggle Switch */}
+                        <label className="inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={user.isActive}
+                            onChange={() =>
+                              handleToggleStatus(user.id, user.isActive)
+                            }
+                            disabled={isUpdating}
+                          />
                           <div
-                            className={`w-3.5 h-3.5 bg-white rounded-full shadow transform transition-transform duration-300 ${
-                              user.isActive ? "translate-x-5" : "translate-x-0"
+                            className={`w-10 h-5 rounded-full flex items-center px-1 transition-colors duration-300 ${
+                              user.isActive ? "bg-[#4b0082]" : "bg-gray-300"
                             }`}
-                          ></div>
-                        </div>
-                      </label>
-                    </div>
-                  </td>
-                  <td className="p-3 text-gray-700">
-                    {formatDateToDDMMYYYY(user.createdAt)}
-                  </td>
+                          >
+                            <div
+                              className={`w-3.5 h-3.5 bg-white rounded-full shadow transform transition-transform duration-300 ${
+                                user.isActive
+                                  ? "translate-x-5"
+                                  : "translate-x-0"
+                              }`}
+                            ></div>
+                          </div>
+                        </label>
+                      </div>
+                    </td>
+                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
+                      {formatDateToDDMMYYYY(user.createdAt)}
+                    </td>
 
-                  {/* Action menu */}
-                  <td className="relative px-3 py-4 text-center">
-                    <button
-                      onClick={() =>
-                        setActiveMenuId(
-                          activeMenuId === user.id ? null : user.id
-                        )
-                      }
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <MoreHorizontal size={18} />
-                    </button>
+                    {/* Action menu */}
+                    <td className="relative px-3 py-4 text-center">
+                      <button
+                        onClick={() =>
+                          setActiveMenuId(
+                            activeMenuId === user.id ? null : user.id
+                          )
+                        }
+                        className="p-2 rounded-lg hover:bg-[#facf6c]"
+                      >
+                        <MoreHorizontal size={18} />
+                      </button>
 
-                    {activeMenuId === user.id && (
-                      <div className="absolute px-1 py-1 right-0 top-8 w-28 bg-white border border-gray-200 rounded-md shadow-md z-10">
-                        {/* <button
+                      {activeMenuId === user.id && (
+                        <div className="absolute px-1 py-1 right-6 top-15  w-28 bg-white border border-gray-200 rounded-md shadow-md z-10">
+                          {/* <button
                           onClick={() => handleDelete(user.id)}
                           disabled={isDeleting}
                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-800 hover:bg-red-50"
                         >
                           <Eye size={16} /> View
                         </button> */}
-                        <button
-                          onClick={() => handleEdit(user.id)}
-                          className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
-                        >
-                          <Edit size={16} /> Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedProject(user);
-                            setSelectedProjectId(user.id);
-                            setSingleDeleteConfirmOpen(true);
-                            setOpenMenuId(null); // 🔥 CLOSE MENU
-                          }}
-                          disabled={isDeleting}
-                          className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
-                        >
-                          <Trash2 size={16} /> Delete
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))
+                          <button
+                            onClick={() => handleEdit(user.id)}
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                          >
+                            <Edit size={16} /> Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedProject(user);
+                              setSelectedProjectId(user.id);
+                              setSingleDeleteConfirmOpen(true);
+                              setOpenMenuId(null); // 🔥 CLOSE MENU
+                            }}
+                            disabled={isDeleting}
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
+                          >
+                            <Trash2 size={16} /> Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

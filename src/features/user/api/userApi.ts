@@ -15,6 +15,16 @@ export const userApi = createApi({
     getUsers: builder.query({
       query: ({ page = 1, limit = 10, search = "", status = "", role = "" }) =>
         `/users?page=${page}&limit=${limit}&search=${search}&status=${status}&role=${role}`,
+      providesTags: (result) =>
+        result?.data?.users
+          ? [
+              ...result.data.users.map((user) => ({
+                type: "Users",
+                id: user.id,
+              })),
+              { type: "Users", id: "LIST" },
+            ]
+          : [{ type: "Users", id: "LIST" }],
     }),
     getUsersDashboard: builder.query({
       query: () => "/users/dashboard",
@@ -27,7 +37,7 @@ export const userApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["UsersDashboard", "Users"],  
+      invalidatesTags: ["UsersDashboard", "Users"],
     }),
 
     // ✅ PUT API — update user
@@ -47,13 +57,18 @@ export const userApi = createApi({
         method: "PATCH",
         body: { isActive },
       }),
-      invalidatesTags: ["UsersDashboard", "Users"],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Users", id }, // Refresh this user
+        { type: "Users", id: "LIST" }, // Refresh list
+        "UsersDashboard",
+      ],
     }),
     getRoles: builder.query({
       query: () => `/users/roles`,
     }),
     getUserById: builder.query<any, string>({
       query: (id) => `/users/${id}`,
+      providesTags: (result, error, id) => [{ type: "Users", id }],
     }),
 
     // ⭐ Update user (PUT or PATCH)
@@ -63,7 +78,10 @@ export const userApi = createApi({
         method: "PUT", // or PATCH
         body,
       }),
-      invalidatesTags: ["Users", "User"],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Users", id }, // refresh getUserById data
+        "UsersDashboard",
+      ],
     }),
   }),
 });

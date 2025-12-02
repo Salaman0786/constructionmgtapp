@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Mail } from "lucide-react";
+import { X, Mail, EyeOff, Eye } from "lucide-react";
 import {
   useAddUserMutation,
   useGetRolesQuery,
@@ -13,6 +13,7 @@ interface AddUserModalProps {
 }
 
 const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     username: "",
     email: "",
@@ -114,7 +115,8 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
                 value={form.username}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
               />
             </div>
             <div>
@@ -127,7 +129,8 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
                   value={form.email}
                   onChange={handleChange}
                   required
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none pr-8"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
                 <Mail
                   size={16}
@@ -147,7 +150,8 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
               value={form.fullName}
               onChange={handleChange}
               required
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             />
           </div>
 
@@ -160,7 +164,8 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
               onChange={handleChange}
               required
               disabled={rolesLoading}
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             >
               <option value="">Select role</option>
               {rolesData?.data?.roles?.map((role: any) => (
@@ -172,17 +177,25 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Temporary Password */}
-          <div>
+          <div className="relative">
             <RequiredLabel label="Temporary Password" />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="tempPassword"
               placeholder="Temporary password"
               value={form.tempPassword}
               onChange={handleChange}
               required
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
 
           {/* Buttons */}
@@ -191,7 +204,8 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
               type="button"
               onClick={handleCancel}
               disabled={isLoading}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100"
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700
+              hover:bg-[#facf6c] hover:border-[#fe9a00]"
             >
               Cancel
             </button>

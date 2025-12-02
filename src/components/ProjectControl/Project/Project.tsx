@@ -264,7 +264,7 @@ const Project: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 shadow p-4 rounded-lg border border-gray-200">
+      <div className="flex flex-col md:flex-row items-end md:items-center md:justify-between gap-5 shadow p-4 rounded-lg border border-gray-200">
         <div className="relative w-full">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input

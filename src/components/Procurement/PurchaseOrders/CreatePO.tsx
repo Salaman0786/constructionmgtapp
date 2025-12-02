@@ -24,7 +24,7 @@ const CreatePO: React.FC<CreatePOProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Purchase Request:", form);
+   
     onClose();
   };
 

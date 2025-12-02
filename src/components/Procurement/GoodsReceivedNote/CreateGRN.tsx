@@ -23,7 +23,7 @@ const CreateGRN: React.FC<CreateGRNProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Purchase Request:", form);
+  
     onClose();
   };
 

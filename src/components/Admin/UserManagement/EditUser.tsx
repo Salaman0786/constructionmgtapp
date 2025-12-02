@@ -21,10 +21,25 @@ const EditUser: React.FC<EditUserProps> = ({
 
   userId,
 }) => {
-  const { data: userDetails, isLoading } = useGetUserByIdQuery(userId!, {
+  const {
+    data: userDetails,
+    isLoading,
+    isFetching,
+  } = useGetUserByIdQuery(userId!, {
     skip: !userId,
   });
 
+  useEffect(() => {
+    if (!isOpen) {
+      setForm({
+        username: "",
+        email: "",
+        fullName: "",
+        role: "",
+        tempPassword: "",
+      });
+    }
+  }, [isOpen]);
   const [form, setForm] = useState({
     username: "",
     email: "",
@@ -32,6 +47,18 @@ const EditUser: React.FC<EditUserProps> = ({
     role: "",
     tempPassword: "",
   });
+
+  useEffect(() => {
+    if (isOpen && !isFetching && userDetails) {
+      setForm({
+        username: userDetails?.data?.data?.userName || "",
+        email: userDetails?.data?.data?.email || "",
+        fullName: userDetails?.data?.data?.fullName || "",
+        role: userDetails?.data?.data?.role?.id || "",
+        tempPassword: "",
+      });
+    }
+  }, [userDetails, isFetching, isOpen]);
 
   const { data: rolesData, isLoading: rolesLoading } =
     useGetRolesQuery(undefined);
@@ -111,7 +138,7 @@ const EditUser: React.FC<EditUserProps> = ({
         <p className="text-sm text-gray-500 mt-2 mb-4">
           Update user account details.
         </p>
-        {isLoading ? (
+        {isFetching ? (
           <Loader />
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -125,7 +152,8 @@ const EditUser: React.FC<EditUserProps> = ({
                   value={form.username}
                   onChange={handleChange}
                   required
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
               </div>
 
@@ -138,7 +166,8 @@ const EditUser: React.FC<EditUserProps> = ({
                     value={form.email}
                     onChange={handleChange}
                     required
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm pr-8 focus:ring-2 focus:ring-purple-600 outline-none"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   />
                   <Mail
                     size={16}
@@ -157,7 +186,8 @@ const EditUser: React.FC<EditUserProps> = ({
                 value={form.fullName}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
               />
             </div>
 
@@ -171,7 +201,8 @@ const EditUser: React.FC<EditUserProps> = ({
                 onChange={handleChange}
                 required
                 disabled={rolesLoading}
-                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-600 outline-none"
+                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
               >
                 <option value="">Select role</option>
                 {rolesData?.data?.roles?.map((role: any) => (
@@ -188,7 +219,8 @@ const EditUser: React.FC<EditUserProps> = ({
                 type="button"
                 onClick={onClose}
                 disabled={updating}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-100"
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700
+              hover:bg-[#facf6c] hover:border-[#fe9a00]"
               >
                 Cancel
               </button>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Download, Eye, Trash2, X } from "lucide-react";
+import { Calendar, Download, Eye, Trash2, X } from "lucide-react";
 import { showError, showSuccess } from "../../../utils/toast";
 
 import {
@@ -26,6 +26,19 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
 }) => {
   const isEdit = Boolean(projectId);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  //searchable project dropdown state
+  const [projectSearch, setProjectSearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const dropdownRef = useRef(null);
+
+  //searchable linked drawing dropdown state
+  const [drawingSearch, setDrawingSearch] = useState("");
+  const [showDrawingDropdown, setShowDrawingDropdown] = useState(false);
+  const [highlightDrawingIndex, setHighlightDrawingIndex] = useState(-1);
+  const drawingDropdownRef = useRef(null);
+
   const {
     data: projectsData,
     isLoading: isManagersLoading,
@@ -38,12 +51,14 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
   } = useGetSubmittalsByIdQuery(projectId!, {
     skip: !isEdit,
   });
-  const [submittalId, setSubmittalId] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState("");
   const {
     data: projectDrawings,
     isFetching: isProjectDrawings,
     refetch: newFetchDrawings,
-  } = useGetSubmittalsProjectsDrawingsQuery(submittalId);
+  } = useGetSubmittalsProjectsDrawingsQuery(selectedProjectId, {
+    skip: !selectedProjectId,
+  });
 
   const [updateSubmittals, { isLoading: updating }] =
     useUpdateSubmittalsMutation();
@@ -56,7 +71,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
     category: "",
     department: "",
     date: "",
-    linkedDrawingId: "",
+    linkedDrawingId: null as string | null,
   });
   const [uploadSubmittals, { isLoading }] = useUploadSubmittalsMutation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -76,8 +91,71 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
         linkedDrawingId: p?.linkedDrawingId,
       });
       setShowAllFiles(p?.files);
+
+      //IMPORTANT: Load drawings of this project in edit mode too
+      setSelectedProjectId(p?.project?.id);
+
+      // 2️⃣ FIX FOR PROJECT SEARCH TEXT
+      setProjectSearch(
+        p?.project?.code
+          ? `${p.project.code} - ${p.project.name}`
+          : p?.project?.name || ""
+      );
+
+      // 3️⃣ FIX FOR DRAWING SEARCH TEXT
+      setDrawingSearch(
+        p?.linkedDrawing
+          ? `${p?.linkedDrawing?.drawingCode} - ${p?.linkedDrawing?.drawingName}`
+          : ""
+      );
     }
   }, [projectDetails, isEdit]);
+
+  // Clear Add modal state (form, showAllFiles, selectedProjectId) whenever Add modal opens (especially after closing View).
+  useEffect(() => {
+    if (isOpen && !isEdit) {
+      setForm({
+        projectId: "",
+        title: "",
+        category: "",
+        department: "",
+        date: "",
+        description: "",
+        linkedDrawingId: "",
+      });
+      setShowAllFiles([]);
+      setSelectedProjectId(""); // clear drawings API input
+      setProjectSearch(""); // clear project UI
+      setDrawingSearch(""); // clear drawing UI
+      setHighlightIndex(-1); // clear hovered row
+      setHighlightDrawingIndex(-1); // clear hovered drawing row
+    }
+  }, [isOpen, isEdit]);
+
+  //close seacable dropdown
+  useEffect(() => {
+    function handleClickOutside(e) {
+      // Project dropdown close
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+
+      // Drawing dropdown close
+      if (
+        drawingDropdownRef.current &&
+        !drawingDropdownRef.current.contains(e.target)
+      ) {
+        setShowDrawingDropdown(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -96,6 +174,21 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
         fileInputRef.current.value = "";
       }
     }
+  };
+
+  //handle select project
+  const handleSelectProject = (p) => {
+    setForm({ ...form, projectId: p.id });
+    setSelectedProjectId(p.id); // load drawings
+    setProjectSearch(p.code + " - " + p.name);
+    setShowDropdown(false);
+  };
+
+  //handle select linked drawing
+  const handleSelectDrawing = (d) => {
+    setForm({ ...form, linkedDrawingId: d.id });
+    setDrawingSearch(`${d.drawingCode} - ${d.drawingName}`);
+    setShowDrawingDropdown(false);
   };
 
   const [deleteFile, { isLoading: isDeleteLoading }] =
@@ -119,7 +212,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
       date: form.date,
       description: form.description,
       files: showAllFiles,
-      linkedDrawingId: form.linkedDrawingId,
+      linkedDrawingId: form.linkedDrawingId || null,
     };
 
     try {
@@ -175,6 +268,10 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
       linkedDrawingId: "",
     });
     setShowAllFiles([]);
+    setSelectedProjectId(""); // clears previous project drawings
+    setProjectSearch(""); // FIX
+    setDrawingSearch(""); // FIX
+
     onClose();
   };
   const handleDownload = async (fileUrl) => {
@@ -201,6 +298,20 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
       console.error("Download error:", error);
     }
   };
+
+  //filter projects
+  const filteredProjects = projectsData?.data?.projects?.filter((p) =>
+    `${p.code} ${p.name}`.toLowerCase().includes(projectSearch.toLowerCase())
+  );
+
+  //filter drawing
+  const filteredDrawings =
+    projectDrawings?.data?.drawings?.filter((d) =>
+      `${d.drawingCode} ${d.drawingName}`
+        .toLowerCase()
+        .includes(drawingSearch.toLowerCase())
+    ) || [];
+
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 p-4">
       <div className="relative bg-white rounded-lg shadow-lg w-full max-w-[350px] sm:max-w-lg p-6 max-h-[90vh] overflow-y-auto">
@@ -219,15 +330,79 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
           ) : (
             <div>
               {/* FORM FIELDS */}
-              <div className="mb-4">
+              {/** project searchable dropdown */}
+
+              <div className="relative mb-4" ref={dropdownRef}>
+                <RequiredLabel label="Project" />
+
+                <input
+                  type="text"
+                  value={projectSearch}
+                  placeholder="Search project by code or name..."
+                  onChange={(e) => {
+                    setProjectSearch(e.target.value.trimStart());
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                />
+
+                {projectSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProjectSearch("");
+                      setForm({ ...form, projectId: "" });
+                      setSelectedProjectId(""); // clear drawings
+                    }}
+                    className="absolute right-3 top-9 text-gray-400 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                )}
+
+                {showDropdown && (
+                  <div
+                    className="absolute w-full bg-white border border-gray-300 rounded-md mt-1
+      max-h-56 overflow-y-auto shadow-lg z-50"
+                  >
+                    {filteredProjects.length === 0 && (
+                      <div className="px-4 py-3 text-gray-500 text-sm">
+                        No results found
+                      </div>
+                    )}
+
+                    {filteredProjects.map((p, index) => (
+                      <div
+                        key={p.id}
+                        onClick={() => handleSelectProject(p)}
+                        onMouseEnter={() => setHighlightIndex(index)}
+                        className={`px-4 py-2 cursor-pointer text-sm
+                                                 ${
+                                                   highlightIndex === index
+                                                     ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2]"
+                                                     : "hover:bg-gray-100"
+                                                 }
+                              `}
+                      >
+                        <div className="font-medium">{p.code}</div>
+                        <div className="text-xs text-gray-500">{p.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* <div className="mb-4">
                 <RequiredLabel label="Project" />
                 <select
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
                   value={form?.projectId}
                   onChange={(e) => {
-                    setForm({ ...form, projectId: e.target.value });
-                    setSubmittalId(e.target.value);
-                    newFetchDrawings();
+                    const pid = e.target.value;
+                    setForm({ ...form, projectId: pid });
+                    setSelectedProjectId(pid);
                   }}
                 >
                   <option value="">Select project</option>
@@ -235,13 +410,14 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                     <option value={p.id}>{p.name}</option>
                   ))}
                 </select>
-              </div>
+              </div> */}
               <div className="mb-4">
                 <RequiredLabel label="Title" />
                 <input
                   type="text"
                   placeholder="Enter title"
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   value={form?.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                 />
@@ -249,7 +425,8 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
               <div className="mb-4">
                 <RequiredLabel label="Category" />
                 <select
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   value={form?.category}
                   onChange={(e) =>
                     setForm({ ...form, category: e.target.value })
@@ -266,7 +443,8 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                 <div>
                   <RequiredLabel label="Department" />
                   <select
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                     value={form?.department}
                     onChange={(e) =>
                       setForm({ ...form, department: e.target.value })
@@ -282,21 +460,109 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
 
                 <div>
                   <RequiredLabel label=" Date" />
-                  <input
-                    type="date"
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 cursor-pointer"
-                    onClick={(e) => {
-                      e.currentTarget.showPicker?.(); // ✔ Allowed user gesture
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === " ") e.preventDefault(); // disable SPACE opening calendar
-                    }}
-                    value={form?.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                      onKeyDown={(e) => {
+                        if (e.key === " ") e.preventDefault(); // disable SPACE opening calendar
+                      }}
+                      value={form?.date}
+                      onChange={(e) =>
+                        setForm({ ...form, date: e.target.value })
+                      }
+                    />
+
+                    <Calendar
+                      onClick={(e) => {
+                        const input = e.currentTarget
+                          .previousElementSibling as HTMLInputElement;
+                        input?.showPicker?.(); // same as your logic but moved here
+                      }}
+                      size={16}
+                      className="absolute right-3 top-4 text-gray-400 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="mb-4">
+
+              {/** linked drawing searchable dropdown */}
+              <div className="mb-4 relative" ref={drawingDropdownRef}>
+                <label className="text-sm font-medium text-gray-700">
+                  Linked Drawing (Optional)
+                </label>
+
+                <input
+                  type="text"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2] disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  placeholder={
+                    selectedProjectId
+                      ? "Search drawing by code or name..."
+                      : "Select project first"
+                  }
+                  value={drawingSearch}
+                  disabled={!selectedProjectId} // disallow search without project
+                  onFocus={() =>
+                    selectedProjectId && setShowDrawingDropdown(true)
+                  }
+                  onChange={(e) => {
+                    setDrawingSearch(e.target.value.trimStart());
+                    setShowDrawingDropdown(true);
+                  }}
+                />
+
+                {/* Clear Button */}
+                {drawingSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDrawingSearch("");
+                      setForm({ ...form, linkedDrawingId: "" });
+                    }}
+                    className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                )}
+
+                {/* Dropdown */}
+                {showDrawingDropdown && selectedProjectId && (
+                  <div
+                    className="absolute w-full bg-white border border-gray-300 rounded-md mt-1
+      max-h-56 overflow-y-auto shadow-lg z-50"
+                  >
+                    {/* EMPTY */}
+                    {filteredDrawings.length === 0 && (
+                      <div className="px-4 py-3 text-gray-500 text-sm">
+                        No drawings found
+                      </div>
+                    )}
+
+                    {/* LIST */}
+                    {filteredDrawings.map((d, index) => (
+                      <div
+                        key={d.id}
+                        onClick={() => handleSelectDrawing(d)}
+                        onMouseEnter={() => setHighlightDrawingIndex(index)}
+                        className={`px-4 py-2 cursor-pointer text-sm ${
+                          highlightDrawingIndex === index
+                            ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2] font-medium"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        <div className="font-medium">{d.drawingCode}</div>
+                        <div className="text-xs text-gray-500">
+                          {d.drawingName}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* <div className="mb-4">
                 <label className="text-sm font-medium text-gray-700">
                   Linked Drawing (Optional)
                 </label>
@@ -305,19 +571,24 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
                   value={form?.linkedDrawingId}
                   onChange={(e) =>
-                    setForm({ ...form, linkedDrawingId: e.target.value })
+                    setForm({
+                      ...form,
+                      linkedDrawingId: e.target.value || null,
+                    })
                   }
                 >
                   <option value="">Select Drawing</option>
-                  {projectDrawings?.data?.drawings?.map((p) => (
-                    <option value={p.id}>{p.drawingName}</option>
-                  ))}
+                  {selectedProjectId &&
+                    projectDrawings?.data?.drawings?.map((p) => (
+                      <option value={p.id}>{p.drawingName}</option>
+                    ))}
                 </select>
-              </div>
+              </div> */}
               <div className="mb-4">
                 <RequiredLabel label="Description" />
                 <textarea
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 h-24"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   placeholder="Write description here..."
                   value={form?.description}
                   onChange={(e) =>
@@ -333,7 +604,8 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
                 {isLoading && (
                   <p className="text-sm text-blue-600 mt-1">Uploading...</p>
@@ -361,7 +633,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                         <div className="flex items-center gap-3 text-gray-600 ">
                           <button
                             onClick={() => window.open(doc.url, "_blank")}
-                            className="hover:text-blue-400"
+                            className="text-blue-400 hover:text-blue-600"
                           >
                             <Eye />
                           </button>
@@ -371,7 +643,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                             // download
                             // target="_blank"
                             onClick={() => handleDownload(doc.url)}
-                            className="hover:text-blue-400"
+                            className="text-gray-700 hover:text-gray-900"
                           >
                             <Download />
                           </button>
@@ -379,7 +651,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                           <button
                             onClick={() => handleDelete(doc.id)}
                             disabled={isDeleteLoading}
-                            className="hover:text-blue-400"
+                            className="text-red-600 hover:text-red-800"
                           >
                             <Trash2 />
                           </button>
@@ -393,7 +665,8 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
               {/* ACTION BUTTONS */}
               <div className="flex justify-end gap-3">
                 <button
-                  className="px-4 py-2 border rounded-md text-sm"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700
+              hover:bg-[#facf6c] hover:border-[#fe9a00]"
                   onClick={handleClose}
                 >
                   Cancel

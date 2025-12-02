@@ -24,7 +24,7 @@ const AddPayment: React.FC<RecordPaymentModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Payment Recorded:", form);
+    
     onClose();
   };
 

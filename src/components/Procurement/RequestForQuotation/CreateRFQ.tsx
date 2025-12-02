@@ -21,7 +21,7 @@ const CreateRFQ: React.FC<CreateRFQProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("RFQ Created:", form);
+   
     onClose();
   };
 

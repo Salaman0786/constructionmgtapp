@@ -31,7 +31,7 @@ const barColors: Record<string, string> = {
 /* ---------------- COMPONENT ---------------- */
 
 const ActiveProjectsTimeline: React.FC<Props> = ({ projects, isLoading }) => {
-  console.log(projects);
+ 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
       <h2 className="text-lg font-semibold text-gray-900">

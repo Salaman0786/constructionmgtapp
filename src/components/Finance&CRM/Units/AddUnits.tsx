@@ -27,7 +27,7 @@ const AddUnits: React.FC<AddUnitModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("New Unit Data:", form);
+   
     onClose();
   };
 

@@ -23,7 +23,7 @@ const AddVendors: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("New user data:", form);
+ 
     onClose();
   };
 

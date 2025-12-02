@@ -126,7 +126,7 @@ const SubmittalTable: React.FC = () => {
       .includes(tempProjectSearch.toLowerCase())
   );
 
-  console.log(drawingFinalId, "finalId");
+
 
   const pagination = data?.pagination;
   const totalPages = pagination?.totalPages || 1;
@@ -216,7 +216,7 @@ const SubmittalTable: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
+      <div className="flex flex-col items-end md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
         <div className="relative w-full md:w-9/10">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
@@ -437,7 +437,7 @@ const SubmittalTable: React.FC = () => {
                       />
                     </td>
                     <td className="p-3  text-center align-middle">
-                      {index + 1}
+                      {(pagination.page - 1) * pagination.limit + (index + 1)}
                     </td>
                     <td className="p-3  text-center align-middle">
                       {project.submittalCode}
@@ -456,17 +456,17 @@ const SubmittalTable: React.FC = () => {
                       {project.category}
                     </td>
                     <td className="p-3 flex justify-center items-center">
-                      {project.linkedDrawingId && (
+                      {project.linkedDrawingId ? (
                         <div>
-                          <Eye
-                            className="cursor-pointer mt-1.5 hover:text-blue-400"
+                          <Eye size={18}
+                            className="cursor-pointer mt-2 text-blue-400 hover:text-blue-800"
                             onClick={() => {
                               setIsDrawingOpen(true);
                               setDrawingFinalId(project.linkedDrawingId);
                             }}
                           />
                         </div>
-                      )}
+                      ) :  <span  className="p-3 text-center align-middle">—</span>}
                     </td>
                     <td className="p-3 text-center align-middle">
                       {project.department}

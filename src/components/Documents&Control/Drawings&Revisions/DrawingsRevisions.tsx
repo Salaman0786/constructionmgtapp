@@ -227,7 +227,6 @@ const DrawingsRevisions: React.FC = () => {
     isLoading: isManagersLoading,
     refetch: fetchProject,
   } = useGetDrawingsProjectsQuery(undefined);
-  console.log(projectsData, "projectDatagot");
 
   const allProjects = projectsData?.data?.projects || [];
   const filteredProjects = allProjects.filter((p: any) =>
@@ -235,6 +234,18 @@ const DrawingsRevisions: React.FC = () => {
       .toLowerCase()
       .includes(tempProjectSearch.toLowerCase())
   );
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setOpenMenuId(null);
+    };
+
+    window.addEventListener("scroll", handleScroll, true);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, []);
 
   return (
     <div className="space-y-6 bg-white min-h-screen">
@@ -263,7 +274,7 @@ const DrawingsRevisions: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
+      <div className="flex flex-col md:flex-row items-end md:items-center md:justify-between gap-3 shadow p-4 rounded-lg border border-[f0f0f0] mt-6">
         <div className="relative w-full md:w-9/10">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
@@ -489,7 +500,7 @@ const DrawingsRevisions: React.FC = () => {
                       />
                     </td>
                     <td className="p-3  text-center align-middle">
-                      {index + 1}
+                      {(pagination.page - 1) * pagination.limit + (index + 1)}
                     </td>
                     <td className="p-3  text-center align-middle">
                       {project.drawingCode}
