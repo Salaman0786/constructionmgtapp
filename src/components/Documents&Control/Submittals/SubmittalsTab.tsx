@@ -123,9 +123,13 @@ const SubmittalTable: React.FC = () => {
   const [isDrawingOpen, setIsDrawingOpen] = useState(false);
 
   //close filter when click outside
-  useClickOutside(filterRef, () => {
-    setFilterOpen(false);
-  },[filterBtnRef]);
+  useClickOutside(
+    filterRef,
+    () => {
+      setFilterOpen(false);
+    },
+    [filterBtnRef]
+  );
 
   //fetch all the projects
   const { data: projectListData } = useGetSubmittalsProjectsQuery(undefined);
@@ -261,7 +265,7 @@ const SubmittalTable: React.FC = () => {
 
         <div className="relative min-w-max">
           <button
-          ref={filterBtnRef}
+            ref={filterBtnRef}
             onClick={() => setFilterOpen(!filterOpen)}
             className="flex items-center gap-2 px-4 py-2 border border-[f0f0f0] rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
           >
