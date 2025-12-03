@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Plus,
   Filter,
@@ -27,6 +27,7 @@ import ViewProjectDetailsModal from "./ViewProjectDetailsModal";
 import ConfirmModal from "./DeleteModal";
 import { StatusBadge } from "./StatusBadge";
 import AccessDenied from "../../common/AccessDenied";
+import useClickOutside from "../../../hooks/useClickOutside";
 
 interface Project {
   id: string;
@@ -50,6 +51,8 @@ const Project: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
+  const filterRef = useRef(null);
+  const filterBtnRef = useRef(null);
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false);
@@ -69,6 +72,15 @@ const Project: React.FC = () => {
   const [tempStart, setTempStart] = useState("");
   const [tempEnd, setTempEnd] = useState("");
   const [tempStatus, setTempStatus] = useState("");
+
+  //close filter when click outside
+  useClickOutside(
+    filterRef,
+    () => {
+      setFilterOpen(false);
+    },
+    [filterBtnRef]
+  );
 
   //pagination
   const [page, setPage] = useState(1);
@@ -281,6 +293,7 @@ const Project: React.FC = () => {
         {/* Make ONLY this wrapper relative */}
         <div className="relative min-w-max">
           <button
+            ref={filterBtnRef}
             onClick={() => {
               setTempStart(startDateFilter);
               setTempEnd(endDateFilter);
@@ -293,11 +306,14 @@ const Project: React.FC = () => {
           </button>
 
           {filterOpen && (
-            <div className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
+            <div
+              ref={filterRef}
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+            >
               <h3 className="text-sm font-semibold mb-3">Filter Projects</h3>
 
               {/* GRID ROW: Start & End date */}
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-1">
                 {/* Start Date */}
                 <label className="text-xs text-gray-600">Start Date</label>
                 <div className="relative">
@@ -321,7 +337,7 @@ const Project: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 mt-2 gap-1">
                 {/* End Date */}
 
                 <label className="text-xs text-gray-600">End Date</label>
@@ -349,7 +365,7 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
               </div>
 
               {/* Status Below */}
-              <div className="mt-3">
+              <div className="mt-2">
                 <label className="text-xs text-gray-600">Status</label>
                 <select
                   value={tempStatus}
@@ -428,8 +444,8 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
           )}
         </div>
 
-        <div className="overflow-x-auto whitespace-nowrap border border-gray-200 rounded-xl max-w-[1130px]">
-          <table className="min-w-full text-sm border-collapse">
+        <div className="w-full overflow-x-auto border border-gray-200 rounded-xl">
+          <table className="table-auto w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
                 <th className="p-3">
@@ -447,14 +463,14 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 <th className="p-3 text-center">Project ID</th>
                 <th className="p-3 text-center">Project Name</th>
                 <th className="p-3 text-center">Country</th>
-                <th className="p-3 text-center">City</th>
+                {/* <th className="p-3 text-center">City</th> */}
                 <th className="p-3 text-center">Assigned To</th>
                 <th className="p-3 text-center">Start Date</th>
                 <th className="p-3 text-center">End Date</th>
                 <th className="p-3 text-center">Status</th>
                 <th className="p-3 text-center">Budget</th>
-                <th className="p-3 text-center">Currency</th>
-                <th className="p-3 text-center">Created At</th>
+                {/* <th className="p-3 text-center">Currency</th>
+                <th className="p-3 text-center">Created At</th> */}
                 <th className="p-3 text-center">Action</th>
               </tr>
             </thead>
@@ -476,7 +492,7 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                       selectedIds.includes(project.id) ? "bg-purple-50" : ""
                     }`}
                   >
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(project.id)}
@@ -488,11 +504,11 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                       {(page - 1) * limit + index + 1}
                     </td>
 
-                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
+                    <td className="p-3  text-center whitespace-nowrap text-[#3A3A3A]  align-middle">
                       {project.code}
                     </td>
                     <td
-                      className="p-3 text-center text-[#3A3A3A]  align-middle"
+                      className="p-3 text-center  text-[#3A3A3A]  align-middle"
                       title={project.name}
                     >
                       {getTwoWordPreview(project.name)}
@@ -500,16 +516,16 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                     <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.country}
                     </td>
-                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
+                    {/* <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.city}
-                    </td>
+                    </td> */}
                     <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.manager?.fullName || "—"}
                     </td>
-                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
+                    <td className="p-3  text-center whitespace-nowrap text-[#3A3A3A]  align-middle">
                       {formatToYMD(project.startDate)}
                     </td>
-                    <td className="p-3  text-center text-[#3A3A3A] align-middle">
+                    <td className="p-3  text-center whitespace-nowrap text-[#3A3A3A] align-middle">
                       {formatToYMD(project.endDate)}
                     </td>
                     <td className="p-3 text-center align-middle">
@@ -520,12 +536,12 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                     <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.budgetBaseline}
                     </td>
-                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
+                    {/* <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.currency}
                     </td>
                     <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {formatToYMD(project.createdAt)}
-                    </td>
+                    </td> */}
 
                     <td className="px-4 py-3 text-center">
                       <button

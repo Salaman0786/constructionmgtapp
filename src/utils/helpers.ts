@@ -14,7 +14,7 @@ export const formatToYMD = (isoDate: string): string => {
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
   const day = `${date.getDate()}`.padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
+  return `${month}-${day}-${year}`;
 };
 
 //label formatter

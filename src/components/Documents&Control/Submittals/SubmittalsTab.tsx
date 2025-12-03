@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -27,6 +27,9 @@ import ViewDrawings from "../Drawings&Revisions/ViewDrawings";
 import ConfirmModal from "../../common/ConfirmModal";
 import AddModalSubmittal from "./AddModalSubmittal";
 import ViewSubmittals from "./ViewSubmittals";
+import { formatToYMD, getTwoWordPreview } from "../../../utils/helpers";
+import AccessDenied from "../../common/AccessDenied";
+import useClickOutside from "../../../hooks/useClickOutside";
 export interface SubmittalRecord {
   id: number;
   submittalNo: string;
@@ -60,6 +63,9 @@ const SubmittalTable: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
+  const filterRef = useRef(null);
+  const filterBtnRef = useRef(null);
+
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false);
@@ -116,6 +122,11 @@ const SubmittalTable: React.FC = () => {
   const [drawingFinalId, setDrawingFinalId] = useState("");
   const [isDrawingOpen, setIsDrawingOpen] = useState(false);
 
+  //close filter when click outside
+  useClickOutside(filterRef, () => {
+    setFilterOpen(false);
+  },[filterBtnRef]);
+
   //fetch all the projects
   const { data: projectListData } = useGetSubmittalsProjectsQuery(undefined);
   const allProjects = projectListData?.data?.projects || [];
@@ -125,8 +136,6 @@ const SubmittalTable: React.FC = () => {
       .toLowerCase()
       .includes(tempProjectSearch.toLowerCase())
   );
-
-
 
   const pagination = data?.pagination;
   const totalPages = pagination?.totalPages || 1;
@@ -191,6 +200,26 @@ const SubmittalTable: React.FC = () => {
     }
     setBulkDeleteConfirmOpen(false);
   };
+
+  //handle project view permission
+
+  const permissionErrorMessage = (error as any)?.data?.message;
+
+  // ONLY READ permission check
+  const noReadAccess = /READ access/i.test(permissionErrorMessage || "");
+
+  // Block entire page if READ denied
+  if (noReadAccess) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message={
+          permissionErrorMessage || "You do not have READ access to Submittals."
+        }
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 bg-white min-h-screen">
       {/* Header */}
@@ -232,6 +261,7 @@ const SubmittalTable: React.FC = () => {
 
         <div className="relative min-w-max">
           <button
+          ref={filterBtnRef}
             onClick={() => setFilterOpen(!filterOpen)}
             className="flex items-center gap-2 px-4 py-2 border border-[f0f0f0] rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
           >
@@ -239,7 +269,10 @@ const SubmittalTable: React.FC = () => {
           </button>
 
           {filterOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50">
+            <div
+              ref={filterRef}
+              className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50"
+            >
               <h3 className="text-sm font-semibold mb-3">Filter Submittals</h3>
 
               {/* ✅ SEARCHABLE PROJECT FILTER */}
@@ -384,7 +417,7 @@ const SubmittalTable: React.FC = () => {
           )}
         </div>
         {/* When loading → shimmer */}
-        <div className="overflow-x-auto whitespace-nowrap border border-gray-200 rounded-xl">
+        <div className="overflow-x-auto border border-gray-200 rounded-xl">
           <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
@@ -414,7 +447,7 @@ const SubmittalTable: React.FC = () => {
             <tbody>
               {isLoading ? (
                 renderShimmer()
-              ) : data?.data?.submittals?.length === 0 ? (
+              ) : data?.data?.submittals?.length === 0 || isError ? (
                 <tr>
                   <td colSpan={12} className="text-center py-6 text-gray-500">
                     No Record Found
@@ -449,30 +482,37 @@ const SubmittalTable: React.FC = () => {
                       {project.title}
                       {/* <Files size={18} className="text-gray-400" /> */}
                     </td>
-                    <td className="p-3 text-center align-middle">
-                      {project.project.name}
+                    <td
+                      className="p-3 text-center align-middle"
+                      title={project.project.name}
+                    >
+                      {getTwoWordPreview(project.project.name)}
                     </td>
                     <td className="p-3 text-center align-middle">
                       {project.category}
                     </td>
-                    <td className="p-3 flex justify-center items-center">
-                      {project.linkedDrawingId ? (
-                        <div>
-                          <Eye size={18}
-                            className="cursor-pointer mt-2 text-blue-400 hover:text-blue-800"
+                    <td className="p-3 text-center">
+                      <div className="h-full w-full flex items-center justify-center">
+                        {project.linkedDrawingId ? (
+                          <Eye
+                            size={18}
+                            className="cursor-pointer text-blue-400 hover:text-blue-800"
                             onClick={() => {
                               setIsDrawingOpen(true);
                               setDrawingFinalId(project.linkedDrawingId);
                             }}
                           />
-                        </div>
-                      ) :  <span  className="p-3 text-center align-middle">—</span>}
+                        ) : (
+                          <span className="text-gray-500 font-medium">—</span>
+                        )}
+                      </div>
                     </td>
+
                     <td className="p-3 text-center align-middle">
                       {project.department}
                     </td>
-                    <td className="p-3 text-center align-middle">
-                      {project.date.split("T")[0]}
+                    <td className="p-3 text-center whitespace-nowrap align-middle">
+                      {formatToYMD(project.date)}
                     </td>
                     {/* ACTION MENU */}
                     <td className="px-4 py-3 text-center relative">

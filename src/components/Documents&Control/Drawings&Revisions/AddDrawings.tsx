@@ -313,7 +313,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     setProjectSearch(e.target.value.trimStart());
                     setShowProjectDropdown(true);
                   }}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
 
                 {/* CLEAR BUTTON */}
@@ -382,7 +383,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                   <input
                     type="text"
                     placeholder="Enter Drawing Name"
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                     value={form?.drawingName}
                     onChange={(e) =>
                       setForm({ ...form, drawingName: e.target.value })
@@ -393,7 +395,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                 <div>
                   <RequiredLabel label=" Discipline" />
                   <select
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                     value={form?.discipline}
                     onChange={(e) =>
                       setForm({ ...form, discipline: e.target.value })
@@ -411,7 +414,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                 <div>
                   <RequiredLabel label="Revision" />
                   <select
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                     value={form?.revision}
                     onChange={(e) =>
                       setForm({ ...form, revision: e.target.value })
@@ -430,7 +434,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                   <div className="relative">
                     <input
                       type="date"
-                      className="w-full mt-1 border border-gray-300 rounded-md p-2 cursor-pointer"
+                      className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                       onKeyDown={(e) => {
                         if (e.key === " ") e.preventDefault(); // keep your space-block logic
                       }}
@@ -457,7 +462,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
               <div className="mb-4">
                 <RequiredLabel label="Description" />
                 <textarea
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 h-24"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   placeholder="Write description here..."
                   value={form?.description}
                   onChange={(e) =>
@@ -473,7 +479,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                   type="file"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
                 {isLoading && (
                   <p className="text-sm text-blue-600 mt-1">Uploading...</p>

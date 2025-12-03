@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Plus,
   Filter,
@@ -17,7 +17,7 @@ import {
 
 import { useSelector } from "react-redux";
 import { renderShimmer } from "../../common/tableShimmer";
-import { formatToYMD } from "../../../utils/helpers";
+import { formatToYMD, getTwoWordPreview } from "../../../utils/helpers";
 import { showError, showSuccess } from "../../../utils/toast";
 
 import AddDrawings from "./AddDrawings";
@@ -29,6 +29,8 @@ import {
 } from "../../../features/drawings&controls/api/drawingsApi";
 import ConfirmModal from "../../common/ConfirmModal";
 import ViewDrawings from "./ViewDrawings";
+import AccessDenied from "../../common/AccessDenied";
+import useClickOutside from "../../../hooks/useClickOutside";
 
 interface Project {
   id: string;
@@ -52,6 +54,9 @@ const DrawingsRevisions: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
+  const filterRef = useRef(null);
+  const filterBtnRef = useRef(null);
+
   const [categoryFilter, setCategoryFilter] = useState("");
   const dropdownRef = React.useRef<HTMLDivElement | null>(null);
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
@@ -119,6 +124,11 @@ const DrawingsRevisions: React.FC = () => {
 
     setSingleDeleteConfirmOpen(false);
   };
+
+  //close filter when click outside
+  useClickOutside(filterRef, () => {
+    setFilterOpen(false);
+  },[filterBtnRef]);
 
   //pagination
   const pagination = data?.pagination;
@@ -247,6 +257,26 @@ const DrawingsRevisions: React.FC = () => {
     };
   }, []);
 
+  //handle drawing view permission
+
+  const permissionErrorMessage = (error as any)?.data?.message;
+
+  // ONLY READ permission check
+  const noReadAccess = /READ access/i.test(permissionErrorMessage || "");
+
+  // Block entire page if READ denied
+  if (noReadAccess) {
+    return (
+      <AccessDenied
+        title="Access Denied"
+        message={
+          permissionErrorMessage ||
+          "You do not have READ access to Drawings & Revisions."
+        }
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 bg-white min-h-screen">
       {/* Header */}
@@ -291,6 +321,7 @@ const DrawingsRevisions: React.FC = () => {
         {/* Make ONLY this wrapper relative */}
         <div className="relative min-w-max">
           <button
+          ref={filterBtnRef}
             onClick={() => {
               setTempStart(startDateFilter);
               setTempEnd(endDateFilter);
@@ -303,7 +334,9 @@ const DrawingsRevisions: React.FC = () => {
           </button>
 
           {filterOpen && (
-            <div className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50">
+            <div
+            ref={filterRef}
+            className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50">
               <h3 className="text-sm font-semibold mb-3">Filter Drawings</h3>
 
               {/* ✅ SEARCHABLE PROJECT FILTER */}
@@ -448,7 +481,7 @@ const DrawingsRevisions: React.FC = () => {
           )}
         </div>
         {/* When loading → shimmer */}
-        <div className="overflow-x-auto whitespace-nowrap border border-gray-200 rounded-xl">
+        <div className="overflow-x-auto border border-gray-200 rounded-xl">
           <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
@@ -477,10 +510,10 @@ const DrawingsRevisions: React.FC = () => {
             <tbody>
               {isLoading ? (
                 renderShimmer()
-              ) : data?.data?.drawing?.length === 0 ? (
+              ) : data?.data?.drawing?.length === 0 || isError ? (
                 <tr>
                   <td colSpan={12} className="text-center py-6 text-gray-500">
-                    No Drawings & Revision Found
+                    No Record Found
                   </td>
                 </tr>
               ) : (
@@ -514,8 +547,11 @@ const DrawingsRevisions: React.FC = () => {
                         <Files size={18} className="text-gray-400" />
                       </div>
                     </td>
-                    <td className="p-3 text-center align-middle">
-                      {project.project.name}
+                    <td
+                      className="p-3 text-center align-middle"
+                      title={project.project?.name}
+                    >
+                      {getTwoWordPreview(project.project?.name || "-")}
                     </td>
                     <td className="p-3 text-center align-middle">
                       {project.discipline}
@@ -523,8 +559,8 @@ const DrawingsRevisions: React.FC = () => {
                     <td className="p-3 text-center align-middle">
                       {project.revision}
                     </td>
-                    <td className="p-3 text-center align-middle">
-                      {project.date.split("T")[0]}
+                    <td className="p-3 text-center whitespace-nowrap align-middle">
+                      {formatToYMD(project.date)}
                     </td>
                     {/* ACTION MENU */}
                     <td className="px-4 py-3 text-center relative">

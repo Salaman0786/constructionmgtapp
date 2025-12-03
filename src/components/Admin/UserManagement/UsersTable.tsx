@@ -22,12 +22,14 @@ import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import EditUser from "./EditUser";
 import ConfirmModal from "../../common/ConfirmModal";
 import { renderShimmer } from "../../common/tableShimmer";
+import useClickOutside from "../../../hooks/useClickOutside";
 
 export const UsersTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [page, setPage] = useState(1);
-
+  const filterRef = useRef(null);
+  const filterBtnRef = useRef(null);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
@@ -109,6 +111,15 @@ export const UsersTable: React.FC = () => {
     setActiveMenuId(null);
   };
 
+  //close filter when click outside
+  useClickOutside(
+    filterRef,
+    () => {
+      setFilterOpen(false);
+    },
+    [filterBtnRef]
+  );
+
   const [updateUserStatus, { isLoading: isUpdating }] =
     useUpdateUserStatusMutation();
   const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
@@ -187,6 +198,7 @@ export const UsersTable: React.FC = () => {
 
         <div className=" relative min-w-max">
           <button
+            ref={filterBtnRef}
             onClick={() => {
               setTempStatus(statusFilter);
               setTempRole(roleFilter);
@@ -199,7 +211,10 @@ export const UsersTable: React.FC = () => {
 
           {/* Filter Dropdown */}
           {filterOpen && (
-            <div className="absolute right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
+            <div
+              ref={filterRef}
+              className="absolute right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+            >
               <h3 className="text-sm font-semibold mb-3">Filter Users</h3>
 
               {/* Status Filter */}
@@ -290,7 +305,7 @@ export const UsersTable: React.FC = () => {
                   className="accent-purple-600"
                 />
               </th>
-               <th className="p-3 text-center">S.No.</th>
+              <th className="p-3 text-center">S.No.</th>
               <th className="p-3">User</th>
               <th className="p-3 text-center">Email</th>
               <th className="p-3 text-center">Role</th>
@@ -303,8 +318,14 @@ export const UsersTable: React.FC = () => {
           <tbody>
             {isLoading ? (
               <>{renderShimmer()}</>
+            ) : isError ? (
+              <tr>
+                <td colSpan={12} className="text-center py-6 text-gray-500">
+                  No Record Found
+                </td>
+              </tr>
             ) : (
-              data?.data?.users.map((user,index) => {
+              data?.data?.users.map((user, index) => {
                 const serialNo =
                   (pagination.page - 1) * pagination.limit + (index + 1);
                 return (
@@ -322,7 +343,9 @@ export const UsersTable: React.FC = () => {
                         className="accent-purple-700"
                       />
                     </td>
-                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">{serialNo}</td>
+                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
+                      {serialNo}
+                    </td>
                     <td className="p-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
@@ -338,7 +361,9 @@ export const UsersTable: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">{user.email}</td>
+                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
+                      {user.email}
+                    </td>
                     <td className="p-3 text-center align-middle">
                       <span className="text-xs font-medium bg-[#4b0082] text-white px-2 py-1 rounded-full ">
                         {user.role.name}

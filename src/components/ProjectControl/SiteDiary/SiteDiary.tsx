@@ -30,9 +30,9 @@ import { renderShimmer } from "../../common/tableShimmer";
 import { showError, showSuccess } from "../../../utils/toast";
 import { renderWeatherBadge } from "./WeatherBadge";
 import AccessDenied from "../../common/AccessDenied";
+import useClickOutside from "../../../hooks/useClickOutside";
 
 const SiteDiary: React.FC = () => {
-
   /* -----------------------------------
      Pagination + Filters
   -----------------------------------*/
@@ -45,6 +45,8 @@ const SiteDiary: React.FC = () => {
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef(null);
+  const filterBtnRef = useRef(null);
 
   // TEMPORARY fields (added)
   const [tempProjectFilterId, setTempProjectFilterId] = useState("");
@@ -128,6 +130,15 @@ const SiteDiary: React.FC = () => {
     }
     setSingleDeleteConfirmOpen(false);
   };
+
+  //close filter when click outside
+  useClickOutside(
+    filterRef,
+    () => {
+      setFilterOpen(false);
+    },
+    [filterBtnRef]
+  );
 
   const confirmBulkDelete = async () => {
     try {
@@ -265,6 +276,7 @@ const SiteDiary: React.FC = () => {
         {/* FILTER BUTTON */}
         <div className="relative">
           <button
+            ref={filterBtnRef}
             className="flex items-center gap-2 px-4 py-2 border  border-[f0f0f0]  rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
             onClick={() => setFilterOpen(!filterOpen)}
           >
@@ -273,7 +285,10 @@ const SiteDiary: React.FC = () => {
           </button>
 
           {filterOpen && (
-            <div className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50">
+            <div
+              ref={filterRef}
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+            >
               <h3 className="text-sm font-semibold mb-3">Filter DPR</h3>
 
               {/* PROJECT DROPDOWN */}
@@ -447,7 +462,7 @@ const SiteDiary: React.FC = () => {
                 >
                   Export
                 </button>
-                (
+              
                 <button
                   onClick={() => setBulkDeleteConfirmOpen(true)}
                   className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
@@ -515,10 +530,10 @@ const SiteDiary: React.FC = () => {
                         <td className="p-3  text-center text-[#3A3A3A] align-middle">
                           {serial}
                         </td>
-                        <td className="p-3  text-center text-[#3A3A3A] align-middle">
+                        <td className="p-3 whitespace-nowrap  text-center text-[#3A3A3A] align-middle">
                           {d.date ? formatToYMD(d.date) : "—"}
                         </td>
-                        <td className="p-3 text-center text-[#3A3A3A] align-middle">
+                        <td className="p-3 text-center whitespace-nowrap text-[#3A3A3A] align-middle">
                           {renderWeatherBadge(d.weather)}
                         </td>
 

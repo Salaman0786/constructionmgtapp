@@ -21,6 +21,7 @@ import { useSelector } from "react-redux";
 import ConfirmModal from "../Project/DeleteModal";
 import { showError, showSuccess } from "../../../utils/toast";
 import AccessDenied from "../../common/AccessDenied";
+import useClickOutside from "../../../hooks/useClickOutside";
 
 /* ================= TYPES ================= */
 
@@ -71,6 +72,9 @@ const TaskAssignment: React.FC = () => {
   const [todoPage, setTodoPage] = useState(1);
   const [progressPage, setProgressPage] = useState(1);
   const [donePage, setDonePage] = useState(1);
+
+  const filterRef = useRef(null);
+  const filterBtnRef = useRef(null);
 
   // FILTER STATES
   const [projectFilter, setProjectFilter] = useState("");
@@ -153,6 +157,15 @@ const TaskAssignment: React.FC = () => {
   const [updateTaskStatus] = useUpdateTaskStatusMutation();
 
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+
+  //close filter when click outside
+  useClickOutside(
+    filterRef,
+    () => {
+      setFilterOpen(false);
+    },
+    [filterBtnRef]
+  );
 
   // ==============================
   // FORMAT COLUMNS
@@ -431,6 +444,7 @@ const TaskAssignment: React.FC = () => {
         {/* FILTER WRAPPER */}
         <div className="relative min-w-max">
           <button
+            ref={filterBtnRef}
             onClick={() => {
               // open with previously applied filters
               setTempProject(projectFilter);
@@ -449,6 +463,7 @@ const TaskAssignment: React.FC = () => {
 
           {filterOpen && (
             <div
+              ref={filterRef}
               className="absolute right-0 mt-2 w-64 max-w-[90vw] 
                     bg-white p-4 rounded-xl border shadow-lg z-50"
             >
@@ -456,7 +471,7 @@ const TaskAssignment: React.FC = () => {
 
               {/* PROJECT SEARCHABLE DROPDOWN */}
 
-              <div className="mb-3 relative" ref={projectDropdownRef}>
+              <div className="mb-2 relative" ref={projectDropdownRef}>
                 <label className="text-xs text-gray-600">Project</label>
 
                 <input
