@@ -71,7 +71,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     endDate: "",
     status: "PLANNING",
     budgetBaseline: "",
-    currency: "INR",
+    currency: "ETB",
     managerId: "",
   };
 
@@ -458,8 +458,9 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   } rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
                 >
-                  <option value="INR">INR</option>
-                  <option value="USD">USD</option>
+                  {/* <option value="INR">INR</option>
+                  <option value="USD">USD</option> */}
+                  <option value="ETB">ETB</option>
                 </select>
               </div>
             </div>
