@@ -1,10 +1,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { getApiBaseUrl } from "../../config";
 
 export const projectsApi = createApi({
   reducerPath: "projectsApi",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://construction-api-stg.addisababadbohra.com/api",
+    baseUrl: getApiBaseUrl(),
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) {

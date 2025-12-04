@@ -15,17 +15,20 @@ export default defineConfig({
       },
     }),
   ],
+
   server: {
     host: "0.0.0.0", // Listen on all network interfaces
     port: 3000,
     strictPort: true,
     allowedHosts: [
+      "portal.addisababadbohra.com",
       "construction-ui-stg.addisababadbohra.com", // 👈 your staging domain
       ".addisabadbohra.com", // optional wildcard for subdomains
       "localhost",
       "127.0.0.1",
       "https://construction-api-stg.addisababadbohra.com/api",
       "http://localhost:3000/signin",
+      "portal-api.addisababadbohra.com",
     ],
   },
 });

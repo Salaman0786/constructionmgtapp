@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { getApiBaseUrl } from "../../../config";
 
 export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://construction-api-stg.addisababadbohra.com/api",
+    baseUrl: getApiBaseUrl(),
     prepareHeaders: (headers, { getState }: any) => {
       const token = getState().auth.token;
       if (token) headers.set("Authorization", `Bearer ${token}`);
