@@ -1,11 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getApiBaseUrl } from "../../../config";
+
+import { API_BASE_URL } from "../../../config/env";
 
 export const dashboardApi = createApi({
   reducerPath: "dashboardApi",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: getApiBaseUrl(),
+    baseUrl: API_BASE_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) {

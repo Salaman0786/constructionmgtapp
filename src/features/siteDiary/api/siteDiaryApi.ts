@@ -1,6 +1,6 @@
 // features/siteDiary/api/siteDiaryApi.ts
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { getApiBaseUrl } from "../../../config";
+import { API_BASE_URL } from "../../../config/env";
 
 /* --------------------------------------
    INTERFACES
@@ -37,7 +37,7 @@ export const siteDiaryApi = createApi({
   reducerPath: "siteDiaryApi",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: getApiBaseUrl(),
+    baseUrl: API_BASE_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) headers.set("Authorization", `Bearer ${token}`);

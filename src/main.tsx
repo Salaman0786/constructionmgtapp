@@ -10,23 +10,16 @@ import { AppWrapper } from "./components/common/PageMeta";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
-import { initConfig } from "./config";
 
-async function bootstrap() {
-  await initConfig();
-
-  createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-      <Provider store={store}>
-        <ThemeProvider>
-          <AppWrapper>
-            <App />
-            {/* Toast */}
-          </AppWrapper>
-        </ThemeProvider>
-      </Provider>
-    </StrictMode>
-  );
-}
-
-bootstrap();
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <Provider store={store}>
+      <ThemeProvider>
+        <AppWrapper>
+          <App />
+          {/* Toast */}
+        </AppWrapper>
+      </ThemeProvider>
+    </Provider>
+  </StrictMode>
+);
