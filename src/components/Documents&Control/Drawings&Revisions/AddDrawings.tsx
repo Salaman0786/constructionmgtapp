@@ -403,9 +403,24 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     }
                   >
                     <option value="">Select Discipline</option>
-                    <option value="Architecture">Architecture</option>
+                    <option value="Civil">Civil</option>
                     <option value="Structural">Structural</option>
+                    <option value="Architecture">Architecture</option>
+                    <option value="Mechanical">Mechanical</option>
                     <option value="Electrical">Electrical</option>
+                    <option value="Plumbing">Plumbing</option>
+                    <option value="HVAC">HVAC</option>
+                    <option value="Fire Protection">Fire Protection</option>
+                    <option value="Water Supply & Sanitation">
+                      Water Supply & Sanitation
+                    </option>
+                    <option value="Roads & Transportation">
+                      Roads & Transportation
+                    </option>
+                    <option value="Telecommunications">
+                      Telecommunications
+                    </option>
+                    <option value="Surveying">Surveying</option>
                   </select>
                 </div>
               </div>
