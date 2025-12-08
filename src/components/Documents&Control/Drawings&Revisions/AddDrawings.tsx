@@ -12,6 +12,7 @@ import {
 import { showError, showSuccess } from "../../../utils/toast";
 import Loader from "../../common/Loader";
 import { RequiredLabel } from "../../common/RequiredLabel";
+import { formatToYMD } from "../../../utils/helpers";
 interface AddEditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,7 +35,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   const {
     data: projectsData,
     isLoading: isManagersLoading,
-    refetch,
+    refetch: refetchProjects,
   } = useGetDrawingsProjectsQuery(undefined);
   const {
     data: projectDetails,
@@ -58,6 +59,24 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [createDrawing, { isLoading: isCreateLoading }] =
     useCreateDrawingsMutation();
+
+  // Manage automatic filled date while creating
+  useEffect(() => {
+    if (isOpen && !isEdit) {
+      const today = new Date().toISOString().split("T")[0];
+      setForm((prev) => ({
+        ...prev,
+        date: today,
+      }));
+    }
+
+    if (isEdit && projectDetails?.data?.date) {
+      setForm((prev) => ({
+        ...prev,
+        date: projectDetails.data.date.split("T")[0],
+      }));
+    }
+  }, [isOpen, isEdit, projectDetails]);
 
   useEffect(() => {
     if (isEdit && projectDetails?.data) {
@@ -83,12 +102,13 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   // Reset state when opening ADD modal (not edit)
   useEffect(() => {
     if (isOpen && !isEdit) {
+      const today = new Date().toISOString().split("T")[0];
       setForm({
         projectId: "",
         drawingName: "",
         discipline: "",
         revision: "",
-        date: "",
+        date: today,
         description: "",
       });
 
@@ -308,7 +328,10 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                   type="text"
                   value={projectSearch}
                   placeholder="Search project by name or code..."
-                  onFocus={() => setShowProjectDropdown(true)}
+                  onFocus={() => {
+                    refetchProjects();
+                    setShowProjectDropdown(true);
+                  }}
                   onChange={(e) => {
                     setProjectSearch(e.target.value.trimStart());
                     setShowProjectDropdown(true);
@@ -447,7 +470,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                 <div>
                   <RequiredLabel label="Date" />
                   <div className="relative">
-                    <input
+                    {/* <input
                       type="date"
                       className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
@@ -458,10 +481,10 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                       onChange={(e) =>
                         setForm({ ...form, date: e.target.value })
                       }
-                    />
+                    /> */}
 
                     {/* Calendar Icon triggers showPicker() */}
-                    <Calendar
+                    {/* <Calendar
                       onClick={(e) => {
                         const input = e.currentTarget
                           .previousElementSibling as HTMLInputElement;
@@ -469,6 +492,16 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                       }}
                       size={16}
                       className="absolute right-3 top-4 text-gray-400 cursor-pointer"
+                    /> */}
+
+                    <input
+                      type="text"
+                      name="date"
+                      value={form?.date ? formatToYMD(form.date) : ""}
+                      disabled={true}
+                      className="w-full mt-1 border border-gray-300 bg-gray-100
+                        cursor-not-allowed rounded-md p-2 text-sm
+                        focus:outline-none"
                     />
                   </div>
                 </div>

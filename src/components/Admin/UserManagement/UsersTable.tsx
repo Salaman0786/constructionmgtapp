@@ -23,6 +23,7 @@ import EditUser from "./EditUser";
 import ConfirmModal from "../../common/ConfirmModal";
 import { renderShimmer } from "../../common/tableShimmer";
 import useClickOutside from "../../../hooks/useClickOutside";
+import { formatToYMD } from "../../../utils/helpers";
 
 export const UsersTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -187,7 +188,7 @@ export const UsersTable: React.FC = () => {
 
           <input
             type="text"
-            placeholder="Search Project..."
+            placeholder="Search by user name / role / email..."
             onChange={(e) => {
               setSearch(e.target.value);
               setPage(1); // Reset to page 1 when searching
@@ -410,7 +411,7 @@ export const UsersTable: React.FC = () => {
                       </div>
                     </td>
                     <td className="p-3 text-center text-[#3A3A3A]  align-middle">
-                      {formatDateToDDMMYYYY(user.createdAt)}
+                      {formatToYMD(user.createdAt)}
                     </td>
 
                     {/* Action menu */}

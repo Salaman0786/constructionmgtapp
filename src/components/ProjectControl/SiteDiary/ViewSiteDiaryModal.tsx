@@ -2,6 +2,7 @@ import React from "react";
 import { X, Users } from "lucide-react";
 import { useGetSiteDiaryByIdQuery } from "../../../features/siteDiary/api/siteDiaryApi";
 import { renderWeatherBadge } from "./WeatherBadge";
+import { formatToYMD } from "../../../utils/helpers";
 
 interface ViewSiteDiaryModalProps {
   isOpen: boolean;
@@ -68,7 +69,7 @@ const ViewSiteDiaryModal: React.FC<ViewSiteDiaryModalProps> = ({
             <div>
               <p className="text-md text-gray-900 ">Date</p>
               <p className="text-sm text-[#3A3A3A]  mt-1">
-                {formatDate(diary.date)}
+                {formatToYMD(diary.date)}
               </p>
             </div>
 
@@ -108,7 +109,7 @@ const ViewSiteDiaryModal: React.FC<ViewSiteDiaryModalProps> = ({
             <div>
               <p className="text-md text-gray-900 ">Created At</p>
               <p className="text-sm text-[#3A3A3A]  mt-1">
-                {formatDate(diary.createdAt)}
+                {formatToYMD(diary.createdAt)}
               </p>
             </div>
 
@@ -116,7 +117,7 @@ const ViewSiteDiaryModal: React.FC<ViewSiteDiaryModalProps> = ({
             <div>
               <p className="text-md text-gray-900 ">Updated At</p>
               <p className="text-sm text-[#3A3A3A]  mt-1">
-                {formatDate(diary.updatedAt)}
+                {formatToYMD(diary.updatedAt)}
               </p>
             </div>
 

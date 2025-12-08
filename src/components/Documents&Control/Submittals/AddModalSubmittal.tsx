@@ -14,6 +14,7 @@ import {
 } from "../../../features/submittals/api/submittalApi";
 import Loader from "../../common/Loader";
 import { RequiredLabel } from "../../common/RequiredLabel";
+import { formatToYMD } from "../../../utils/helpers";
 interface AddEditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,7 +43,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
   const {
     data: projectsData,
     isLoading: isManagersLoading,
-    refetch,
+    refetch: refetchProjects,
   } = useGetSubmittalsProjectsQuery(undefined);
   const {
     data: projectDetails,
@@ -131,6 +132,28 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
       setHighlightDrawingIndex(-1); // clear hovered drawing row
     }
   }, [isOpen, isEdit]);
+
+  // Manage automatic filled date while creating
+    useEffect(() => {
+      // ✅ CREATE MODE → set today's date
+      if (isOpen && !isEdit) {
+        const today = new Date().toISOString().split("T")[0];
+  
+        setForm((prev) => ({
+          ...prev,
+          date: today,
+        }));
+      }
+  
+      // ✅ EDIT MODE → set API date
+      if (isEdit && projectDetails?.data?.date) {
+        setForm((prev) => ({
+          ...prev,
+          date: projectDetails?.data?.date.split("T")[0],
+        }));
+      }
+    }, [isOpen, isEdit, projectDetails]);
+  
 
   //close seacable dropdown
   useEffect(() => {
@@ -343,7 +366,10 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                     setProjectSearch(e.target.value.trimStart());
                     setShowDropdown(true);
                   }}
-                  onFocus={() => setShowDropdown(true)}
+                  onFocus={() => {
+                    refetchProjects();
+                    setShowDropdown(true);
+                  }}
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
@@ -461,7 +487,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                 <div>
                   <RequiredLabel label=" Date" />
                   <div className="relative">
-                    <input
+                    {/* <input
                       type="date"
                       className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
@@ -482,6 +508,15 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                       }}
                       size={16}
                       className="absolute right-3 top-4 text-gray-400 cursor-pointer"
+                    /> */}
+                    <input
+                      type="text"
+                      name="date"
+                      value={formatToYMD(form.date)}
+                      disabled={true}
+                      className="w-full mt-1 border border-gray-300 bg-gray-100
+                        cursor-not-allowed rounded-md p-2 text-sm
+                        focus:outline-none"
                     />
                   </div>
                 </div>

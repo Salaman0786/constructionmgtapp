@@ -25,10 +25,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState<any>({});
 
   // API
-  const { data: projects = [], isLoading: isProjectsLoading } =
+  const { data: projects = [], isLoading: isProjectsLoading,refetch: refetchProjects} =
     useGetProjectsQuery();
-  const { data: assignees = [], isLoading: isAssigneesLoading } =
-    useGetAssigneesQuery();
+  const {
+    data: assignees = [],
+    isLoading: isAssigneesLoading,
+    refetch: refetchAssignees,
+  } = useGetAssigneesQuery();
   const [createTask, { isLoading }] = useCreateTaskMutation();
 
   /* -----------------------------------
@@ -237,7 +240,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                   setErrors((prev: any) => ({ ...prev, project: "" }));
                 }
               }}
-              onFocus={() => setShowProjectDD(true)}
+              onFocus={() => {
+                refetchProjects();
+                setShowProjectDD(true)}}
               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
               focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             />
@@ -318,7 +323,10 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                   setErrors((prev: any) => ({ ...prev, assignee: "" }));
                 }
               }}
-              onFocus={() => setShowAssigneeDD(true)}
+              onFocus={() => {
+                refetchAssignees();
+                setShowAssigneeDD(true);
+              }}
               className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
               focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             />

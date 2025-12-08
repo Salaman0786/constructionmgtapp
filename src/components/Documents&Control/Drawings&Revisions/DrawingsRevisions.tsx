@@ -126,9 +126,13 @@ const DrawingsRevisions: React.FC = () => {
   };
 
   //close filter when click outside
-  useClickOutside(filterRef, () => {
-    setFilterOpen(false);
-  },[filterBtnRef]);
+  useClickOutside(
+    filterRef,
+    () => {
+      setFilterOpen(false);
+    },
+    [filterBtnRef]
+  );
 
   //pagination
   const pagination = data?.pagination;
@@ -235,7 +239,7 @@ const DrawingsRevisions: React.FC = () => {
   const {
     data: projectsData,
     isLoading: isManagersLoading,
-    refetch: fetchProject,
+    refetch: refetchProjects,
   } = useGetDrawingsProjectsQuery(undefined);
 
   const allProjects = projectsData?.data?.projects || [];
@@ -321,7 +325,7 @@ const DrawingsRevisions: React.FC = () => {
         {/* Make ONLY this wrapper relative */}
         <div className="relative min-w-max">
           <button
-          ref={filterBtnRef}
+            ref={filterBtnRef}
             onClick={() => {
               setTempStart(startDateFilter);
               setTempEnd(endDateFilter);
@@ -335,8 +339,9 @@ const DrawingsRevisions: React.FC = () => {
 
           {filterOpen && (
             <div
-            ref={filterRef}
-            className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50">
+              ref={filterRef}
+              className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50"
+            >
               <h3 className="text-sm font-semibold mb-3">Filter Drawings</h3>
 
               {/* ✅ SEARCHABLE PROJECT FILTER */}
@@ -347,7 +352,10 @@ const DrawingsRevisions: React.FC = () => {
                   type="text"
                   value={tempProjectSearch}
                   placeholder="Search project by code or name..."
-                  onFocus={() => setShowDropdown(true)}
+                  onFocus={() => {
+                    refetchProjects();
+                    setShowDropdown(true);
+                  }}
                   onChange={(e) => {
                     setTempProjectSearch(e.target.value.trimStart());
                     setShowDropdown(true);

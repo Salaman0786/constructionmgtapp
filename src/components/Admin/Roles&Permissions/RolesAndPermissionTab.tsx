@@ -6,6 +6,7 @@ import { useGetRolesQuery } from "../../../features/role/api/roleApi";
 import { formatDateToDDMMYYYY } from "../../../utils/formatDate";
 import { renderShimmer } from "../../common/tableShimmer";
 import RolePermissionUI from "./RolePermissionUI";
+import { formatToYMD } from "../../../utils/helpers";
 
 interface RolesAndPermission {
   id: number; // Unique identifier for each role
@@ -239,7 +240,7 @@ const PurchaseRequestTable: React.FC = () => {
                           {rp.moduleCount}
                         </td>
                         <td className="p-3 text-gray-700 text-center align-middle">
-                          {formatDateToDDMMYYYY(rp.createdAt)}
+                          {formatToYMD(rp.createdAt)}
                         </td>
 
                         {/* ACTION MENU */}

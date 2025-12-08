@@ -1,6 +1,6 @@
 import React from "react";
 import { DocumentShimmer } from "./CommonShimmer";
-import { formatLabel } from "../../utils/helpers";
+import { formatLabel, formatToYMD } from "../../utils/helpers";
 
 interface ApiTask {
   id: string;
@@ -78,7 +78,7 @@ const MyTasks: React.FC<Props> = ({ tasks, isLoading }) => {
 
                   {/* Date */}
                   <span className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-                    {formatDate(task.createdAt)}
+                    {formatToYMD(task.createdAt)}
                   </span>
                 </div>
               </div>

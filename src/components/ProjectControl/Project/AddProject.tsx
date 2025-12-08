@@ -44,7 +44,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
         API HOOKS
   ----------------------------------------- */
 
-  const { data: managerData, isLoading: isManagersLoading } =
+  const { data: managerData, isLoading: isManagersLoading, refetch: refetchManagers} =
     useGetProjectManagersQuery(undefined);
 
   const { data: projectDetails, isFetching: isProjectFetching } =
@@ -361,7 +361,10 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                     setErrors((prev) => ({ ...prev, managerId: "" }));
                   }
                 }}
-                onFocus={() => setShowDropdown(true)}
+                onFocus={() => {
+                  refetchManagers();
+                  setShowDropdown(true)
+                }}
                 className={`w-full mt-1 border border-gray-300 ${
                   isManager ? "cursor-not-allowed bg-gray-100" : ""
                 } rounded-md p-2 text-sm

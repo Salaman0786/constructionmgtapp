@@ -2,6 +2,7 @@ import React from "react";
 import { X } from "lucide-react";
 import { useGetProjectByIdQuery } from "../../../features/projectControll/projectsApi";
 import { StatusBadge } from "./StatusBadge";
+import { formatToYMD } from "../../../utils/helpers";
 
 interface ViewProjectDetailsModalProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ const ViewProjectDetailsModal: React.FC<ViewProjectDetailsModalProps> = ({
 
   const project = data?.data;
 
-  const formatDate = (iso: string) => iso?.split("T")[0] || "—";
+  // const formatDate = (iso: string) => iso?.split("T")[0] || "—";
 
   return (
     <div className="fixed inset-0 bg-black/40 z-[999] flex items-center justify-center p-4">
@@ -78,12 +79,12 @@ const ViewProjectDetailsModal: React.FC<ViewProjectDetailsModalProps> = ({
                 ["Project Type", project.type],
                 ["Country", project.country],
                 ["City", project.city],
-                ["Start Date", formatDate(project.startDate)],
-                ["End Date", formatDate(project.endDate)],
+                ["Start Date", formatToYMD(project.startDate)],
+                ["End Date", formatToYMD(project.endDate)],
                 ["Budget", project.budgetBaseline],
                 ["Currency", project.currency],
-                ["Created At", formatDate(project.createdAt)],
-                ["Address", formatDate(project.address)],
+                ["Created At", formatToYMD(project.createdAt)],
+                ["Address", project.address],
                 ["Assigned To", project.manager?.fullName || "—"],
               ].map(([label, value], idx) => (
                 <div key={idx}>

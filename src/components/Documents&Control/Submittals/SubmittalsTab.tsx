@@ -132,7 +132,8 @@ const SubmittalTable: React.FC = () => {
   );
 
   //fetch all the projects
-  const { data: projectListData } = useGetSubmittalsProjectsQuery(undefined);
+  const { data: projectListData, refetch: refetchProjects } =
+    useGetSubmittalsProjectsQuery(undefined);
   const allProjects = projectListData?.data?.projects || [];
 
   const filteredProjects = allProjects.filter((p: any) =>
@@ -287,7 +288,10 @@ const SubmittalTable: React.FC = () => {
                   type="text"
                   value={tempProjectSearch}
                   placeholder="Search project by code or name..."
-                  onFocus={() => setShowDropdown(true)}
+                  onFocus={() => {
+                    refetchProjects();
+                    setShowDropdown(true);
+                  }}
                   onChange={(e) => {
                     setTempProjectSearch(e.target.value.trimStart());
                     setShowDropdown(true);

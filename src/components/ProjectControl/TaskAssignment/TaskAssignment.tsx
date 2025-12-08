@@ -106,7 +106,7 @@ const TaskAssignment: React.FC = () => {
   // ==============================
   // API CALLS FOR all project
   // ==============================
-  const { data: allProjects = [], isLoading: loadingProjects } =
+  const { data: allProjects = [], isLoading: loadingProjects, refetch:refetchProjects } =
     useGetProjectsQuery();
 
   // ==============================
@@ -486,7 +486,9 @@ const TaskAssignment: React.FC = () => {
                     setProjectSearch(e.target.value.trimStart());
                     setShowProjectDD(true);
                   }}
-                  onFocus={() => setShowProjectDD(true)}
+                  onFocus={() => {
+                    refetchProjects();
+                    setShowProjectDD(true)}}
                   placeholder="Search project..."
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"

@@ -64,7 +64,7 @@ const SiteDiary: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
 
-  const { data: projectData } = useGetSiteDiaryProjectsQuery();
+  const { data: projectData, refetch:refetchProjects } = useGetSiteDiaryProjectsQuery();
   const allProjects = projectData?.data?.projects || [];
 
   const filteredProjects = allProjects.filter((p: any) => {
@@ -299,7 +299,9 @@ const SiteDiary: React.FC = () => {
                   type="text"
                   value={tempProjectSearch}
                   placeholder="Search project by code or name..."
-                  onFocus={() => setShowDropdown(true)}
+                  onFocus={() => {
+                    refetchProjects();
+                    setShowDropdown(true)}}
                   onChange={(e) => {
                     setTempProjectSearch(e.target.value.trimStart());
                     setShowDropdown(true);

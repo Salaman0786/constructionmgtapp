@@ -10,6 +10,7 @@ import {
 import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import { validateSiteDiary } from "../../../utils/validators/siteDiaryValidator";
 import { RequiredLabel } from "../../common/RequiredLabel";
+import { formatToYMD } from "../../../utils/helpers";
 
 interface Props {
   isOpen: boolean;
@@ -29,7 +30,8 @@ const WEATHER_OPTIONS = [
 
 const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
   const isEdit = Boolean(diaryId);
-  const { data: projectsData } = useGetSiteDiaryProjectsQuery();
+  const { data: projectsData, refetch: refetchProjects } =
+    useGetSiteDiaryProjectsQuery();
   const { data: diaryData, isFetching } = useGetSiteDiaryByIdQuery(diaryId!, {
     skip: !isEdit,
   });
@@ -62,6 +64,27 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
       setProjectSearch("");
     }
   }, [isEdit, isOpen]);
+
+  // Manage automatic filled date while creating
+  useEffect(() => {
+    // ✅ CREATE MODE → set today's date
+    if (isOpen && !isEdit) {
+      const today = new Date().toISOString().split("T")[0];
+
+      setForm((prev) => ({
+        ...prev,
+        date: today,
+      }));
+    }
+
+    // ✅ EDIT MODE → set API date
+    if (isEdit && diaryData?.data?.date) {
+      setForm((prev) => ({
+        ...prev,
+        date: diaryData.data.date.split("T")[0],
+      }));
+    }
+  }, [isOpen, isEdit, diaryData]);
 
   /* -----------------------------------------
         RESET Errors WHEN CLose Or Cancel Modal
@@ -143,6 +166,11 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
     setForm((s) => ({ ...s, projectId: p.id }));
     setProjectSearch(`${p.code} — ${p.name}`);
     setShowDropdown(false);
+
+    // ✅ CLEAR PROJECT ERROR IMMEDIATELY
+  if (errors.projectId) {
+    setErrors((prev: any) => ({ ...prev, projectId: "" }));
+  }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -212,7 +240,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
               <div>
                 <RequiredLabel label="Date" />
                 <div className="relative">
-                  <input
+                  {/* <input
                     type="date"
                     name="date"
                     value={form.date}
@@ -229,7 +257,17 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                     }
                     size={16}
                     className="absolute right-3 top-4 text-gray-400 cursor-pointer"
+                  /> */}
+                  <input
+                    type="text"
+                    name="date"
+                    value={formatToYMD(form.date)}
+                    disabled={true}
+                    className="w-full mt-1 border border-gray-300 bg-gray-100
+    cursor-not-allowed rounded-md p-2 text-sm
+    focus:outline-none"
                   />
+
                   {errors.date && (
                     <p className="text-red-500 text-xs mt-1">{errors.date}</p>
                   )}
@@ -269,7 +307,10 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
                   setProjectSearch(e.target.value.trimStart());
                   setShowDropdown(true);
                 }}
-                onFocus={() => setShowDropdown(true)}
+                onFocus={() => {
+                  refetchProjects();
+                  setShowDropdown(true);
+                }}
                 className={`w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
               />
