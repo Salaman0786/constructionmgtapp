@@ -232,7 +232,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         drawingName: "",
         discipline: "",
         revision: "",
-        date: "",
+        date: new Date().toISOString().split("T")[0],
         description: "",
       });
       setShowAllFiles([]);
@@ -247,7 +247,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         drawingName: "",
         discipline: "",
         revision: "",
-        date: "",
+        date: new Date().toISOString().split("T")[0],
         description: "",
       });
       setShowAllFiles([]);
@@ -256,12 +256,14 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   };
   if (!isOpen) return null;
   const handleClose = () => {
+    const today = new Date().toISOString().split("T")[0];
+
     setForm({
       projectId: "",
       drawingName: "",
       discipline: "",
       revision: "",
-      date: "",
+      date: today,
       description: "",
     });
     setShowAllFiles([]);
