@@ -134,26 +134,25 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
   }, [isOpen, isEdit]);
 
   // Manage automatic filled date while creating
-    useEffect(() => {
-      // ✅ CREATE MODE → set today's date
-      if (isOpen && !isEdit) {
-        const today = new Date().toISOString().split("T")[0];
-  
-        setForm((prev) => ({
-          ...prev,
-          date: today,
-        }));
-      }
-  
-      // ✅ EDIT MODE → set API date
-      if (isEdit && projectDetails?.data?.date) {
-        setForm((prev) => ({
-          ...prev,
-          date: projectDetails?.data?.date.split("T")[0],
-        }));
-      }
-    }, [isOpen, isEdit, projectDetails]);
-  
+  useEffect(() => {
+    // ✅ CREATE MODE → set today's date
+    if (isOpen && !isEdit) {
+      const today = new Date().toISOString().split("T")[0];
+
+      setForm((prev) => ({
+        ...prev,
+        date: today,
+      }));
+    }
+
+    // ✅ EDIT MODE → set API date
+    if (isEdit && projectDetails?.data?.date) {
+      setForm((prev) => ({
+        ...prev,
+        date: projectDetails?.data?.date.split("T")[0],
+      }));
+    }
+  }, [isOpen, isEdit, projectDetails]);
 
   //close seacable dropdown
   useEffect(() => {
@@ -227,6 +226,8 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
     }
   };
   const handleSubmit = async () => {
+    const today = new Date().toISOString().split("T")[0];
+
     const payload = {
       projectId: form.projectId,
       title: form.title,
@@ -255,7 +256,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
         title: "",
         category: "",
         department: "",
-        date: "",
+        date: today,
         description: "",
         linkedDrawingId: "",
       });
@@ -272,7 +273,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
         title: "",
         category: "",
         department: "",
-        date: "",
+        date: today,
         description: "",
         linkedDrawingId: "",
       });
@@ -281,12 +282,14 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
   };
   if (!isOpen) return null;
   const handleClose = () => {
+    const today = new Date().toISOString().split("T")[0];
+
     setForm({
       projectId: "",
       title: "",
       category: "",
       department: "",
-      date: "",
+      date: today,
       description: "",
       linkedDrawingId: "",
     });
@@ -512,7 +515,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                     <input
                       type="text"
                       name="date"
-                      value={formatToYMD(form.date)}
+                      value={form?.date ? formatToYMD(form.date) : ""}
                       disabled={true}
                       className="w-full mt-1 border border-gray-300 bg-gray-100
                         cursor-not-allowed rounded-md p-2 text-sm
