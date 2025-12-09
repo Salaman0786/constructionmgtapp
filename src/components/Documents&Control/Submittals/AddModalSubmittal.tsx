@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { Calendar, Download, Eye, Trash2, X } from "lucide-react";
+import { Calendar, Download, Eye, Trash2, UploadCloud, X } from "lucide-react";
 import { showError, showSuccess } from "../../../utils/toast";
 
 import {
@@ -134,26 +134,25 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
   }, [isOpen, isEdit]);
 
   // Manage automatic filled date while creating
-    useEffect(() => {
-      // ✅ CREATE MODE → set today's date
-      if (isOpen && !isEdit) {
-        const today = new Date().toISOString().split("T")[0];
-  
-        setForm((prev) => ({
-          ...prev,
-          date: today,
-        }));
-      }
-  
-      // ✅ EDIT MODE → set API date
-      if (isEdit && projectDetails?.data?.date) {
-        setForm((prev) => ({
-          ...prev,
-          date: projectDetails?.data?.date.split("T")[0],
-        }));
-      }
-    }, [isOpen, isEdit, projectDetails]);
-  
+  useEffect(() => {
+    // ✅ CREATE MODE → set today's date
+    if (isOpen && !isEdit) {
+      const today = new Date().toISOString().split("T")[0];
+
+      setForm((prev) => ({
+        ...prev,
+        date: today,
+      }));
+    }
+
+    // ✅ EDIT MODE → set API date
+    if (isEdit && projectDetails?.data?.date) {
+      setForm((prev) => ({
+        ...prev,
+        date: projectDetails?.data?.date.split("T")[0],
+      }));
+    }
+  }, [isOpen, isEdit, projectDetails]);
 
   //close seacable dropdown
   useEffect(() => {
@@ -633,7 +632,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
               </div>
 
               {/* FILE UPLOAD */}
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <RequiredLabel label="Upload Your Submittal File" />
                 <input
                   type="file"
@@ -644,6 +643,80 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                 />
                 {isLoading && (
                   <p className="text-sm text-blue-600 mt-1">Uploading...</p>
+                )}
+              </div> */}
+              <div className="mb-6">
+                <RequiredLabel label="Upload Your Drawing File" />
+
+                <label
+                  className="mt-2 flex flex-col items-center justify-center w-full border-2 border-dashed
+    border-purple-300 rounded-xl p-6 cursor-pointer
+    hover:bg-purple-50 transition-all text-center"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (
+                      e.dataTransfer.files &&
+                      e.dataTransfer.files.length > 0
+                    ) {
+                      const input = fileInputRef.current;
+                      if (input) {
+                        input.files = e.dataTransfer.files;
+                        input.dispatchEvent(
+                          new Event("change", { bubbles: true })
+                        );
+                      }
+                    }
+                  }}
+                >
+                  <UploadCloud size={36} className="text-purple-600 mb-2" />
+
+                  <p className="text-sm font-medium text-gray-700">
+                    Drag & drop your drawing here
+                  </p>
+
+                  <p className="text-xs text-gray-400 mt-1">
+                    or click to browse
+                  </p>
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Loading Indicator */}
+                {isLoading && (
+                  <p className="flex items-center gap-2 text-sm mt-3 text-purple-700 font-medium">
+                    <svg
+                      className="animate-spin h-4 w-4 text-purple-700"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    Uploading...
+                  </p>
                 )}
               </div>
 
