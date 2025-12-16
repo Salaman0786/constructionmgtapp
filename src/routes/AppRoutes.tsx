@@ -86,7 +86,7 @@ export default function AppRoutes() {
             path="/"
             element={
               <RoleProtectedRoute
-                allowedRoles={["SUPER_ADMIN", "MANAGER", "INVESTOR"]}
+                allowedRoles={["SUPER_ADMIN", "MANAGER", "INVESTOR", "USER"]}
               >
                 <Dashboard />
               </RoleProtectedRoute>
@@ -126,7 +126,9 @@ export default function AppRoutes() {
           <Route
             path="/project"
             element={
-              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+              <RoleProtectedRoute
+                allowedRoles={["SUPER_ADMIN", "MANAGER", "USER"]}
+              >
                 <Project />
               </RoleProtectedRoute>
             }
@@ -143,6 +145,23 @@ export default function AppRoutes() {
             path="/task-assignment"
             element={
               <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
+                <TaskAssignment />
+              </RoleProtectedRoute>
+            }
+          />
+          {/* User Control */}
+          <Route
+            path="/user-site-diary"
+            element={
+              <RoleProtectedRoute allowedRoles={["USER", "MANAGER"]}>
+                <SiteDiary />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/user-task-assignment"
+            element={
+              <RoleProtectedRoute allowedRoles={["USER", "MANAGER"]}>
                 <TaskAssignment />
               </RoleProtectedRoute>
             }
@@ -271,7 +290,7 @@ export default function AppRoutes() {
               </RoleProtectedRoute>
             }
           />
-            <Route
+          <Route
             path="/submittals"
             element={
               <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
@@ -283,7 +302,7 @@ export default function AppRoutes() {
           <Route
             path="/user-management"
             element={
-              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
                 <AdminPanel />
               </RoleProtectedRoute>
             }

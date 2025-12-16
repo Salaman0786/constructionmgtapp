@@ -43,6 +43,7 @@ import {
   FolderOpen,
   Files,
   Upload,
+  FolderCog,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAppSelector } from "../app/hooks";
@@ -187,7 +188,7 @@ const navItems: NavItem[] = [
     icon: <LayoutDashboard />,
     name: "Dashboard",
     path: "/",
-    roles: ["SUPER_ADMIN", "MANAGER", "INVESTOR"],
+    roles: ["SUPER_ADMIN", "MANAGER", "INVESTOR", "USER"],
   },
   {
     icon: <FolderGit2 />,
@@ -354,18 +355,46 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  {
+    icon: <FolderCog />,
+    name: "User Control",
+    roles: ["MANAGER", "USER"], // INVESTOR cannot see it
+    subItems: [
+      {
+        icon: <FolderKanban />,
+        name: "Project",
+        path: "/project",
+        pro: false,
+        roles: ["USER"],
+      },
+      {
+        icon: <NotebookText />,
+        name: "User Site Diary (DPR)",
+        path: "/user-site-diary",
+        pro: false,
+        roles: ["USER", "MANAGER"],
+      },
+      {
+        icon: <SquareCheckBig />,
+        name: "User Task Assignment",
+        path: "/user-task-assignment",
+        pro: false,
+        roles: ["USER", "MANAGER"],
+      },
+    ],
+  },
   /* ADMIN MODULE → Only SUPER_ADMIN */
   {
     icon: <UserRoundCog />,
     name: "Admin",
-    roles: ["SUPER_ADMIN"],
+    roles: ["SUPER_ADMIN", "MANAGER"],
     subItems: [
       {
         icon: <Users />,
         name: "User Management",
         path: "/user-management",
         pro: false,
-        roles: ["SUPER_ADMIN"],
+        roles: ["SUPER_ADMIN", "MANAGER"],
       },
       {
         icon: <Lock />,
