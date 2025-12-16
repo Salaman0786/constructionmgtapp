@@ -540,34 +540,34 @@ const DrawingsRevisions: React.FC = () => {
                         className="accent-purple-600"
                       />
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-[#3A3A3A]  text-center align-middle">
                       {(pagination.page - 1) * pagination.limit + (index + 1)}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3 text-[#3A3A3A]  text-center align-middle">
                       {project.drawingCode}
                     </td>
                     <td
-                      className="p-3 text-center align-middle "
+                      className="p-3 text-[#3A3A3A]  text-center align-middle "
                       // full name on hover
                     >
-                      <div className="flex items-center justify-center gap-1">
+                      <div className="flex text-[#3A3A3A] items-center justify-center gap-1">
                         {project.drawingName}
                         <Files size={18} className="text-gray-400" />
                       </div>
                     </td>
                     <td
-                      className="p-3 text-center align-middle"
+                      className="p-3 text-center text-[#3A3A3A]  align-middle"
                       title={project.project?.name}
                     >
                       {getTwoWordPreview(project.project?.name || "-")}
                     </td>
-                    <td className="p-3 text-center align-middle">
+                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
                       {project.discipline}
                     </td>
-                    <td className="p-3 text-center align-middle">
+                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
                       {project.revision}
                     </td>
-                    <td className="p-3 text-center whitespace-nowrap align-middle">
+                    <td className="p-3 text-center text-[#3A3A3A]  whitespace-nowrap align-middle">
                       {formatToYMD(project.date)}
                     </td>
                     {/* ACTION MENU */}

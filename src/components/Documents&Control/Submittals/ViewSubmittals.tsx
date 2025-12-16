@@ -4,6 +4,7 @@ import { Download, Eye, Trash2, X } from "lucide-react";
 
 import { useGetSubmittalsByIdQuery } from "../../../features/submittals/api/submittalApi";
 import Loader from "../../common/Loader";
+import { formatToYMD } from "../../../utils/helpers";
 interface AddEditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -145,7 +146,7 @@ const ViewSubmittals: React.FC<AddEditProjectModalProps> = ({
                   </label>
 
                   <div className="w-full mt-1 border border-gray-300 rounded-md p-2">
-                    {form?.date}
+                    {formatToYMD(form?.date)}
                   </div>
                 </div>
               </div>
@@ -185,26 +186,39 @@ const ViewSubmittals: React.FC<AddEditProjectModalProps> = ({
                     {showAllFiles.map((doc, index) => (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between p-2 bg-white rounded border"
+                        className="flex items-center justify-between p-2 gap-2 bg-white rounded border"
                       >
-                        <span>
-                          <span className="font-medium mr-2">{index + 1}</span>
-                          {doc.originalName}
-                        </span>
+                        {/* left: index + filename (shrinkable) */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-sm font-medium w-6 text-gray-700 text-center">
+                            {index + 1}
+                          </span>
+
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className="text-sm text-gray-800 truncate"
+                              title={doc.originalName}
+                            >
+                              {doc.originalName}
+                            </div>
+                          </div>
+                        </div>
 
                         <div className="flex items-center gap-3 text-gray-600 ">
                           <button
                             onClick={() => window.open(doc.url, "_blank")}
-                            className="text-blue-400 hover:text-blue-600"
+                            className="p-1 rounded text-blue-400 hover:text-blue-600"
+                            aria-label={`View ${doc.originalName}`}
                           >
-                            <Eye />
+                            <Eye size={20} />
                           </button>
 
                           <button
                             onClick={() => handleDownload(doc.url)}
-                            className="text-gray-700 hover:text-gray-900"
+                            className="p-1 rounded text-gray-700 hover:text-gray-900"
+                            aria-label={`Download ${doc.originalName}`}
                           >
-                            <Download />
+                            <Download size={20} />
                           </button>
                         </div>
                       </div>
