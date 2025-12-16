@@ -29,7 +29,16 @@ export const submittalsApi = createApi({
 
         return url;
       },
-      providesTags: ["Submittals"],
+      providesTags: (result) =>
+        result?.data?.submittals
+          ? [
+              ...result.data.submittals.map((d: any) => ({
+                type: "Submittals",
+                id: d.id,
+              })),
+              { type: "Submittals", id: "LIST" },
+            ]
+          : [{ type: "Submittals", id: "LIST" }],
     }),
     getSubmittalsProjects: builder.query({
       query: () => "/submittals/projects",
@@ -59,19 +68,17 @@ export const submittalsApi = createApi({
 
     getSubmittalsById: builder.query<any, string>({
       query: (id) => `/submittals/${id}`,
+      providesTags: (result, error, id) => [{ type: "Submittals", id }],
     }),
-    uploadSubmittals: builder.mutation({
-      query: (file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
 
-        return {
-          url: "/submittals/upload",
-          method: "POST",
-          body: formData,
-        };
-      },
+    uploadSubmittals: builder.mutation({
+      query: (formData: FormData) => ({
+        url: "/submittals/upload-multiple",
+        method: "POST",
+        body: formData,
+      }),
     }),
+
     deleteSubmittalsFile: builder.mutation({
       query: (fileId: string) => ({
         url: `/submittals/file-delete/${fileId}`,
@@ -85,7 +92,10 @@ export const submittalsApi = createApi({
         method: "PUT", // or PATCH
         body: payload,
       }),
-      invalidatesTags: ["Submittals", "Submittal"],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Submittals", id }, // invalidate that specific drawing
+        { type: "Submittals", id: "LIST" }, // also refresh list
+      ],
     }),
   }),
 });

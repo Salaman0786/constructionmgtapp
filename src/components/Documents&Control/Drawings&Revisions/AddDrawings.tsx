@@ -9,10 +9,13 @@ import {
   useUpdateDrawingsMutation,
   useUploadDrawingsMutation,
 } from "../../../features/drawings&controls/api/drawingsApi";
-import { showError, showSuccess } from "../../../utils/toast";
+import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import Loader from "../../common/Loader";
 import { RequiredLabel } from "../../common/RequiredLabel";
 import { formatToYMD } from "../../../utils/helpers";
+import { validateDrawings } from "../../../utils/validators/drawingsValidator";
+import { getAddisAbabaDate, convertToAddisDate } from "../../../utils/helpers";
+
 interface AddEditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,11 +28,29 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
 }) => {
   const isEdit = Boolean(projectId);
 
+  const [fileError, setFileError] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false); // visual state while dragging
+
+  //Track Upload Request with a REF
+  const uploadRequestRef = useRef<any>(null);
+
+  //DO NOT update state if modal is closed
+  const isModalOpenRef = useRef(isOpen);
+  useEffect(() => {
+    isModalOpenRef.current = isOpen;
+  }, [isOpen]);
+
   //project searchable state
   const [projectSearch, setProjectSearch] = useState("");
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
   const [highlightProjectIndex, setHighlightProjectIndex] = useState(-1);
   const projectDropdownRef = useRef(null);
+
+  const MAX_FILES = 10;
+  const MAX_FILE_SIZE_MB = 10; // 10 MB
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const {
@@ -55,7 +76,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     revision: "",
     date: "",
   });
-  const [uploadDrawings, { isLoading }] = useUploadDrawingsMutation();
+  const [uploadDrawings, { isLoading, reset: resetUpload }] =
+    useUploadDrawingsMutation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [createDrawing, { isLoading: isCreateLoading }] =
     useCreateDrawingsMutation();
@@ -63,7 +85,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   // Manage automatic filled date while creating
   useEffect(() => {
     if (isOpen && !isEdit) {
-      const today = new Date().toISOString().split("T")[0];
+      const today = getAddisAbabaDate();
       setForm((prev) => ({
         ...prev,
         date: today,
@@ -73,7 +95,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     if (isEdit && projectDetails?.data?.date) {
       setForm((prev) => ({
         ...prev,
-        date: projectDetails.data.date.split("T")[0],
+        date: convertToAddisDate(projectDetails?.data?.date),
       }));
     }
   }, [isOpen, isEdit, projectDetails]);
@@ -86,11 +108,11 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         drawingName: p?.drawingName,
         discipline: p?.discipline,
         revision: p?.revision,
-        date: p?.date.split("T")[0],
+        date: convertToAddisDate(p?.date),
         description: p?.description,
       });
       setShowAllFiles(p?.files);
-      // ⭐ THIS WAS MISSING → FIXES PROJECT NAME SHOWING IN EDIT MODE
+      //THIS WAS MISSING → FIXES PROJECT NAME SHOWING IN EDIT MODE
       setProjectSearch(
         p?.project?.code
           ? `${p.project.code} - ${p.project.name}`
@@ -102,7 +124,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   // Reset state when opening ADD modal (not edit)
   useEffect(() => {
     if (isOpen && !isEdit) {
-      const today = new Date().toISOString().split("T")[0];
+      const today = getAddisAbabaDate();
       setForm({
         projectId: "",
         drawingName: "",
@@ -135,24 +157,107 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    // block if upload already running
+    if (isLoading) {
+      setFileError(
+        "Upload in progress. Please wait until current upload finishes."
+      );
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // ✅ PER-SELECTION LIMIT ONLY (not cumulative)
+    if (files.length > MAX_FILES) {
+      setFileError(`You can upload a maximum of ${MAX_FILES} files at a time.`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    } else {
+      setFileError("");
+    }
+
+    // ✅ Separate valid and oversized files
+    const oversizedFiles: string[] = [];
+    const validFiles: File[] = [];
+
+    Array.from(files).forEach((file) => {
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        oversizedFiles.push(file.name);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    // ✅ Show error for large files (BUT DO NOT STOP VALID UPLOAD)
+    if (oversizedFiles.length > 0) {
+      setFileError(
+        `These files exceed ${MAX_FILE_SIZE_MB}MB and were skipped:\n${oversizedFiles
+          .map((f) => `• ${f}`)
+          .join("\n")}`
+      );
+    } else {
+      setFileError(""); // clear old error if all files are valid
+    }
+
+    // ❌ If NO valid files left → stop here
+    if (validFiles.length === 0) {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
 
     try {
-      const res = await uploadDrawings(file).unwrap();
-      setShowAllFiles((prev) => [res?.data, ...prev]);
-      showSuccess("File uploaded successfully!");
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      const formData = new FormData();
+      validFiles.forEach((file) => formData.append("files", file));
+
+      // ✅ Track request for abort
+      const uploadPromise = uploadDrawings(formData);
+      uploadRequestRef.current = uploadPromise;
+
+      const res = await uploadPromise.unwrap();
+
+      const uploadedFiles = res?.data?.files || [];
+
+      // ✅ Do not update state if modal already closed
+      if (!isModalOpenRef.current) return;
+
+      setShowAllFiles((prev) => [...uploadedFiles, ...prev]);
+
+      // ✅ Clear file validation once upload happens
+      if (errors.files) {
+        setErrors((prev) => ({ ...prev, files: "" }));
       }
-    } catch (err) {
+
+      showSuccess(
+        `${uploadedFiles.length} valid file(s) uploaded successfully!`
+      );
+    } catch (err: any) {
       showError(err?.data?.message || "Upload failed!");
     } finally {
+      resetUpload();
+
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     }
   };
+
+  // Cleanup effect to safely cancel any ongoing upload request
+  // This runs ONLY when the component unmounts (route change, page refresh, parent unmount).
+  // It prevents:
+  //  Background API calls
+  // Delayed success/error toasts
+  // Memory leaks
+  // Ghost uploads after modal is gone
+  // If an upload is currently running, we abort it immediately.
+  useEffect(() => {
+    return () => {
+      if (uploadRequestRef.current?.abort) {
+        uploadRequestRef.current.abort();
+      }
+    };
+  }, []);
 
   //handle select project in searchable project dropdown
   const handleSelectProject = (p) => {
@@ -162,6 +267,10 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     setProjectSearch(p.code ? `${p.code} - ${p.name}` : p.name);
 
     setShowProjectDropdown(false);
+    // ✅ Clear project error on select
+    if (errors.projectId) {
+      setErrors((prev) => ({ ...prev, projectId: "" }));
+    }
   };
 
   const downloadFile = async (url: string) => {
@@ -196,14 +305,27 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
 
   const handleDelete = async (fileId) => {
     try {
+      setDeletingFileId(fileId);
       await deleteFile(fileId).unwrap();
       setShowAllFiles((prev) => prev.filter((data) => data.id !== fileId));
       showSuccess("File deleted successfully!!");
     } catch (err) {
       console.error("Delete failed:", err);
+    } finally {
+      setDeletingFileId(null);
     }
   };
   const handleSubmit = async () => {
+    //Run validation
+    const validationErrors = validateDrawings(form, showAllFiles);
+    setErrors(validationErrors);
+
+    // Stop if validation fails
+    if (Object.keys(validationErrors).length > 0) {
+      showInfo("Please fill all required fields");
+      return;
+    }
+
     const payload = {
       projectId: form.projectId,
       drawingName: form.drawingName,
@@ -232,10 +354,13 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         drawingName: "",
         discipline: "",
         revision: "",
-        date: new Date().toISOString().split("T")[0],
+        date: getAddisAbabaDate(),
         description: "",
       });
       setShowAllFiles([]);
+      setProjectSearch("");
+      setFileError("");
+      setErrors({});
     } catch (error: any) {
       const msg = Array.isArray(error?.data?.message)
         ? error.data.message.join(", ")
@@ -247,16 +372,25 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
         drawingName: "",
         discipline: "",
         revision: "",
-        date: new Date().toISOString().split("T")[0],
+        date: getAddisAbabaDate(),
         description: "",
       });
       setShowAllFiles([]);
       setProjectSearch("");
+      setFileError("");
     }
   };
   if (!isOpen) return null;
   const handleClose = () => {
-    const today = new Date().toISOString().split("T")[0];
+    // ABORT(upload drawing) API CALL IF RUNNING
+    if (uploadRequestRef.current?.abort) {
+      uploadRequestRef.current.abort();
+      uploadRequestRef.current = null;
+    }
+    resetUpload(); // clears isLoading state
+
+    const today = getAddisAbabaDate();
+    setFileError("");
 
     setForm({
       projectId: "",
@@ -268,6 +402,8 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     });
     setShowAllFiles([]);
     setProjectSearch("");
+    setFileError("");
+    setErrors({});
     onClose();
   };
   const handleDownload = async (fileUrl) => {
@@ -337,6 +473,10 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                   onChange={(e) => {
                     setProjectSearch(e.target.value.trimStart());
                     setShowProjectDropdown(true);
+
+                    if (errors.projectId) {
+                      setErrors((prev) => ({ ...prev, projectId: "" }));
+                    }
                   }}
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
@@ -384,23 +524,13 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     ))}
                   </div>
                 )}
-              </div>
 
-              {/* <div className="mb-4">
-                <RequiredLabel label="Project" />
-                <select
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
-                  value={form?.projectId}
-                  onChange={(e) =>
-                    setForm({ ...form, projectId: e.target.value })
-                  }
-                >
-                  <option value="">Select project</option>
-                  {projectsData?.data?.projects.map((p) => (
-                    <option value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div> */}
+                {errors.projectId && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.projectId}
+                  </p>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -411,10 +541,19 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                     value={form?.drawingName}
-                    onChange={(e) =>
-                      setForm({ ...form, drawingName: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setForm({ ...form, drawingName: e.target.value });
+                      if (errors.drawingName) {
+                        setErrors((prev) => ({ ...prev, drawingName: "" }));
+                      }
+                    }}
                   />
+
+                  {errors.drawingName && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.drawingName}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -423,9 +562,12 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                     value={form?.discipline}
-                    onChange={(e) =>
-                      setForm({ ...form, discipline: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setForm({ ...form, discipline: e.target.value });
+                      if (errors.discipline) {
+                        setErrors((prev) => ({ ...prev, discipline: "" }));
+                      }
+                    }}
                   >
                     <option value="">Select Discipline</option>
                     <option value="Civil">Civil</option>
@@ -447,6 +589,11 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     </option>
                     <option value="Surveying">Surveying</option>
                   </select>
+                  {errors.discipline && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.discipline}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -457,9 +604,12 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                     value={form?.revision}
-                    onChange={(e) =>
-                      setForm({ ...form, revision: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setForm({ ...form, revision: e.target.value });
+                      if (errors.revision) {
+                        setErrors((prev) => ({ ...prev, revision: "" }));
+                      }
+                    }}
                   >
                     <option value="">Select Revision</option>
                     <option value="R1">R1</option>
@@ -467,35 +617,16 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                     <option value="R3">R3</option>
                     <option value="R4">R4</option>
                   </select>
+                  {errors.revision && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.revision}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <RequiredLabel label="Date" />
+                  <RequiredLabel label="Created Date" />
                   <div className="relative">
-                    {/* <input
-                      type="date"
-                      className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                      onKeyDown={(e) => {
-                        if (e.key === " ") e.preventDefault(); // keep your space-block logic
-                      }}
-                      value={form?.date}
-                      onChange={(e) =>
-                        setForm({ ...form, date: e.target.value })
-                      }
-                    /> */}
-
-                    {/* Calendar Icon triggers showPicker() */}
-                    {/* <Calendar
-                      onClick={(e) => {
-                        const input = e.currentTarget
-                          .previousElementSibling as HTMLInputElement;
-                        input?.showPicker?.(); // open picker only when clicking icon
-                      }}
-                      size={16}
-                      className="absolute right-3 top-4 text-gray-400 cursor-pointer"
-                    /> */}
-
                     <input
                       type="text"
                       name="date"
@@ -516,27 +647,65 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   placeholder="Write description here..."
                   value={form?.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setForm({ ...form, description: e.target.value });
+                    if (errors.description) {
+                      setErrors((prev) => ({ ...prev, description: "" }));
+                    }
+                  }}
                 ></textarea>
+                {errors.description && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.description}
+                  </p>
+                )}
               </div>
 
               {/* FILE UPLOAD */}
               <div className="mb-6">
-                <RequiredLabel label="Upload Your Drawing File" />
-
+                <label className="text-sm text-gray-700">
+                  Upload your drawing files
+                  <span className=" text-xs text-gray-500 mt-1">
+                    {" "}
+                    ( Up to 10 files at a time, 10 MB each )
+                  </span>
+                </label>
                 <label
-                  className="mt-2 flex flex-col items-center justify-center w-full border-2 border-dashed
-    border-purple-300 rounded-xl p-6 cursor-pointer
-    hover:bg-purple-50 transition-all text-center"
+                  className={`mt-2 flex flex-col items-center justify-center w-full border-2 border-dashed
+    rounded-xl p-6 cursor-pointer transition-all text-center
+    ${
+      isDragging
+        ? "bg-purple-50 border-purple-400 ring-2 ring-purple-200"
+        : "border-purple-300 hover:bg-purple-50"
+    }
+    ${isLoading ? "pointer-events-none opacity-60" : ""}`}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!isLoading) setIsDragging(true);
+                  }}
                   onDragOver={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    if (!isLoading) setIsDragging(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDragging(false);
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+
+                    setIsDragging(false);
+
+                    if (isLoading) {
+                      setFileError(
+                        "Upload in progress. Please wait until current upload finishes."
+                      );
+                      return;
+                    }
 
                     if (
                       e.dataTransfer.files &&
@@ -545,9 +714,10 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                       const input = fileInputRef.current;
                       if (input) {
                         input.files = e.dataTransfer.files;
-                        input.dispatchEvent(
-                          new Event("change", { bubbles: true })
-                        );
+                        // directly call handler instead of dispatching event for reliability
+                        handleFileChange({
+                          target: input,
+                        } as React.ChangeEvent<HTMLInputElement>);
                       }
                     }
                   }}
@@ -565,10 +735,17 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                   <input
                     type="file"
                     ref={fileInputRef}
+                    multiple
                     onChange={handleFileChange}
                     className="hidden"
+                    disabled={isLoading} // optional: disable native input
                   />
                 </label>
+                {fileError && (
+                  <pre className="text-red-500 text-xs mt-2 font-medium whitespace-pre-wrap">
+                    {fileError}
+                  </pre>
+                )}
 
                 {/* Loading Indicator */}
                 {isLoading && (
@@ -611,35 +788,69 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                         key={doc.id}
                         className="flex items-center justify-between p-2 bg-white rounded border"
                       >
-                        <span>
-                          <span className="font-medium mr-2">{index + 1}</span>
-                          {doc.originalName}
-                        </span>
+                        {/* left: index + filename (shrinkable) */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-sm font-medium w-6 text-gray-700 text-center">
+                            {index + 1}
+                          </span>
 
-                        <div className="flex items-center gap-3 text-gray-600 ">
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className="text-sm text-gray-800 truncate"
+                              title={doc.originalName}
+                            >
+                              {doc.originalName}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* right: actions */}
+                        <div className="flex items-center gap-2 ml-4">
                           <button
                             onClick={() => window.open(doc.url, "_blank")}
-                            className="text-blue-400 hover:text-blue-600"
+                            className="p-1 rounded text-blue-400 hover:text-blue-600"
+                            aria-label={`View ${doc.originalName}`}
                           >
-                            <Eye />
+                            <Eye size={20} />
                           </button>
 
                           <button
-                            // href={doc.url}
-                            // download
-                            // target="_blank"
                             onClick={() => handleDownload(doc.url)}
-                            className="text-gray-700 hover:text-gray-900"
+                            className="p-1 rounded text-gray-700 hover:text-gray-900"
+                            aria-label={`Download ${doc.originalName}`}
                           >
-                            <Download />
+                            <Download size={20} />
                           </button>
 
                           <button
                             onClick={() => handleDelete(doc.id)}
                             disabled={isDeleteLoading}
-                            className="text-red-600 hover:text-red-800"
+                            className="p-1 rounded text-red-600 hover:text-red-800"
+                            aria-label={`Delete ${doc.originalName}`}
                           >
-                            <Trash2 />
+                            {deletingFileId === doc.id ? (
+                              <svg
+                                className="animate-spin h-5 w-5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <circle
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                  className="opacity-25"
+                                />
+                                <path
+                                  fill="currentColor"
+                                  className="opacity-75"
+                                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                />
+                              </svg>
+                            ) : (
+                              <Trash2 size={20} />
+                            )}
                           </button>
                         </div>
                       </div>
@@ -661,16 +872,21 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                 <button
                   onClick={handleSubmit}
                   className="px-4 py-2 bg-purple-700 text-white rounded-md text-sm"
-                  disabled={isCreateLoading}
+                  // disabled={isCreateLoading}
+                  disabled={isCreateLoading || isLoading || updating}
                 >
                   {/* {isCreateLoading ? "Saving..." : "Upload Drawing"} */}
-                  {isEdit
-                    ? updating
-                      ? "Updating..."
-                      : "Update Drawing"
-                    : isCreateLoading
-                    ? "Saving..."
-                    : "Upload Drawing"}
+                  {
+                    isLoading
+                      ? "Uploading..." // uploading files (both add & edit)
+                      : updating
+                      ? "Updating..." // updating drawing (edit mode)
+                      : isEdit
+                      ? "Update Drawing" // edit mode normal
+                      : isCreateLoading
+                      ? "Saving..." // create mode saving
+                      : "Upload Drawing" // create mode normal
+                  }
                 </button>
               </div>
             </div>

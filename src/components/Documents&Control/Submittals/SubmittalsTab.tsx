@@ -27,7 +27,7 @@ import ViewDrawings from "../Drawings&Revisions/ViewDrawings";
 import ConfirmModal from "../../common/ConfirmModal";
 import AddModalSubmittal from "./AddModalSubmittal";
 import ViewSubmittals from "./ViewSubmittals";
-import { formatToYMD, getTwoWordPreview } from "../../../utils/helpers";
+import { formatLabel, formatToYMD, getTwoWordPreview } from "../../../utils/helpers";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 export interface SubmittalRecord {
@@ -477,26 +477,26 @@ const SubmittalTable: React.FC = () => {
                         className="accent-purple-600"
                       />
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A] align-middle">
                       {(pagination.page - 1) * pagination.limit + (index + 1)}
                     </td>
-                    <td className="p-3  text-center align-middle">
+                    <td className="p-3  text-center text-[#3A3A3A] align-middle">
                       {project.submittalCode}
                     </td>
                     <td
-                      className="p-3  text-center align-middle"
-                      // full name on hover
+                      className="p-3  text-center text-[#3A3A3A] align-middle"
+                       title={project.title}
                     >
-                      {project.title}
+                      {getTwoWordPreview(project.title)}
                       {/* <Files size={18} className="text-gray-400" /> */}
                     </td>
                     <td
-                      className="p-3 text-center align-middle"
-                      title={project.project.name}
+                      className="p-3 text-center text-[#3A3A3A] align-middle"
+                      title={project.project?.name}
                     >
-                      {getTwoWordPreview(project.project.name)}
+                      {getTwoWordPreview(project.project?.name)}
                     </td>
-                    <td className="p-3 text-center align-middle">
+                    <td className="p-3 text-center text-[#3A3A3A] align-middle">
                       {project.category}
                     </td>
                     <td className="p-3 text-center">
@@ -516,10 +516,10 @@ const SubmittalTable: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="p-3 text-center align-middle">
+                    <td className="p-3 text-center text-[#3A3A3A] align-middle">
                       {project.department}
                     </td>
-                    <td className="p-3 text-center whitespace-nowrap align-middle">
+                    <td className="p-3 text-center whitespace-nowrap text-[#3A3A3A] align-middle">
                       {formatToYMD(project.date)}
                     </td>
                     {/* ACTION MENU */}

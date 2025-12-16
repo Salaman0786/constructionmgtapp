@@ -11,6 +11,7 @@ import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import { validateSiteDiary } from "../../../utils/validators/siteDiaryValidator";
 import { RequiredLabel } from "../../common/RequiredLabel";
 import { formatToYMD } from "../../../utils/helpers";
+import { getAddisAbabaDate, convertToAddisDate } from "../../../utils/helpers";
 
 interface Props {
   isOpen: boolean;
@@ -69,7 +70,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
   useEffect(() => {
     // ✅ CREATE MODE → set today's date
     if (isOpen && !isEdit) {
-      const today = new Date().toISOString().split("T")[0];
+      const today = getAddisAbabaDate();
 
       setForm((prev) => ({
         ...prev,
@@ -81,7 +82,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
     if (isEdit && diaryData?.data?.date) {
       setForm((prev) => ({
         ...prev,
-        date: diaryData.data.date.split("T")[0],
+        date: convertToAddisDate(diaryData?.data?.date),
       }));
     }
   }, [isOpen, isEdit, diaryData]);
@@ -105,7 +106,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
 
     // Prefill form
     setForm({
-      date: diary.date?.split("T")[0] || "",
+      date: convertToAddisDate(diary?.date) || "",
       weather: diary.weather?.toUpperCase() || "SUNNY",
       projectId: diary.projectId || "",
       manpower: String(diary.manpower ?? ""),
@@ -238,7 +239,7 @@ const AddEditSiteDiary: React.FC<Props> = ({ isOpen, onClose, diaryId }) => {
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <RequiredLabel label="Date" />
+                <RequiredLabel label="Created Date" />
                 <div className="relative">
                   {/* <input
                     type="date"

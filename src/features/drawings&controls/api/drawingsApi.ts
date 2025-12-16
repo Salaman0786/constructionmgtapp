@@ -28,7 +28,16 @@ export const drawingsApi = createApi({
 
         return url;
       },
-      providesTags: ["Drawings"],
+      providesTags: (result) =>
+        result?.data?.drawing
+          ? [
+              ...result.data.drawing.map((d: any) => ({
+                type: "Drawings",
+                id: d.id,
+              })),
+              { type: "Drawings", id: "LIST" },
+            ]
+          : [{ type: "Drawings", id: "LIST" }],
     }),
     getDrawingsProjects: builder.query({
       query: () => "/drawings/projects",
@@ -54,18 +63,14 @@ export const drawingsApi = createApi({
 
     getDrawingsById: builder.query<any, string>({
       query: (id) => `/drawings/${id}`,
+      providesTags: (result, error, id) => [{ type: "Drawings", id }],
     }),
     uploadDrawings: builder.mutation({
-      query: (file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        return {
-          url: "/drawings/upload",
-          method: "POST",
-          body: formData,
-        };
-      },
+      query: (formData: FormData) => ({
+        url: "/drawings/upload-multiple",
+        method: "POST",
+        body: formData,
+      }),
     }),
     deleteDrawingsFile: builder.mutation({
       query: (fileId: string) => ({
@@ -80,7 +85,10 @@ export const drawingsApi = createApi({
         method: "PUT", // or PATCH
         body: payload,
       }),
-      invalidatesTags: ["Drawings", "Drawing"],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Drawings", id }, // invalidate that specific drawing
+        { type: "Drawings", id: "LIST" }, // also refresh list
+      ],
     }),
   }),
 });
