@@ -18,12 +18,12 @@ const Dashboard = () => {
   const userRole = useSelector((state: any) => state.auth.user?.role?.name);
   const isManager = userRole === "MANAGER";
   const isSuperAdmin = userRole === "SUPER_ADMIN";
-
+  const isUser = userRole === "USER";
   if (isError) {
     showError("Failed to loading Dashboard");
   }
   const dashboard = data?.data;
-  
+
   return (
     <div>
       <DashboardHeader topStats={dashboard?.topStats} isLoading={isLoading} />
@@ -32,15 +32,24 @@ const Dashboard = () => {
           projects={dashboard?.activeProjects}
           isLoading={isLoading}
         />
-      { isSuperAdmin && <ActiveUsers users={dashboard?.recentUsers} isLoading={isLoading} />}
+        {isSuperAdmin && (
+          <ActiveUsers users={dashboard?.recentUsers} isLoading={isLoading} />
+        )}
+        {isUser && (
+          <MyTasks tasks={dashboard?.recentTasks} isLoading={isLoading} />
+        )}
         {/* <CashFlowChart /> */}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 max-w-10xl mx-auto pt-4">
-        <MyTasks tasks={dashboard?.recentTasks} isLoading={isLoading} />
-        <RecentDocuments
-          documents={dashboard?.recentDocuments}
-          isLoading={isLoading}
-        />
+        {(isManager || isSuperAdmin) && (
+          <MyTasks tasks={dashboard?.recentTasks} isLoading={isLoading} />
+        )}
+        {(isManager || isSuperAdmin) && (
+          <RecentDocuments
+            documents={dashboard?.recentDocuments}
+            isLoading={isLoading}
+          />
+        )}
         {/* <ReorderAlerts /> */}
       </div>
     </div>

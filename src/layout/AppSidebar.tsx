@@ -64,38 +64,6 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  /*Inventory */
-  // {
-  //   icon: <Package />,
-  //   name: "Inventory",
-  //   subItems: [
-  //     {
-  //       icon: <Package />,
-  //       name: "Stock Ledger",
-  //       path: "/stock-ledger",
-  //       pro: false,
-  //     },
-  //     {
-  //       icon: <Truck />,
-  //       name: "Material Issue",
-  //       path: "/material-issue",
-  //       pro: false,
-  //     },
-  //     {
-  //       icon: <TrendingUp />,
-  //       name: "Inventory Forecast",
-  //       path: "/inventory-forecast",
-  //       pro: false,
-  //     },
-  //     {
-  //       icon: <Bell />,
-  //       name: "Reorder Alerts",
-  //       path: "/reorder-alerts",
-  //       pro: false,
-  //     },
-  //   ],
-  // },
-
   // {
   //   icon: <Users />,
   //   name: "Investors",
@@ -168,21 +136,6 @@ const navItems: NavItem[] = [
   //   path: "/profile",
   // },
   // {
-  //   name: "Forms",
-  //   icon: <ListIcon />,
-  //   subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-  // },
-  // {
-  //   name: "Users",
-  //   icon: <TableIcon />,
-  //   subItems: [{ name: "View Users", path: "/basic-tables", pro: false }],
-  // },
-  // {
-  //   icon: <CalenderIcon />,
-  //   name: "Calendar",
-  //   path: "/calendar",
-  // },
-  // Admin
 
   {
     icon: <LayoutDashboard />,
@@ -358,12 +311,33 @@ const navItems: NavItem[] = [
   {
     icon: <FolderCog />,
     name: "User Control",
-    roles: ["MANAGER", "USER"], // INVESTOR cannot see it
+    roles: ["MANAGER"], // INVESTOR cannot see it
+    subItems: [
+      {
+        icon: <NotebookText />,
+        name: "User Site Diary (DPR)",
+        path: "/usermanager-site-diary",
+        pro: false,
+        roles: ["MANAGER"],
+      },
+      {
+        icon: <SquareCheckBig />,
+        name: "User Task Assignment",
+        path: "/usermanager-task-assignment",
+        pro: false,
+        roles: ["MANAGER"],
+      },
+    ],
+  },
+  {
+    icon: <FolderCog />,
+    name: "Project Control",
+    roles: ["USER"], // INVESTOR cannot see it
     subItems: [
       {
         icon: <FolderKanban />,
-        name: "Project",
-        path: "/project",
+        name: "User Project",
+        path: "/user-project",
         pro: false,
         roles: ["USER"],
       },
@@ -372,14 +346,14 @@ const navItems: NavItem[] = [
         name: "User Site Diary (DPR)",
         path: "/user-site-diary",
         pro: false,
-        roles: ["USER", "MANAGER"],
+        roles: ["USER"],
       },
       {
         icon: <SquareCheckBig />,
         name: "User Task Assignment",
         path: "/user-task-assignment",
         pro: false,
-        roles: ["USER", "MANAGER"],
+        roles: ["USER"],
       },
     ],
   },

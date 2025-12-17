@@ -12,6 +12,7 @@ import { drawingsApi } from "../features/drawings&controls/api/drawingsApi";
 import { taskApi } from "../features/taskAssignment/api/taskAssignmentApi";
 import { dashboardApi } from "../features/dashboard/api/dashboardApi";
 import { submittalsApi } from "../features/submittals/api/submittalApi";
+import { userSiteDiaryApi } from "../features/userSiteDiary/api/userSiteDiaryApi";
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     [roleApi.reducerPath]: roleApi.reducer,
     [drawingsApi.reducerPath]: drawingsApi.reducer,
     [submittalsApi.reducerPath]: submittalsApi.reducer,
+    [userSiteDiaryApi.reducerPath]: userSiteDiaryApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -38,9 +40,9 @@ export const store = configureStore({
       drawingsApi.middleware,
       submittalsApi.middleware,
       taskApi.middleware,
-      dashboardApi.middleware
+      dashboardApi.middleware,
+      userSiteDiaryApi.middleware
     ),
 });
-
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

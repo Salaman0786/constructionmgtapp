@@ -24,6 +24,7 @@ import ConfirmModal from "../../common/ConfirmModal";
 import { renderShimmer } from "../../common/tableShimmer";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { formatToYMD } from "../../../utils/helpers";
+import { useSelector } from "react-redux";
 
 export const UsersTable: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -49,6 +50,9 @@ export const UsersTable: React.FC = () => {
       prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
     );
   };
+  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
+
+  const isSuperAdmin = userRole === "SUPER_ADMIN";
   const selectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(data?.data?.users.map((p) => p.id));
@@ -234,20 +238,22 @@ export const UsersTable: React.FC = () => {
               </div>
 
               {/* Role Filter */}
-              <div>
-                <label className="text-xs text-gray-600">Role</label>
-                <select
-                  value={tempRole}
-                  onChange={(e) => setTempRole(e.target.value)}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+              {isSuperAdmin && (
+                <div>
+                  <label className="text-xs text-gray-600">Role</label>
+                  <select
+                    value={tempRole}
+                    onChange={(e) => setTempRole(e.target.value)}
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
           focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
-                >
-                  <option value="">All</option>
-                  <option value="SUPER_ADMIN">Super Admin</option>
-                  <option value="MANAGER">Manager</option>
-                  <option value="INVESTOR">Investor</option>
-                </select>
-              </div>
+                  >
+                    <option value="">All</option>
+                    <option value="SUPER_ADMIN">Super Admin</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="INVESTOR">Investor</option>
+                  </select>
+                </div>
+              )}
 
               {/* Footer Buttons */}
               <div className="flex justify-between mt-4">

@@ -73,7 +73,10 @@ export const projectsApi = createApi({
       query: (id) => `/projects/${id}`,
       providesTags: ["Projects"],
     }),
-
+    getAllUsers: builder.query({
+      query: () => "/projects/manager-users",
+      providesTags: ["Manager-Users"],
+    }),
     /* ------------------------------------
        UPDATE PROJECT
        PUT /projects/:id
@@ -99,6 +102,7 @@ export const projectsApi = createApi({
 
 export const {
   useGetProjectsQuery,
+  useGetAllUsersQuery,
   useCreateProjectMutation,
   useGetProjectManagersQuery,
   useGetProjectByIdQuery,

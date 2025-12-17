@@ -577,16 +577,19 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                             <Eye size={16} /> View
                           </button>
 
-                          <button
-                            onClick={() => {
-                              setSelectedProjectId(project.id); // send id to modal
-                              setIsModalOpen(true);
-                              setOpenMenuId(null); // 🔥 CLOSE MENU
-                            }}
-                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
-                          >
-                            <Edit size={16} /> Edit
-                          </button>
+                          {(userRole === "SUPER_ADMIN" ||
+                            userRole === "MANAGER") && (
+                            <button
+                              onClick={() => {
+                                setSelectedProjectId(project.id); // send id to modal
+                                setIsModalOpen(true);
+                                setOpenMenuId(null); // 🔥 CLOSE MENU
+                              }}
+                              className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                            >
+                              <Edit size={16} /> Edit
+                            </button>
+                          )}
 
                           {userRole === "SUPER_ADMIN" && (
                             <button

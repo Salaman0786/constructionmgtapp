@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Calendar } from "lucide-react";
+import { X, Calendar, ChevronDown } from "lucide-react";
 import {
   useCreateProjectMutation,
   useGetProjectManagersQuery,
   useGetProjectByIdQuery,
   useUpdateProjectMutation,
+  useGetAllUsersQuery,
 } from "../../../features/projectControll/projectsApi";
 import { showError, showInfo, showSuccess } from "../../../utils/toast";
 import { useSelector } from "react-redux";
@@ -44,8 +45,11 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
         API HOOKS
   ----------------------------------------- */
 
-  const { data: managerData, isLoading: isManagersLoading, refetch: refetchManagers} =
-    useGetProjectManagersQuery(undefined);
+  const {
+    data: managerData,
+    isLoading: isManagersLoading,
+    refetch: refetchManagers,
+  } = useGetProjectManagersQuery(undefined);
 
   const { data: projectDetails, isFetching: isProjectFetching } =
     useGetProjectByIdQuery(projectId!, {
@@ -54,7 +58,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
 
   const [createProject, { isLoading: creating }] = useCreateProjectMutation();
   const [updateProject, { isLoading: updating }] = useUpdateProjectMutation();
-
+  const [open, setOpen] = useState(false);
   const loading = creating || updating;
 
   /* -----------------------------------------
@@ -91,9 +95,13 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   const filteredManagers = managers.filter((m: any) =>
     m.fullName.toLowerCase().includes(cleanedSearch)
   );
-
+  const [selected, setSelected] = useState([]);
+  const { data: patientResponse } = useGetAllUsersQuery({ page: 0, limit: 50 });
+  useEffect(() => {
+    setSelected(projectDetails?.data?.assignedUsers);
+  }, [projectDetails]);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
+  const dropdownRefUser = useRef<HTMLDivElement>(null);
   /* -----------------------------------------
       RESET FORM WHEN ENTERING CREATE MODE
   ----------------------------------------- */
@@ -163,7 +171,25 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   // ) => {
   //   setForm({ ...form, [e.target.name]: e.target.value });
   // };
-
+  const handleCheckboxChange = (item) => {
+    if (selected.some((s) => s.id === item.id)) {
+      setSelected((prev) => prev.filter((s) => s.id !== item.id));
+    } else {
+      setSelected((prev) => [...prev, item]);
+    }
+  };
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (
+        dropdownRefUser.current &&
+        !dropdownRefUser.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -174,7 +200,9 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
-
+  const removeTag = (id) => {
+    setSelected((prev) => prev.filter((item) => item.id !== id));
+  };
   /* -----------------------------------------
       SELECT MANAGER
   ----------------------------------------- */
@@ -203,6 +231,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     const payload = {
       ...form,
       budgetBaseline: Number(form.budgetBaseline),
+      assignedUserIds: selected.map((item) => String(item.id)),
     };
 
     // ❌ Remove code only during CREATE
@@ -363,7 +392,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                 }}
                 onFocus={() => {
                   refetchManagers();
-                  setShowDropdown(true)
+                  setShowDropdown(true);
                 }}
                 className={`w-full mt-1 border border-gray-300 ${
                   isManager ? "cursor-not-allowed bg-gray-100" : ""
@@ -425,7 +454,74 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                 </div>
               )}
             </div>
+            {isManager && (
+              <div className="w-full max-w-2xl">
+                <label className="block text-sm mb-1">Users</label>
+                <div className="relative" ref={dropdownRefUser}>
+                  {/* Input Box */}
+                  <div
+                    className="w-full border rounded-md p-2 flex items-center flex-wrap gap-2 cursor-pointer text-sm"
+                    onClick={() => setOpen(!open)}
+                  >
+                    {/* Tags */}
+                    {selected?.length > 0 ? (
+                      selected.map((item) => (
+                        <span
+                          key={item.id}
+                          className="bg-gray-200 text-sm px-2 py-1 rounded flex items-center gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {item.fullName}
+                          <X
+                            size={14}
+                            className="cursor-pointer"
+                            onClick={() => removeTag(item.id)}
+                          />
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-400 text-sm">
+                        Select patients...
+                      </span>
+                    )}
 
+                    {/* Right Icons */}
+                    <span className="ml-auto flex items-center gap-3 pr-1">
+                      {/* Clear All button */}
+                      {selected?.length > 0 && (
+                        <X
+                          size={16}
+                          className="cursor-pointer text-gray-400 hover:text-black"
+                          onClick={() => setSelected([])}
+                        />
+                      )}
+
+                      <ChevronDown size={18} className="text-gray-600" />
+                    </span>
+                  </div>
+
+                  {/* Dropdown */}
+                  {open && (
+                    <div className="absolute w-full border bg-white shadow-md rounded-md mt-1 max-h-60 overflow-y-auto z-50">
+                      {patientResponse?.data?.users?.map((item) => (
+                        <label
+                          key={item.id}
+                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected.some((s) => s.id === item.id)}
+                            onChange={() => handleCheckboxChange(item)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span className="text-sm">{item.fullName}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             {/* BUDGET + CURRENCY */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

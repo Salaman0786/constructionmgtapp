@@ -57,6 +57,7 @@ import InventoryForecast from "../components/Inventory/InventoryForecast/Invento
 import ReorderAlerts from "../components/Inventory/ReorderAlerts/ReorderAlerts";
 import DrawingsRevisions from "../components/Documents&Control/Drawings&Revisions/DrawingsRevisions";
 import Submittals from "../components/Documents&Control/Submittals/Submittals";
+import UserSiteDiary from "../components/UserControl/UserSiteDiary/UserSiteDiary";
 
 export default function AppRoutes() {
   return (
@@ -151,17 +152,41 @@ export default function AppRoutes() {
           />
           {/* User Control */}
           <Route
+            path="/user-project"
+            element={
+              <RoleProtectedRoute allowedRoles={["USER"]}>
+                <Project />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
             path="/user-site-diary"
             element={
-              <RoleProtectedRoute allowedRoles={["USER", "MANAGER"]}>
-                <SiteDiary />
+              <RoleProtectedRoute allowedRoles={["USER"]}>
+                <UserSiteDiary />
               </RoleProtectedRoute>
             }
           />
           <Route
             path="/user-task-assignment"
             element={
-              <RoleProtectedRoute allowedRoles={["USER", "MANAGER"]}>
+              <RoleProtectedRoute allowedRoles={["USER"]}>
+                <TaskAssignment />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/usermanager-site-diary"
+            element={
+              <RoleProtectedRoute allowedRoles={["MANAGER"]}>
+                <UserSiteDiary />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/usermanager-task-assignment"
+            element={
+              <RoleProtectedRoute allowedRoles={["MANAGER"]}>
                 <TaskAssignment />
               </RoleProtectedRoute>
             }

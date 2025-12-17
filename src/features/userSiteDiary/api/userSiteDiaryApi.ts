@@ -16,8 +16,6 @@ export interface SiteDiaryItem {
   projectId: string;
   date: string; // ISO string
   weather: "SUNNY" | "RAINY" | "PARTLY_CLOUDY";
-  manpower: number;
-  equipment: number;
   workDone: string;
   issues?: string;
   createdAt?: string;
@@ -33,7 +31,7 @@ export interface SiteDiaryItem {
 /* --------------------------------------
    API SETUP
 ---------------------------------------*/
-export const siteDiaryApi = createApi({
+export const userSiteDiaryApi = createApi({
   reducerPath: "userSiteDiaryApi",
 
   baseQuery: fetchBaseQuery({
@@ -59,7 +57,7 @@ export const siteDiaryApi = createApi({
        → startDate (createdAt)
        → endDate (createdAt)
     ---------------------------------------*/
-    getSiteDiaries: builder.query<
+    getUserSiteDiaries: builder.query<
       {
         data: { siteDiaryList: SiteDiaryItem[] };
         pagination: {
@@ -99,7 +97,7 @@ export const siteDiaryApi = createApi({
         if (startDate) params.append("startDate", startDate);
         if (endDate) params.append("endDate", endDate);
 
-        return `/site-diary?${params.toString()}`;
+        return `/user-control/site-diary?${params.toString()}`;
       },
 
       providesTags: ["UserSiteDiary"],
@@ -108,17 +106,20 @@ export const siteDiaryApi = createApi({
     /* --------------------------------------
        GET BY ID
     ---------------------------------------*/
-    getSiteDiaryById: builder.query<{ data: SiteDiaryItem }, string>({
-      query: (id) => `/site-diary/${id}`,
+    getUserSiteDiaryById: builder.query<{ data: SiteDiaryItem }, string>({
+      query: (id) => `/user-control/site-diary/${id}`,
       providesTags: ["UserSiteDiary"],
     }),
 
     /* --------------------------------------
        CREATE
     ---------------------------------------*/
-    createSiteDiary: builder.mutation<SiteDiaryItem, Partial<SiteDiaryItem>>({
+    createUserSiteDiary: builder.mutation<
+      SiteDiaryItem,
+      Partial<SiteDiaryItem>
+    >({
       query: (payload) => ({
-        url: `/site-diary`,
+        url: `/user-control/site-diary`,
         method: "POST",
         body: payload,
       }),
@@ -128,12 +129,12 @@ export const siteDiaryApi = createApi({
     /* --------------------------------------
        UPDATE
     ---------------------------------------*/
-    updateSiteDiary: builder.mutation<
+    updateUserSiteDiary: builder.mutation<
       SiteDiaryItem,
       { id: string; payload: Partial<SiteDiaryItem> }
     >({
       query: ({ id, payload }) => ({
-        url: `/site-diary/${id}`,
+        url: `/user-control/site-diary/${id}`,
         method: "PUT",
         body: payload,
       }),
@@ -143,9 +144,9 @@ export const siteDiaryApi = createApi({
     /* --------------------------------------
        DELETE multiple
     ---------------------------------------*/
-    deleteSiteDiaries: builder.mutation<any, string[]>({
+    deleteUserSiteDiaries: builder.mutation<any, string[]>({
       query: (ids) => ({
-        url: `/site-diary`,
+        url: `/user-control/site-diary`,
         method: "DELETE",
         body: { ids },
       }),
@@ -155,21 +156,21 @@ export const siteDiaryApi = createApi({
     /* --------------------------------------
        GET Projects For Dropdown
     ---------------------------------------*/
-    getSiteDiaryProjects: builder.query<
+    getUserSiteDiaryProjects: builder.query<
       { data: { projects: SiteDiaryProject[] } },
       void
     >({
-      query: () => `/site-diary/projects`,
+      query: () => `/user-control/site-diary/projects`,
       providesTags: ["SiteDiaryProjects"],
     }),
   }),
 });
 
 export const {
-  useGetSiteDiariesQuery,
-  useGetSiteDiaryByIdQuery,
-  useCreateSiteDiaryMutation,
-  useUpdateSiteDiaryMutation,
-  useDeleteSiteDiariesMutation,
-  useGetSiteDiaryProjectsQuery,
-} = siteDiaryApi;
+  useGetUserSiteDiariesQuery,
+  useGetUserSiteDiaryByIdQuery,
+  useCreateUserSiteDiaryMutation,
+  useUpdateUserSiteDiaryMutation,
+  useDeleteUserSiteDiariesMutation,
+  useGetUserSiteDiaryProjectsQuery,
+} = userSiteDiaryApi;

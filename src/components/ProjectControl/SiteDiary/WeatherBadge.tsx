@@ -1,7 +1,7 @@
 import { CloudRain, CloudSun, Sun } from "lucide-react";
 import { formatLabel } from "../../../utils/helpers";
 
- export const renderWeatherBadge = (weatherValue?: string) => {
+export const renderWeatherBadge = (weatherValue?: string) => {
   const weather = weatherValue?.toLowerCase();
 
   const colorClass =

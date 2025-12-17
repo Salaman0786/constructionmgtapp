@@ -70,7 +70,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
       <div
         className={`grid grid-cols-1 sm:grid-cols-2 ${
-          (isManager || isInvestor) ? "md:grid-cols-3" : "md:grid-cols-4"
+          isManager || isInvestor ? "md:grid-cols-3" : "md:grid-cols-4"
         } gap-4`}
       >
         {isLoading ? (
@@ -112,13 +112,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             )}
 
             {/* ✅ Total Documents */}
-            <StatCard
-              title="Total Documents"
-              value={topStats?.totalDocuments ?? 0}
-              subText="Uploaded project documents"
-              icon={<FileText className="w-5 h-5 text-orange-600" />}
-              iconBg="bg-orange-100"
-            />
+            {(isManager || isSuperAdmin) && (
+              <StatCard
+                title="Total Documents"
+                value={topStats?.totalDocuments ?? 0}
+                subText="Uploaded project documents"
+                icon={<FileText className="w-5 h-5 text-orange-600" />}
+                iconBg="bg-orange-100"
+              />
+            )}
           </>
         )}
       </div>
