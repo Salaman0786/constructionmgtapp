@@ -8,6 +8,7 @@ import { drawingsApi } from "../features/drawings&controls/api/drawingsApi";
 import { taskApi } from "../features/taskAssignment/api/taskAssignmentApi";
 import { dashboardApi } from "../features/dashboard/api/dashboardApi";
 import { submittalsApi } from "../features/submittals/api/submittalApi";
+import { userTaskApi } from "../features/userTaskAssignment/api/userTaskAssignmentApi";
 
 export const resetAllApis = (dispatch: any) => {
   dispatch(authApi.util.resetApiState());
@@ -20,4 +21,5 @@ export const resetAllApis = (dispatch: any) => {
   dispatch(taskApi.util.resetApiState());
   dispatch(dashboardApi.util.resetApiState());
   dispatch(submittalsApi.util.resetApiState());
+  dispatch(userTaskApi.util.resetApiState());
 };

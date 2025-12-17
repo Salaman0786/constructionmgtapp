@@ -58,6 +58,7 @@ import ReorderAlerts from "../components/Inventory/ReorderAlerts/ReorderAlerts";
 import DrawingsRevisions from "../components/Documents&Control/Drawings&Revisions/DrawingsRevisions";
 import Submittals from "../components/Documents&Control/Submittals/Submittals";
 import UserSiteDiary from "../components/UserControl/UserSiteDiary/UserSiteDiary";
+import UserTaskAssignment from "../components/UserControl/TaskAssignment/TaskAssignment";
 
 export default function AppRoutes() {
   return (
@@ -171,7 +172,7 @@ export default function AppRoutes() {
             path="/user-task-assignment"
             element={
               <RoleProtectedRoute allowedRoles={["USER"]}>
-                <TaskAssignment />
+                <UserTaskAssignment />
               </RoleProtectedRoute>
             }
           />
@@ -187,7 +188,7 @@ export default function AppRoutes() {
             path="/usermanager-task-assignment"
             element={
               <RoleProtectedRoute allowedRoles={["MANAGER"]}>
-                <TaskAssignment />
+                <UserTaskAssignment />
               </RoleProtectedRoute>
             }
           />

@@ -30,6 +30,16 @@ export interface CreateTaskPayload {
   assignedToId: string;
   dueDate: string;
   priority: PriorityType;
+  parentTaskId : string 
+}
+
+export interface ParentTask {
+  id: string;
+  title: string;
+  taskCode: string;
+  projectId: string;
+  dueDate: string;
+  status: "TODO" | "IN_PROGRESS" | "DONE";
 }
 
 export interface CreatedTaskResponse {
@@ -69,13 +79,14 @@ export interface PaginatedTasks {
 // API
 // =========================
 
-export const taskApi = createApi({
-  reducerPath: "taskApi",
+export const userTaskApi = createApi({
+  reducerPath: "userTaskApi",
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) headers.set("Authorization", `Bearer ${token}`);
+      
       return headers;
     },
   }),
@@ -87,9 +98,26 @@ export const taskApi = createApi({
     // GET PROJECTS
     // --------------------------
     getProjects: builder.query<Project[], void>({
-      query: () => "/tasks/projects",
+      query: () => "/user-control/tasks/projects",
       transformResponse: (response: any) => response.data.projects,
       providesTags: ["Projects"],
+    }),
+
+    // --------------------------
+    // GET MANAGER TASKS (Parent Tasks)
+    // --------------------------
+    getManagerTasks: builder.query<ParentTask[], string>({
+      query: (projectId) =>
+        `/user-control/tasks/manager-tasks?projectId=${projectId}`,
+      transformResponse: (res: any) => res.data.tasks,
+    }),
+
+    // --------------------------
+    // GET USERS BY PROJECT (Assignees)
+    // --------------------------
+    getUsersByProject: builder.query<Assignee[], string>({
+      query: (projectId) => `/user-control/tasks/users?projectId=${projectId}`,
+      transformResponse: (res: any) => res.data.users,
     }),
 
     // --------------------------
@@ -106,7 +134,7 @@ export const taskApi = createApi({
     // --------------------------
     createTask: builder.mutation<CreatedTaskResponse, CreateTaskPayload>({
       query: (body) => ({
-        url: "/tasks",
+        url: "/user-control/tasks",
         method: "POST",
         body,
       }),
@@ -150,7 +178,7 @@ export const taskApi = createApi({
         if (endDate) params.append("endDate", endDate);
         if (search) params.append("search", search);
 
-        return `/tasks?${params.toString()}`;
+        return `/user-control/tasks?${params.toString()}`;
       },
 
       transformResponse: (res: any) => ({
@@ -194,7 +222,7 @@ export const taskApi = createApi({
         if (endDate) params.append("endDate", endDate);
         if (search) params.append("search", search);
 
-        return `/tasks?${params.toString()}`;
+        return `/user-control/tasks?${params.toString()}`;
       },
 
       transformResponse: (res: any) => ({
@@ -238,7 +266,7 @@ export const taskApi = createApi({
         if (endDate) params.append("endDate", endDate);
         if (search) params.append("search", search);
 
-        return `/tasks?${params.toString()}`;
+        return `/user-control/tasks?${params.toString()}`;
       },
 
       transformResponse: (res: any) => ({
@@ -255,7 +283,7 @@ export const taskApi = createApi({
 
     deleteTask: builder.mutation<void, string>({
       query: (id) => ({
-        url: `/tasks/${id}`,
+        url: `/user-control/tasks/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Tasks"],
@@ -269,7 +297,7 @@ export const taskApi = createApi({
       { id: string; status: "TODO" | "IN_PROGRESS" | "DONE" }
     >({
       query: ({ id, status }) => ({
-        url: `/tasks/${id}/status`,
+        url: `/user-control/tasks/${id}/status`,
         method: "PATCH",
         body: { status },
       }),
@@ -287,5 +315,7 @@ export const {
   useGetTodoTasksQuery,
   useGetInProgressTasksQuery,
   useGetDoneTasksQuery,
+  useGetUsersByProjectQuery,
+  useGetManagerTasksQuery,
   useUpdateTaskStatusMutation,
-} = taskApi;
+} = userTaskApi;
