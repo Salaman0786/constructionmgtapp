@@ -3,15 +3,18 @@ import { X, Calendar } from "lucide-react";
 import {
   useGetProjectsQuery,
   useGetAssigneesQuery,
+  useGetUsersByProjectQuery,
+  useGetManagerTasksQuery,
   useCreateTaskMutation,
   Project,
   Assignee,
   PriorityType,
   CreateTaskPayload,
-} from "../../../features/taskAssignment/api/taskAssignmentApi";
+  ParentTask,
+} from "../../../features/userTaskAssignment/api/userTaskAssignmentApi";
 
 import { showError, showInfo, showSuccess } from "../../../utils/toast";
-import { validateTask } from "../../../utils/validators/taskValidator";
+import { validateTask } from "../../../utils/validators/userTaskValidator";
 import { RequiredLabel } from "../../common/RequiredLabel";
 
 interface AddTaskModalProps {
@@ -30,13 +33,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
     isLoading: isProjectsLoading,
     refetch: refetchProjects,
   } = useGetProjectsQuery();
-
-  // const {
-  //   data: assignees = [],
-  //   isLoading: isAssigneesLoading,
-  //   refetch: refetchAssignees,
-  // } = useGetAssigneesQuery();
-
   const [createTask, { isLoading }] = useCreateTaskMutation();
 
   /* -----------------------------------
@@ -48,24 +44,50 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
   const [dueDate, setDueDate] = useState("");
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  // const [selectedAssignee, setSelectedAssignee] = useState<Assignee | null>(
-  //   null
-  // );
+  const [selectedAssignee, setSelectedAssignee] = useState<Assignee | null>(
+    null
+  );
 
   /* -----------------------------------
         SEARCH + DROPDOWN STATES
   ----------------------------------- */
   const [projectSearch, setProjectSearch] = useState("");
-  // const [assigneeSearch, setAssigneeSearch] = useState("");
+  const [assigneeSearch, setAssigneeSearch] = useState("");
 
   const [showProjectDD, setShowProjectDD] = useState(false);
-  // const [showAssigneeDD, setShowAssigneeDD] = useState(false);
+  const [showAssigneeDD, setShowAssigneeDD] = useState(false);
 
   const [projectHighlight, setProjectHighlight] = useState(-1);
-  // const [assigneeHighlight, setAssigneeHighlight] = useState(-1);
+  const [assigneeHighlight, setAssigneeHighlight] = useState(-1);
 
   const projectDropdownRef = useRef<HTMLDivElement>(null);
   const assigneeDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [selectedParentTask, setSelectedParentTask] =
+    useState<ParentTask | null>(null);
+
+  const [parentTaskSearch, setParentTaskSearch] = useState("");
+  const [showParentTaskDD, setShowParentTaskDD] = useState(false);
+  const [parentTaskHighlight, setParentTaskHighlight] = useState(-1);
+  const parentTaskDropdownRef = useRef<HTMLDivElement>(null);
+
+  const projectId = selectedProject?.id;
+
+  const {
+    data: assignees = [],
+    isLoading: isAssigneesLoading,
+    refetch: refetchAssignees,
+  } = useGetUsersByProjectQuery(projectId!, {
+    skip: !projectId,
+  });
+
+  const {
+    data: parentTasks = [],
+    isLoading: isParentLoading,
+    refetch: refetchParentTasks,
+  } = useGetManagerTasksQuery(projectId!, {
+    skip: !projectId,
+  });
 
   /* -----------------------------------
         FILTER SEARCH RESULTS
@@ -74,11 +96,17 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
     `${p.name} ${p.code}`.toLowerCase().includes(projectSearch.toLowerCase())
   );
 
-  // const filteredAssignees = assignees.filter((a) =>
-  //   `${a.fullName} ${a.email}`
-  //     .toLowerCase()
-  //     .includes(assigneeSearch.toLowerCase())
-  // );
+  const filteredAssignees = assignees.filter((a) =>
+    `${a.fullName} ${a.email}`
+      .toLowerCase()
+      .includes(assigneeSearch.toLowerCase())
+  );
+
+  const filteredParentTasks = parentTasks.filter((t) =>
+    `${t.title} ${t.taskCode}`
+      .toLowerCase()
+      .includes(parentTaskSearch.toLowerCase())
+  );
 
   /* -----------------------------------
       CLOSE DROPDOWN ON OUTSIDE CLICK
@@ -91,17 +119,34 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
       ) {
         setShowProjectDD(false);
       }
-      // if (
-      //   assigneeDropdownRef.current &&
-      //   !assigneeDropdownRef.current.contains(e.target)
-      // ) {
-      //   setShowAssigneeDD(false);
-      // }
+      if (
+        assigneeDropdownRef.current &&
+        !assigneeDropdownRef.current.contains(e.target)
+      ) {
+        setShowAssigneeDD(false);
+      }
+      if (
+        parentTaskDropdownRef.current &&
+        !parentTaskDropdownRef.current.contains(e.target)
+      ) {
+        setShowParentTaskDD(false);
+      }
     };
 
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  //RESET PARENT TASK WHEN PROJECT CHANGES
+  useEffect(() => {
+    if (!selectedProject) {
+      setSelectedAssignee(null);
+      setSelectedParentTask(null);
+      setAssigneeSearch("");
+      setParentTaskSearch("");
+      setParentTaskHighlight(-1);
+    }
+  }, [selectedProject]);
 
   //reusable reset form
   const resetForm = () => {
@@ -111,16 +156,20 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
     setDueDate("");
 
     setSelectedProject(null);
-    // setSelectedAssignee(null);
+    setSelectedAssignee(null);
+    setSelectedParentTask(null);
 
     setProjectSearch("");
-    // setAssigneeSearch("");
+    setAssigneeSearch("");
+    setParentTaskSearch("");
 
     setProjectHighlight(-1);
-    // setAssigneeHighlight(-1);
+    setAssigneeHighlight(-1);
+    setParentTaskHighlight(-1);
 
     setShowProjectDD(false);
-    // setShowAssigneeDD(false);
+    setShowAssigneeDD(false);
+    setShowParentTaskDD(false);
   };
 
   /* -----------------------------------------
@@ -142,7 +191,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
       description,
       dueDate,
       selectedProject,
-      // selectedAssignee,
+      selectedAssignee,
+      selectedParentTask,
     });
 
     setErrors(validationErrors);
@@ -155,10 +205,11 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
     const payload: CreateTaskPayload = {
       title,
       description,
-      projectId: selectedProject.id,
-      // assignedToId: selectedAssignee.id,
+      projectId: selectedProject?.id,
+      assignedToId: selectedAssignee?.id,
       priority,
       dueDate,
+      parentTaskId: selectedParentTask?.id,
     };
 
     try {
@@ -311,7 +362,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* ASSIGNEE SEARCH */}
-          {/* <div className="relative" ref={assigneeDropdownRef}>
+          <div className="relative" ref={assigneeDropdownRef}>
             <RequiredLabel label="Assigned To" />
 
             <input
@@ -319,11 +370,15 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
               value={
                 selectedAssignee ? selectedAssignee.fullName : assigneeSearch
               }
-              placeholder="Search assignee..."
+              disabled={!selectedProject}
+              placeholder={
+                selectedProject ? "Search assignee..." : "Select project first"
+              }
               onChange={(e) => {
                 setSelectedAssignee(null);
                 setAssigneeSearch(e.target.value.trimStart());
                 setShowAssigneeDD(true);
+                // ✅ clear assignee error when user types
                 if (errors.assignee) {
                   setErrors((prev: any) => ({ ...prev, assignee: "" }));
                 }
@@ -332,15 +387,17 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                 refetchAssignees();
                 setShowAssigneeDD(true);
               }}
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-              focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+              className={`w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+              focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]  ${
+                !selectedProject ? "bg-gray-100 cursor-not-allowed" : ""
+              }`}
             />
 
             {errors.assignee && (
               <p className="text-red-500 text-xs mt-1">{errors.assignee}</p>
             )}
 
-       
+            {/* CLEAR BUTTON */}
             {(assigneeSearch || selectedAssignee) && (
               <button
                 type="button"
@@ -354,7 +411,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
               </button>
             )}
 
-          
+            {/* DROPDOWN */}
             {showAssigneeDD && (
               <div className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-56 overflow-y-auto shadow-lg z-50">
                 {isAssigneesLoading && (
@@ -392,7 +449,99 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                 ))}
               </div>
             )}
-          </div> */}
+          </div>
+
+          {/* Parent tasks searchable dropdown */}
+          <div className="relative" ref={parentTaskDropdownRef}>
+            <RequiredLabel label="Parent Task" />
+
+            <input
+              type="text"
+              disabled={!selectedProject}
+              value={
+                selectedParentTask
+                  ? `${selectedParentTask.title} (${selectedParentTask.taskCode})`
+                  : parentTaskSearch
+              }
+              placeholder={
+                selectedProject
+                  ? "Search parent task..."
+                  : "Select project first"
+              }
+              onChange={(e) => {
+                setSelectedParentTask(null);
+                setParentTaskSearch(e.target.value.trimStart());
+                setShowParentTaskDD(true);
+                // ✅ clear assignee error when user types
+                if (errors.parentTask) {
+                  setErrors((prev: any) => ({ ...prev, parentTask: "" }));
+                }
+              }}
+              onFocus={() => {
+                refetchParentTasks();
+                if (selectedProject) setShowParentTaskDD(true);
+              }}
+              className={`w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+      focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]
+      ${!selectedProject ? "bg-gray-100 cursor-not-allowed" : ""}
+    `}
+            />
+
+            {/* CLEAR BUTTON */}
+            {(parentTaskSearch || selectedParentTask) && selectedProject && (
+              <button
+                type="button"
+                onClick={() => {
+                  setParentTaskSearch("");
+                  setSelectedParentTask(null);
+                }}
+                className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            )}
+
+            {/* DROPDOWN */}
+            {showParentTaskDD && selectedProject && (
+              <div className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-56 overflow-y-auto shadow-lg z-50">
+                {isParentLoading && (
+                  <div className="p-3 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </div>
+                )}
+
+                {!isParentLoading && filteredParentTasks.length === 0 && (
+                  <div className="px-4 py-3 text-gray-500 text-sm">
+                    No parent tasks found
+                  </div>
+                )}
+
+                {filteredParentTasks.map((task, index) => (
+                  <div
+                    key={task.id}
+                    onMouseEnter={() => setParentTaskHighlight(index)}
+                    onClick={() => {
+                      setSelectedParentTask(task);
+                      setShowParentTaskDD(false);
+                      setErrors((prev: any) => ({ ...prev, parentTask: "" }));
+                    }}
+                    className={`px-4 py-2 cursor-pointer text-sm ${
+                      parentTaskHighlight === index
+                        ? "bg-[#f4e8ff] text-[#5b00b2] border-l-4 border-[#5b00b2] font-medium"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className="font-medium">{task.title}</div>
+                    <div className="text-xs text-gray-500">{task.taskCode}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {errors.parentTask && (
+              <p className="text-red-500 text-xs mt-1">{errors.parentTask}</p>
+            )}
+          </div>
 
           {/* GRID — DUE DATE + PRIORITY */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

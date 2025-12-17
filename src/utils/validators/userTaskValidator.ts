@@ -29,9 +29,16 @@ export const validateTask = (task: any) => {
     errors.project = "Project is required";
   }
 
-  // if (!task.selectedAssignee) {
-  //   errors.assignee = "Assignee is required";
-  // }
+  if (!task.selectedAssignee) {
+    errors.assignee = "Assignee is required";
+  }
+
+    if (!task.selectedParentTask) {
+    errors.parentTask = "Parent Task is required";
+  }
+
+
+  
 
   return errors;
 };

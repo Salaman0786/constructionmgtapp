@@ -27,7 +27,7 @@ export interface CreateTaskPayload {
   title: string;
   description: string;
   projectId: string;
-  assignedToId: string;
+  // assignedToId: string;
   dueDate: string;
   priority: PriorityType;
 }
@@ -75,7 +75,7 @@ export const taskApi = createApi({
     baseUrl: API_BASE_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
-      if (token) headers.set("Authorization", `Bearer ${token}`);
+      if (token) headers.set("Authorization", `Bearer ${token}`); 
       return headers;
     },
   }),

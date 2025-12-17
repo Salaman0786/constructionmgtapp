@@ -179,6 +179,36 @@ const ViewSubmittals: React.FC<AddEditProjectModalProps> = ({
                 </label>
               </div>
 
+              {/* EMPTY STATE */}
+              {showAllFiles.length === 0 && (
+                <div className="mb-6">
+                  <div className="flex flex-col items-center justify-center gap-2 p-6 border border-dashed rounded-md bg-gray-50 text-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m5-2a4 4 0 00-4-4H8a4 4 0 00-4 4"
+                      />
+                    </svg>
+
+                    <p className="text-sm font-medium text-gray-700">
+                      No files uploaded
+                    </p>
+
+                    <p className="text-xs text-gray-500">
+                      This Submittal does not have any uploaded files yet.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* FILE LIST */}
               {showAllFiles.length > 0 && (
                 <div className="mb-6">

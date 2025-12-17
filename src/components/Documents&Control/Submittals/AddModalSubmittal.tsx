@@ -959,7 +959,7 @@ const AddModalSubmittal: React.FC<AddEditProjectModalProps> = ({
                   </p>
 
                   <p className="text-xs text-gray-400 mt-1">
-                    or click to browse
+                     or click to browse (JPG, PNG, PDF, DOCX…)
                   </p>
 
                   <input
