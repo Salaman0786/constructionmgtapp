@@ -5,6 +5,7 @@ import {
   useGetProjectManagersQuery,
   useGetProjectByIdQuery,
   useUpdateProjectMutation,
+  useLazyGetAllUsersQuery,
   useGetAllUsersQuery,
 } from "../../../features/projectControll/projectsApi";
 import { showError, showInfo, showSuccess } from "../../../utils/toast";
@@ -53,9 +54,8 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
 
   const { data: projectDetails, isFetching: isProjectFetching } =
     useGetProjectByIdQuery(projectId!, {
-      skip: !isEdit,
+      refetchOnMountOrArgChange: true,
     });
-
   const [createProject, { isLoading: creating }] = useCreateProjectMutation();
   const [updateProject, { isLoading: updating }] = useUpdateProjectMutation();
   const [open, setOpen] = useState(false);
@@ -96,7 +96,14 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     m.fullName.toLowerCase().includes(cleanedSearch)
   );
   const [selected, setSelected] = useState([]);
-  const { data: patientResponse } = useGetAllUsersQuery({ page: 0, limit: 50 });
+  // const { data: patientResponse } = useGetAllUsersQuery({ page: 0, limit: 50 });
+  const { data: patientResponse, refetch } = useGetAllUsersQuery(
+    {
+      page: 0,
+      limit: 50,
+    },
+    { skip: !isManager }
+  );
   useEffect(() => {
     setSelected(projectDetails?.data?.assignedUsers);
   }, [projectDetails]);
@@ -231,7 +238,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     const payload = {
       ...form,
       budgetBaseline: Number(form.budgetBaseline),
-      assignedUserIds: selected.map((item) => String(item.id)),
+      assignedUserIds: selected?.map((item) => String(item.id)),
     };
 
     // ❌ Remove code only during CREATE
@@ -461,7 +468,10 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   {/* Input Box */}
                   <div
                     className="w-full border rounded-md p-2 flex items-center flex-wrap gap-2 cursor-pointer text-sm"
-                    onClick={() => setOpen(!open)}
+                    onClick={() => {
+                      refetch();
+                      setOpen(!open);
+                    }}
                   >
                     {/* Tags */}
                     {selected?.length > 0 ? (

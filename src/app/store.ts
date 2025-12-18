@@ -44,9 +44,7 @@ export const store = configureStore({
       submittalsApi.middleware,
       taskApi.middleware,
       dashboardApi.middleware,
-
       userSiteDiaryApi.middleware,
-
       userTaskApi.middleware
     ),
 });
