@@ -55,9 +55,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   isLoading,
 }) => {
   const userRole = useSelector((state: any) => state.auth.user?.role?.name);
+  const isUser = userRole === "User";
   const isInvestor = userRole === "INVESTOR";
   const isManager = userRole === "MANAGER";
   const isSuperAdmin = userRole === "SUPER_ADMIN";
+
+  const shimmerCount = isSuperAdmin ? 4 : isManager ? 3 : 2;
+  const gridCols = shimmerCount === 4 ? "md:grid-cols-4" : "md:grid-cols-3";
 
   return (
     <div>
@@ -68,17 +72,12 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         Complete overview of project progress & system metrics.
       </p>
 
-      <div
-        className={`grid grid-cols-1 sm:grid-cols-2 ${
-          isManager || isInvestor ? "md:grid-cols-3" : "md:grid-cols-4"
-        } gap-4`}
-      >
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridCols} gap-4`}>
         {isLoading ? (
           <>
-            <StatCardShimmer />
-            <StatCardShimmer />
-            <StatCardShimmer />
-            {(!isManager || !isInvestor) && <StatCardShimmer />}
+            {Array.from({ length: shimmerCount }).map((_, index) => (
+              <StatCardShimmer key={index} />
+            ))}
           </>
         ) : (
           <>

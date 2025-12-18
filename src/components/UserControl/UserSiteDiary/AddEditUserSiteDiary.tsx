@@ -292,6 +292,7 @@ const AddEditUserSiteDiary: React.FC<Props> = ({
               <input
                 type="text"
                 value={projectSearch}
+                title={projectSearch}
                 placeholder="Search project by code or name..."
                 onChange={(e) => {
                   setProjectSearch(e.target.value.trimStart());
@@ -301,7 +302,7 @@ const AddEditUserSiteDiary: React.FC<Props> = ({
                   refetchProjects();
                   setShowDropdown(true);
                 }}
-                className={`w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+                className={`w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
               />
               {errors.projectId && (

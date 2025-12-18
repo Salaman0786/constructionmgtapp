@@ -128,9 +128,10 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
                   placeholder="john@example.com"
                   value={form.email}
                   onChange={handleChange}
+                  title={form.email}
                   required
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
+focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
                 <Mail
                   size={16}

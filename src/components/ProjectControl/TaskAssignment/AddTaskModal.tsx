@@ -235,6 +235,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                   ? `${selectedProject.name} (${selectedProject.code})`
                   : projectSearch
               }
+              title={projectSearch}
               placeholder="Search project..."
               onChange={(e) => {
                 setSelectedProject(null);
@@ -249,7 +250,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                 refetchProjects();
                 setShowProjectDD(true);
               }}
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
               focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             />
             {errors.project && (

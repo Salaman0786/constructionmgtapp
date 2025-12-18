@@ -47,6 +47,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   const projectDropdownRef = useRef(null);
 
   const MAX_FILES = 10;
+  const MAX_TOTAL_FILES = 50;
   const MAX_FILE_SIZE_MB = 10; // 10 MB
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -168,6 +169,20 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
 
     const files = e.target.files;
     if (!files || files.length === 0) return;
+
+    const existingCount = showAllFiles.length;
+    const incomingCount = files.length;
+
+    // 🚫 TOTAL FILE LIMIT CHECK (100)
+    if (existingCount + incomingCount > MAX_TOTAL_FILES) {
+      setFileError(
+        `You can upload a maximum of ${MAX_TOTAL_FILES} files in total.
+Currently uploaded: ${existingCount}`
+      );
+
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
 
     // ✅ PER-SELECTION LIMIT ONLY (not cumulative)
     if (files.length > MAX_FILES) {
@@ -465,6 +480,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                 <input
                   type="text"
                   value={projectSearch}
+                  title={projectSearch}
                   placeholder="Search project by name or code..."
                   onFocus={() => {
                     refetchProjects();
@@ -478,7 +494,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                       setErrors((prev) => ({ ...prev, projectId: "" }));
                     }
                   }}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                 />
 
@@ -664,10 +680,11 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
               {/* FILE UPLOAD */}
               <div className="mb-6">
                 <label className="text-sm text-gray-700">
-                  Upload your drawing files
+                  Upload files
                   <span className=" text-xs text-gray-500 mt-1">
                     {" "}
-                    ( Up to 10 files at a time, 10 MB each )
+                    ( Up to 10 files at a time, 10 MB each, maximum 50 files
+                    total )
                   </span>
                 </label>
                 <label
@@ -729,7 +746,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
                   </p>
 
                   <p className="text-xs text-gray-400 mt-1">
-                     or click to browse (JPG, PNG, PDF, DOCX…)
+                    or click to browse (JPG, PNG, PDF, DOCX…)
                   </p>
 
                   <input

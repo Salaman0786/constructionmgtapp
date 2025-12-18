@@ -287,6 +287,7 @@ const SubmittalTable: React.FC = () => {
                 <input
                   type="text"
                   value={tempProjectSearch}
+                  title={tempProjectSearch}
                   placeholder="Search project by code or name..."
                   onFocus={() => {
                     refetchProjects();
@@ -296,7 +297,7 @@ const SubmittalTable: React.FC = () => {
                     setTempProjectSearch(e.target.value.trimStart());
                     setShowDropdown(true);
                   }}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 />
 
                 {tempProjectSearch && (

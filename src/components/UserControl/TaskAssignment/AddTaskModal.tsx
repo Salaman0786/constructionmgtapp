@@ -286,6 +286,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                   ? `${selectedProject.name} (${selectedProject.code})`
                   : projectSearch
               }
+              title={ selectedProject
+                  ? `${selectedProject.name} (${selectedProject.code})`
+                  : projectSearch}
               placeholder="Search project..."
               onChange={(e) => {
                 setSelectedProject(null);
@@ -300,7 +303,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                 refetchProjects();
                 setShowProjectDD(true);
               }}
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
               focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             />
             {errors.project && (
@@ -370,6 +373,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
               value={
                 selectedAssignee ? selectedAssignee.fullName : assigneeSearch
               }
+              title={ selectedAssignee ? selectedAssignee.fullName : assigneeSearch}
               disabled={!selectedProject}
               placeholder={
                 selectedProject ? "Search assignee..." : "Select project first"
@@ -387,7 +391,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                 refetchAssignees();
                 setShowAssigneeDD(true);
               }}
-              className={`w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+              className={`w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
               focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]  ${
                 !selectedProject ? "bg-gray-100 cursor-not-allowed" : ""
               }`}
@@ -463,6 +467,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                   ? `${selectedParentTask.title} (${selectedParentTask.taskCode})`
                   : parentTaskSearch
               }
+              title={selectedParentTask
+                  ? `${selectedParentTask.title} (${selectedParentTask.taskCode})`
+                  : parentTaskSearch}
               placeholder={
                 selectedProject
                   ? "Search parent task..."
@@ -481,7 +488,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                 refetchParentTasks();
                 if (selectedProject) setShowParentTaskDD(true);
               }}
-              className={`w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+              className={`w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
       focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]
       ${!selectedProject ? "bg-gray-100 cursor-not-allowed" : ""}
     `}
