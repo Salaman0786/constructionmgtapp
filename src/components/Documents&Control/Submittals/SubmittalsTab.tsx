@@ -27,7 +27,11 @@ import ViewDrawings from "../Drawings&Revisions/ViewDrawings";
 import ConfirmModal from "../../common/ConfirmModal";
 import AddModalSubmittal from "./AddModalSubmittal";
 import ViewSubmittals from "./ViewSubmittals";
-import { formatLabel, formatToYMD, getTwoWordPreview } from "../../../utils/helpers";
+import {
+  formatLabel,
+  formatToYMD,
+  getTwoWordPreview,
+} from "../../../utils/helpers";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 export interface SubmittalRecord {
@@ -52,8 +56,15 @@ const SubmittalTable: React.FC = () => {
   // Close menu when scrolling
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", closeMenu);
+    };
   }, []);
 
   const userRole = useSelector((state: any) => state.auth.user?.role?.name);
@@ -276,7 +287,7 @@ const SubmittalTable: React.FC = () => {
           {filterOpen && (
             <div
               ref={filterRef}
-              className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50"
+              className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-10000"
             >
               <h3 className="text-sm font-semibold mb-3">Filter Submittals</h3>
 
@@ -485,7 +496,7 @@ const SubmittalTable: React.FC = () => {
                     </td>
                     <td
                       className="p-3  text-center text-[#3A3A3A] align-middle"
-                       title={project.title}
+                      title={project.title}
                     >
                       {getTwoWordPreview(project.title)}
                       {/* <Files size={18} className="text-gray-400" /> */}
