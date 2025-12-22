@@ -166,8 +166,13 @@ const Project: React.FC = () => {
   // Close menu when scrolling
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", closeMenu);
+    };
   }, []);
 
   //handle csv export
@@ -308,7 +313,7 @@ const Project: React.FC = () => {
           {filterOpen && (
             <div
               ref={filterRef}
-              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-10000"
             >
               <h3 className="text-sm font-semibold mb-3">Filter Projects</h3>
 
@@ -468,7 +473,11 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 <th className="p-3 text-center">Start Date</th>
                 <th className="p-3 text-center">End Date</th>
                 <th className="p-3 text-center">Status</th>
-                <th className="p-3 text-center">Budget</th>
+                {userRole == "USER" ? (
+                  ""
+                ) : (
+                  <th className="p-3 text-center">Budget</th>
+                )}
                 {/* <th className="p-3 text-center">Currency</th>
                 <th className="p-3 text-center">Created At</th> */}
                 <th className="p-3 text-center">Action</th>
@@ -533,9 +542,13 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                         <StatusBadge status={project.status} />
                       </span>
                     </td>
-                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
-                      {project.budgetBaseline}
-                    </td>
+                    {userRole == "USER" ? (
+                      ""
+                    ) : (
+                      <td className="p-3  text-center text-[#3A3A3A]  align-middle">
+                        {project.budgetBaseline}
+                      </td>
+                    )}
                     {/* <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.currency}
                     </td>

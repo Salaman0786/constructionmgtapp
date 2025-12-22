@@ -64,7 +64,8 @@ const SiteDiary: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
 
-  const { data: projectData, refetch:refetchProjects } = useGetSiteDiaryProjectsQuery();
+  const { data: projectData, refetch: refetchProjects } =
+    useGetSiteDiaryProjectsQuery();
   const allProjects = projectData?.data?.projects || [];
 
   const filteredProjects = allProjects.filter((p: any) => {
@@ -156,8 +157,14 @@ const SiteDiary: React.FC = () => {
   // Close menu when scrolling
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", closeMenu);
+    };
   }, []);
 
   /* -----------------------------------
@@ -287,7 +294,7 @@ const SiteDiary: React.FC = () => {
           {filterOpen && (
             <div
               ref={filterRef}
-              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-10000"
             >
               <h3 className="text-sm font-semibold mb-3">Filter DPR</h3>
 
@@ -301,7 +308,8 @@ const SiteDiary: React.FC = () => {
                   placeholder="Search project by code or name..."
                   onFocus={() => {
                     refetchProjects();
-                    setShowDropdown(true)}}
+                    setShowDropdown(true);
+                  }}
                   onChange={(e) => {
                     setTempProjectSearch(e.target.value.trimStart());
                     setShowDropdown(true);
@@ -464,7 +472,7 @@ const SiteDiary: React.FC = () => {
                 >
                   Export
                 </button>
-              
+
                 <button
                   onClick={() => setBulkDeleteConfirmOpen(true)}
                   className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"

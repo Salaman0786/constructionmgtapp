@@ -253,11 +253,13 @@ const DrawingsRevisions: React.FC = () => {
     const handleScroll = () => {
       setOpenMenuId(null);
     };
-
+    const closeMenu = () => setOpenMenuId(null);
     window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", closeMenu);
 
     return () => {
       window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", closeMenu);
     };
   }, []);
 
@@ -340,7 +342,7 @@ const DrawingsRevisions: React.FC = () => {
           {filterOpen && (
             <div
               ref={filterRef}
-              className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-50"
+              className="absolute right-0 mt-2 w-72 bg-white p-4 rounded-xl border shadow-lg z-10000"
             >
               <h3 className="text-sm font-semibold mb-3">Filter Drawings</h3>
 

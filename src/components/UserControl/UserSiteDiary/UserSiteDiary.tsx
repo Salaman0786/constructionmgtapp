@@ -160,8 +160,16 @@ const UserSiteDiary: React.FC = () => {
   // Close menu when scrolling
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+
+      window.removeEventListener("resize", closeMenu);
+    };
   }, []);
 
   /* -----------------------------------
@@ -293,7 +301,7 @@ const UserSiteDiary: React.FC = () => {
           {filterOpen && (
             <div
               ref={filterRef}
-              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-10000"
             >
               <h3 className="text-sm font-semibold mb-3">Filter DPR</h3>
 
