@@ -28,6 +28,7 @@ import ConfirmModal from "./DeleteModal";
 import { StatusBadge } from "./StatusBadge";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
+import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
 
 interface Project {
   id: string;
@@ -81,6 +82,14 @@ const Project: React.FC = () => {
     },
     [filterBtnRef]
   );
+
+  //close Action modal when click outside
+  useActionMenuOutside({
+    buttonSelector: "[data-user-menu-btn]",
+    menuSelector: "[data-user-menu]",
+    onOutsideClick: () => setOpenMenuId(null),
+    enabled: !!openMenuId, //only active when menu is open
+  });
 
   //pagination
   const [page, setPage] = useState(1);
@@ -558,6 +567,7 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
 
                     <td className="px-4 py-3 text-center">
                       <button
+                        data-user-menu-btn
                         className="p-2 rounded-lg hover:bg-[#facf6c]"
                         onClick={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
@@ -573,6 +583,7 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
 
                       {openMenuId === project.id && (
                         <div
+                          data-user-menu
                           className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
                           style={{
                             top: menuPosition.top,

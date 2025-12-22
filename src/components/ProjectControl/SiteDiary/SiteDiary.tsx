@@ -31,6 +31,7 @@ import { showError, showSuccess } from "../../../utils/toast";
 import { renderWeatherBadge } from "./WeatherBadge";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
+import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
 
 const SiteDiary: React.FC = () => {
   /* -----------------------------------
@@ -56,6 +57,14 @@ const SiteDiary: React.FC = () => {
 
   // adjusting menu
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+
+  /* -----------------------------------
+     UI — Add/Edit + View
+  -----------------------------------*/
+  const [openAddEdit, setOpenAddEdit] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   /* -----------------------------------
      Project dropdown (same as add modal)
@@ -141,6 +150,14 @@ const SiteDiary: React.FC = () => {
     [filterBtnRef]
   );
 
+  //close Action modal when click outside
+  useActionMenuOutside({
+    buttonSelector: "[data-user-menu-btn]",
+    menuSelector: "[data-user-menu]",
+    onOutsideClick: () => setOpenMenuId(null),
+    enabled: !!openMenuId, //only active when menu is open
+  });
+
   const confirmBulkDelete = async () => {
     try {
       await deleteDiaries(selectedIds).unwrap();
@@ -207,14 +224,6 @@ const SiteDiary: React.FC = () => {
 
   const selectAll = (checked: boolean) =>
     setSelectedIds(checked ? diaries.map((d) => d.id) : []);
-
-  /* -----------------------------------
-     UI — Add/Edit + View
-  -----------------------------------*/
-  const [openAddEdit, setOpenAddEdit] = useState(false);
-  const [viewOpen, setViewOpen] = useState(false);
-  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   /* -----------------------------------
      Handle view Permission
@@ -585,6 +594,7 @@ const SiteDiary: React.FC = () => {
                         {/* ACTION MENU */}
                         <td className="px-4 py-3 text-center">
                           <button
+                            data-user-menu-btn
                             className="p-2 rounded-lg hover:bg-[#facf6c]"
                             onClick={(e) => {
                               const rect =
@@ -600,6 +610,7 @@ const SiteDiary: React.FC = () => {
                           </button>
                           {openMenuId === d.id && (
                             <div
+                              data-user-menu
                               className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
                               style={{
                                 top: menuPosition.top,
