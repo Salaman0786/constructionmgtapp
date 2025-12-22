@@ -19,7 +19,7 @@ createRoot(document.getElementById("root")!).render(
         <AppWrapper>
           <App />
           {/* Toast */}
-           <ToastContainer
+          <ToastContainer
             position="top-right"
             autoClose={3000}
             hideProgressBar={false}
@@ -36,3 +36,9 @@ createRoot(document.getElementById("root")!).render(
     </Provider>
   </StrictMode>
 );
+
+// REMOVE INITIAL HTML LOADER AFTER REACT LOADS
+const loader = document.getElementById("initial-loader");
+if (loader) {
+  loader.remove();
+}

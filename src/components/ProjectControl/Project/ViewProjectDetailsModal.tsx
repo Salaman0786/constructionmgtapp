@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useGetProjectByIdQuery } from "../../../features/projectControll/projectsApi";
 import { StatusBadge } from "./StatusBadge";
 import { formatToYMD } from "../../../utils/helpers";
+import { useSelector } from "react-redux";
 
 interface ViewProjectDetailsModalProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ const ViewProjectDetailsModal: React.FC<ViewProjectDetailsModalProps> = ({
   const { data, isLoading, isFetching } = useGetProjectByIdQuery(projectId!, {
     skip: !projectId,
   });
+  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
+  const isUser = userRole === "USER";
 
   if (!isOpen) return null;
 
@@ -81,7 +84,7 @@ const ViewProjectDetailsModal: React.FC<ViewProjectDetailsModalProps> = ({
                 ["City", project.city],
                 ["Start Date", formatToYMD(project.startDate)],
                 ["End Date", formatToYMD(project.endDate)],
-                ["Budget", project.budgetBaseline],
+                ...(!isUser ? [["Budget", project.budgetBaseline]] : []),
                 ["Currency", project.currency],
                 ["Created At", formatToYMD(project.createdAt)],
                 ["Address", project.address],
