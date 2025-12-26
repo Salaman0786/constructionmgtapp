@@ -314,7 +314,8 @@ const SiteDiary: React.FC = () => {
                 <input
                   type="text"
                   value={tempProjectSearch}
-                  placeholder="Search project by code or name..."
+                  title={tempProjectSearch}
+                  placeholder="Search project..."
                   onFocus={() => {
                     refetchProjects();
                     setShowDropdown(true);
@@ -323,7 +324,7 @@ const SiteDiary: React.FC = () => {
                     setTempProjectSearch(e.target.value.trimStart());
                     setShowDropdown(true);
                   }}
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm 
        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 />
 

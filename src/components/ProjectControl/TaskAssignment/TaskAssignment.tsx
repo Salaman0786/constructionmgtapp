@@ -106,8 +106,11 @@ const TaskAssignment: React.FC = () => {
   // ==============================
   // API CALLS FOR all project
   // ==============================
-  const { data: allProjects = [], isLoading: loadingProjects, refetch:refetchProjects } =
-    useGetProjectsQuery();
+  const {
+    data: allProjects = [],
+    isLoading: loadingProjects,
+    refetch: refetchProjects,
+  } = useGetProjectsQuery();
 
   // ==============================
   // API CALLS FOR EACH COLUMN
@@ -256,14 +259,18 @@ const TaskAssignment: React.FC = () => {
     const { source, destination } = result;
     if (!destination) return;
 
-    const start = source.droppableId as keyof typeof localColumns;
-    const end = destination.droppableId as keyof typeof localColumns;
+    const start = source.droppableId as keyof ColumnMap;
+    const end = destination.droppableId as keyof ColumnMap;
 
     if (start === end && source.index === destination.index) return;
 
     const task = localColumns[start][source.index];
 
-    const newColumns = {
+    // SAVE PREVIOUS STATE (for rollback)
+    const prevColumns = JSON.parse(JSON.stringify(localColumns));
+
+    // OPTIMISTIC UI UPDATE
+    const newColumns: ColumnMap = {
       todo: [...localColumns.todo],
       inProgress: [...localColumns.inProgress],
       done: [...localColumns.done],
@@ -272,18 +279,29 @@ const TaskAssignment: React.FC = () => {
     newColumns[start].splice(source.index, 1);
     newColumns[end].splice(destination.index, 0, task);
 
-    setLocalColumns(newColumns); // ✅ SAFE UI UPDATE
+    setLocalColumns(newColumns);
 
     const statusMap = {
       todo: "TODO",
       inProgress: "IN_PROGRESS",
       done: "DONE",
-    };
+    } as const;
 
-    await updateTaskStatus({
-      id: task.id,
-      status: statusMap[end],
-    });
+    try {
+      await updateTaskStatus({
+        id: task.id,
+        status: statusMap[end],
+      }).unwrap();
+
+      //SUCCESS
+      showSuccess("Task status updated successfully");
+    } catch (error) {
+      //ROLLBACK UI
+      setLocalColumns(prevColumns);
+
+      showError("Failed to update task status");
+      console.error("Status update failed:", error);
+    }
   };
 
   // ==============================
@@ -481,6 +499,7 @@ const TaskAssignment: React.FC = () => {
                       ? `${selectedProjectFilter.name} (${selectedProjectFilter.code})`
                       : projectSearch
                   }
+                  title={projectSearch}
                   onChange={(e) => {
                     setSelectedProjectFilter(null);
                     setProjectSearch(e.target.value.trimStart());
@@ -488,9 +507,10 @@ const TaskAssignment: React.FC = () => {
                   }}
                   onFocus={() => {
                     refetchProjects();
-                    setShowProjectDD(true)}}
+                    setShowProjectDD(true);
+                  }}
                   placeholder="Search project..."
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm 
        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 />
 

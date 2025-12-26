@@ -84,7 +84,8 @@ const ViewProjectDetailsModal: React.FC<ViewProjectDetailsModalProps> = ({
                 ["City", project.city],
                 ["Start Date", formatToYMD(project.startDate)],
                 ["End Date", formatToYMD(project.endDate)],
-                ...(isUser ? [] : [["Budget", project.budgetBaseline]]),
+
+                ...(!isUser ? [["Budget", project.budgetBaseline]] : []),
                 ["Currency", project.currency],
                 ["Created At", formatToYMD(project.createdAt)],
                 ["Address", project.address],

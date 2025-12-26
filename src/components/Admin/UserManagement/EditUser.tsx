@@ -164,9 +164,10 @@ const EditUser: React.FC<EditUserProps> = ({
                     type="email"
                     name="email"
                     value={form.email}
+                    title={form.email}
                     onChange={handleChange}
                     required
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   />
                   <Mail
