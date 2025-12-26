@@ -89,3 +89,12 @@ export const calculateProgress = (startDate: string, endDate: string) => {
   const progress = ((today - start) / (end - start)) * 100;
   return Math.round(progress);
 };
+
+
+
+export const getExportFileName = (ext: string): string => {
+  const addisDate = getAddisAbabaDate(); // YYYY-MM-DD
+  const [yyyy, mm, dd] = addisDate.split("-");
+
+  return `${mm}-${dd}-${yyyy}.${ext}`;
+};
