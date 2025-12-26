@@ -7,6 +7,7 @@ import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import { Filter, Search } from "lucide-react";
+import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);

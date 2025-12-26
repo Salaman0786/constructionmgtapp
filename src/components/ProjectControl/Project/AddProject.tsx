@@ -238,9 +238,12 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     const payload = {
       ...form,
       budgetBaseline: Number(form.budgetBaseline),
+    };
+    const payloadUpdate = {
+      ...form,
+      budgetBaseline: Number(form.budgetBaseline),
       assignedUserIds: selected?.map((item) => String(item.id)),
     };
-
     // ❌ Remove code only during CREATE
     if (!isEdit) {
       delete payload.code;
@@ -248,7 +251,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
 
     try {
       if (isEdit) {
-        await updateProject({ id: projectId, payload }).unwrap();
+        await updateProject({ id: projectId, payload: payloadUpdate }).unwrap();
         showSuccess("Project updated successfully!");
       } else {
         await createProject(payload).unwrap();
