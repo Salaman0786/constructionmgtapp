@@ -31,6 +31,7 @@ import { showError, showSuccess } from "../../../utils/toast";
 import { renderWeatherBadge } from "./WeatherBadge";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
+import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
 
 const SiteDiary: React.FC = () => {
   /* -----------------------------------
@@ -58,13 +59,22 @@ const SiteDiary: React.FC = () => {
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   /* -----------------------------------
+     UI — Add/Edit + View
+  -----------------------------------*/
+  const [openAddEdit, setOpenAddEdit] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  /* -----------------------------------
      Project dropdown (same as add modal)
   -----------------------------------*/
   const dropdownRef = useRef<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
 
-  const { data: projectData, refetch:refetchProjects } = useGetSiteDiaryProjectsQuery();
+  const { data: projectData, refetch: refetchProjects } =
+    useGetSiteDiaryProjectsQuery();
   const allProjects = projectData?.data?.projects || [];
 
   const filteredProjects = allProjects.filter((p: any) => {
@@ -140,6 +150,14 @@ const SiteDiary: React.FC = () => {
     [filterBtnRef]
   );
 
+  //close Action modal when click outside
+  useActionMenuOutside({
+    buttonSelector: "[data-user-menu-btn]",
+    menuSelector: "[data-user-menu]",
+    onOutsideClick: () => setOpenMenuId(null),
+    enabled: !!openMenuId, //only active when menu is open
+  });
+
   const confirmBulkDelete = async () => {
     try {
       await deleteDiaries(selectedIds).unwrap();
@@ -156,8 +174,14 @@ const SiteDiary: React.FC = () => {
   // Close menu when scrolling
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", closeMenu);
+    };
   }, []);
 
   /* -----------------------------------
@@ -200,14 +224,6 @@ const SiteDiary: React.FC = () => {
 
   const selectAll = (checked: boolean) =>
     setSelectedIds(checked ? diaries.map((d) => d.id) : []);
-
-  /* -----------------------------------
-     UI — Add/Edit + View
-  -----------------------------------*/
-  const [openAddEdit, setOpenAddEdit] = useState(false);
-  const [viewOpen, setViewOpen] = useState(false);
-  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   /* -----------------------------------
      Handle view Permission
@@ -287,7 +303,7 @@ const SiteDiary: React.FC = () => {
           {filterOpen && (
             <div
               ref={filterRef}
-              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-10000"
             >
               <h3 className="text-sm font-semibold mb-3">Filter DPR</h3>
 
@@ -301,7 +317,8 @@ const SiteDiary: React.FC = () => {
                   placeholder="Search project by code or name..."
                   onFocus={() => {
                     refetchProjects();
-                    setShowDropdown(true)}}
+                    setShowDropdown(true);
+                  }}
                   onChange={(e) => {
                     setTempProjectSearch(e.target.value.trimStart());
                     setShowDropdown(true);
@@ -464,7 +481,7 @@ const SiteDiary: React.FC = () => {
                 >
                   Export
                 </button>
-              
+
                 <button
                   onClick={() => setBulkDeleteConfirmOpen(true)}
                   className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md"
@@ -577,6 +594,7 @@ const SiteDiary: React.FC = () => {
                         {/* ACTION MENU */}
                         <td className="px-4 py-3 text-center">
                           <button
+                            data-user-menu-btn
                             className="p-2 rounded-lg hover:bg-[#facf6c]"
                             onClick={(e) => {
                               const rect =
@@ -592,6 +610,7 @@ const SiteDiary: React.FC = () => {
                           </button>
                           {openMenuId === d.id && (
                             <div
+                              data-user-menu
                               className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
                               style={{
                                 top: menuPosition.top,

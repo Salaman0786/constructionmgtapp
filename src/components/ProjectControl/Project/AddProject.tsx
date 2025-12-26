@@ -391,7 +391,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                 type="text"
                 value={managerSearch}
                 placeholder="Search manager..."
-                disabled={isManager}
+                disabled={isEdit}
                 onChange={(e) => {
                   setManagerSearch(e.target.value.trimStart());
                   setShowDropdown(true);
@@ -405,7 +405,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   setShowDropdown(true);
                 }}
                 className={`w-full mt-1 border border-gray-300 ${
-                  isManager ? "cursor-not-allowed bg-gray-100" : ""
+                 ( isManager || isEdit) ? "cursor-not-allowed bg-gray-100" : ""
                 } rounded-md p-2 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
               />
@@ -422,7 +422,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   }}
                   className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700 "
                 >
-                  {isManager ? "" : "✕"}
+                  {(isManager || isEdit) ? "" : "✕"}
                 </button>
               )}
 

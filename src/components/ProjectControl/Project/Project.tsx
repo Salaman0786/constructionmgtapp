@@ -28,6 +28,7 @@ import ConfirmModal from "./DeleteModal";
 import { StatusBadge } from "./StatusBadge";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
+import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
 
 interface Project {
   id: string;
@@ -81,6 +82,14 @@ const Project: React.FC = () => {
     },
     [filterBtnRef]
   );
+
+  //close Action modal when click outside
+  useActionMenuOutside({
+    buttonSelector: "[data-user-menu-btn]",
+    menuSelector: "[data-user-menu]",
+    onOutsideClick: () => setOpenMenuId(null),
+    enabled: !!openMenuId, //only active when menu is open
+  });
 
   //pagination
   const [page, setPage] = useState(1);
@@ -166,8 +175,13 @@ const Project: React.FC = () => {
   // Close menu when scrolling
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", closeMenu);
+    };
   }, []);
 
   //handle csv export
@@ -308,7 +322,7 @@ const Project: React.FC = () => {
           {filterOpen && (
             <div
               ref={filterRef}
-              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-10000"
             >
               <h3 className="text-sm font-semibold mb-3">Filter Projects</h3>
 
@@ -468,7 +482,11 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 <th className="p-3 text-center">Start Date</th>
                 <th className="p-3 text-center">End Date</th>
                 <th className="p-3 text-center">Status</th>
-                <th className="p-3 text-center">Budget</th>
+                {userRole == "USER" ? (
+                  ""
+                ) : (
+                  <th className="p-3 text-center">Budget</th>
+                )}
                 {/* <th className="p-3 text-center">Currency</th>
                 <th className="p-3 text-center">Created At</th> */}
                 <th className="p-3 text-center">Action</th>
@@ -533,9 +551,13 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                         <StatusBadge status={project.status} />
                       </span>
                     </td>
-                    <td className="p-3  text-center text-[#3A3A3A]  align-middle">
-                      {project.budgetBaseline}
-                    </td>
+                    {userRole == "USER" ? (
+                      ""
+                    ) : (
+                      <td className="p-3  text-center text-[#3A3A3A]  align-middle">
+                        {project.budgetBaseline}
+                      </td>
+                    )}
                     {/* <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.currency}
                     </td>
@@ -545,6 +567,7 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
 
                     <td className="px-4 py-3 text-center">
                       <button
+                        data-user-menu-btn
                         className="p-2 rounded-lg hover:bg-[#facf6c]"
                         onClick={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
@@ -560,6 +583,7 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
 
                       {openMenuId === project.id && (
                         <div
+                          data-user-menu
                           className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
                           style={{
                             top: menuPosition.top,

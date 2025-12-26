@@ -34,6 +34,7 @@ import {
   useGetUserSiteDiariesQuery,
 } from "../../../features/userSiteDiary/api/userSiteDiaryApi";
 import { useSelector } from "react-redux";
+import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
 
 const UserSiteDiary: React.FC = () => {
   /* -----------------------------------
@@ -50,6 +51,14 @@ const UserSiteDiary: React.FC = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef(null);
   const filterBtnRef = useRef(null);
+
+  /* -----------------------------------
+     UI — Add/Edit + View
+  -----------------------------------*/
+  const [openAddEdit, setOpenAddEdit] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   // TEMPORARY fields (added)
   const [tempProjectFilterId, setTempProjectFilterId] = useState("");
@@ -144,6 +153,14 @@ const UserSiteDiary: React.FC = () => {
     [filterBtnRef]
   );
 
+  //close Action modal when click outside
+  useActionMenuOutside({
+    buttonSelector: "[data-user-menu-btn]",
+    menuSelector: "[data-user-menu]",
+    onOutsideClick: () => setOpenMenuId(null),
+    enabled: !!openMenuId, //only active when menu is open
+  });
+
   const confirmBulkDelete = async () => {
     try {
       await deleteDiaries(selectedIds).unwrap();
@@ -160,8 +177,16 @@ const UserSiteDiary: React.FC = () => {
   // Close menu when scrolling
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+
+      window.removeEventListener("resize", closeMenu);
+    };
   }, []);
 
   /* -----------------------------------
@@ -204,14 +229,6 @@ const UserSiteDiary: React.FC = () => {
 
   const selectAll = (checked: boolean) =>
     setSelectedIds(checked ? diaries.map((d) => d.id) : []);
-
-  /* -----------------------------------
-     UI — Add/Edit + View
-  -----------------------------------*/
-  const [openAddEdit, setOpenAddEdit] = useState(false);
-  const [viewOpen, setViewOpen] = useState(false);
-  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   /* -----------------------------------
      Handle view Permission
@@ -293,7 +310,7 @@ const UserSiteDiary: React.FC = () => {
           {filterOpen && (
             <div
               ref={filterRef}
-              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-50"
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-10000"
             >
               <h3 className="text-sm font-semibold mb-3">Filter DPR</h3>
 
@@ -580,6 +597,7 @@ const UserSiteDiary: React.FC = () => {
                         {/* ACTION MENU */}
                         <td className="px-4 py-3 text-center">
                           <button
+                            data-user-menu-btn
                             className="p-2 rounded-lg hover:bg-[#facf6c]"
                             onClick={(e) => {
                               const rect =
@@ -595,6 +613,7 @@ const UserSiteDiary: React.FC = () => {
                           </button>
                           {openMenuId === d.id && (
                             <div
+                              data-user-menu
                               className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
                               style={{
                                 top: menuPosition.top,
