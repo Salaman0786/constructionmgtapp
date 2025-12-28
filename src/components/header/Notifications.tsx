@@ -5,7 +5,12 @@ import {
   ClipboardList,
   Calendar,
   Settings,
+  CheckCheck,
+  Check,
 } from "lucide-react";
+import { useGetNotificationsQuery } from "../../features/notifications/api/notificationsApi";
+import { useState } from "react";
+import { timeFormat } from "../../utils/timeFormat";
 
 type NotificationType = "procurement" | "vendors" | "projects" | "systems";
 
@@ -93,6 +98,14 @@ const typeStyles: Record<
 };
 
 export default function Notifications() {
+  const [page, setPage] = useState(1);
+  const [type, setType] = useState("");
+  const { data, isLoading, isError, refetch } = useGetNotificationsQuery({
+    page: page,
+    limit: 10,
+    type: type,
+  });
+
   return (
     <div className="max-w-5xl mx-auto p-6 bg-[#f0f0f0] rounded-xl">
       {/* Header */}
@@ -105,55 +118,78 @@ export default function Notifications() {
 
       {/* Tabs */}
       <div className="flex gap-3 mb-6">
-        <button className="px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium">
+        <button
+          className={`px-4 py-2 rounded-md border text-sm ${
+            type === ""
+              ? "bg-[#4b0082] text-white"
+              : "bg-white text-gray-600 hover:bg-gray-100"
+          }   `}
+          onClick={() => setType("")}
+        >
           All Notifications
         </button>
-        <button className="px-4 py-2 rounded-md border text-sm text-gray-600 hover:bg-gray-100">
+        <button
+          className={`px-4 py-2 rounded-md border text-sm ${
+            type === "unread"
+              ? "bg-[#4b0082] text-white"
+              : "bg-white text-gray-600 hover:bg-gray-100"
+          } `}
+          onClick={() => setType("unread")}
+        >
           Unread
         </button>
-        <button className="px-4 py-2 rounded-md border text-sm text-gray-600 hover:bg-gray-100">
+        <button
+          className={`px-4 py-2 rounded-md border text-sm ${
+            type === "read"
+              ? "bg-[#4b0082] text-white"
+              : "bg-white text-gray-600 hover:bg-gray-100"
+          } `}
+          onClick={() => setType("read")}
+        >
           Read
         </button>
       </div>
 
       {/* Notification List */}
       <div className="space-y-4">
-        {notifications.map((n) => {
-          const meta = typeStyles[n.type];
-
+        {data?.data?.notifications.map((item) => {
           return (
             <div
-              key={n.id}
+              key={item?.notification?.id}
               className="flex items-start gap-4 bg-white rounded-lg p-4 border shadow-sm"
             >
               {/* Icon */}
-              <div
+              {/* <div
                 className={`w-10 h-10 flex items-center justify-center rounded-lg ${meta.bg}`}
               >
                 {meta.icon}
-              </div>
+              </div> */}
 
               {/* Content */}
               <div className="flex-1">
-                <h3 className="font-medium text-gray-900">{n.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{n.description}</p>
+                <h3 className="font-medium text-gray-900">
+                  {item?.notification?.title}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  {item?.notification?.message}
+                </p>
 
-                <div className="flex items-center gap-3 mt-2">
+                <div className="flex items-center gap-3 mt-2 justify-between">
                   <span className="text-xs px-2 py-0.5 rounded-full border text-gray-600">
-                    {meta.badge}
+                    {item?.notification?.type}
                   </span>
-                  <span className="text-xs text-gray-400">{n.time}</span>
+                  <span className="text-xs text-gray-400 flex items-center gap-3 mt-2">
+                    {timeFormat(item?.notification?.createdAt)}{" "}
+                    {item?.isRead ? (
+                      <CheckCheck className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <Check className="w-5 h-5 text-gray-300" />
+                    )}
+                  </span>
                 </div>
               </div>
 
               {/* Read Status */}
-              <div className="pt-1">
-                {n.read ? (
-                  <CheckCircle className="w-5 h-5 text-gray-300" />
-                ) : (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                )}
-              </div>
             </div>
           );
         })}

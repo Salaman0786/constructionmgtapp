@@ -14,6 +14,7 @@ import { userTaskApi } from "../features/userTaskAssignment/api/userTaskAssignme
 import { dashboardApi } from "../features/dashboard/api/dashboardApi";
 import { submittalsApi } from "../features/submittals/api/submittalApi";
 import { userSiteDiaryApi } from "../features/userSiteDiary/api/userSiteDiaryApi";
+import { notificationsApi } from "../features/notifications/api/notificationsApi";
 
 export const store = configureStore({
   reducer: {
@@ -31,6 +32,7 @@ export const store = configureStore({
 
     [userSiteDiaryApi.reducerPath]: userSiteDiaryApi.reducer,
     [userTaskApi.reducerPath]: userTaskApi.reducer,
+    [notificationsApi.reducerPath]: notificationsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -45,7 +47,8 @@ export const store = configureStore({
       taskApi.middleware,
       dashboardApi.middleware,
       userSiteDiaryApi.middleware,
-      userTaskApi.middleware
+      userTaskApi.middleware,
+      notificationsApi.middleware
     ),
 });
 export type RootState = ReturnType<typeof store.getState>;
