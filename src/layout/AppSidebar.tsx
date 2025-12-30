@@ -44,6 +44,7 @@ import {
   Files,
   Upload,
   FolderCog,
+  ScanEye,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAppSelector } from "../app/hooks";
@@ -287,6 +288,20 @@ const navItems: NavItem[] = [
   //     },
   //   ],
   // },
+   {
+    icon: <ScanEye />,
+    name: "Audit Logs",
+    roles: ["SUPER_ADMIN"], // INVESTOR cannot see it
+    subItems: [
+      {
+        icon: <ScanEye />,
+        name: "Audit Logs",
+        path: "/audit-logs",
+        pro: false,
+        roles: ["SUPER_ADMIN"],
+      }
+    ],
+  },
   {
     icon: <FolderOpen />,
     name: "Documents & Control",

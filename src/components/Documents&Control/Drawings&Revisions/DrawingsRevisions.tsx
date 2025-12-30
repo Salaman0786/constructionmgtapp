@@ -13,6 +13,8 @@ import {
   MoreHorizontal,
   File,
   Files,
+  FileText,
+  Sheet,
 } from "lucide-react";
 
 import { useSelector } from "react-redux";
@@ -32,6 +34,11 @@ import ViewDrawings from "./ViewDrawings";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
+import {
+  exportToCSV,
+  exportToExcel,
+  exportToPDF,
+} from "../../../utils/exportUtils";
 
 interface Project {
   id: string;
@@ -82,6 +89,13 @@ const DrawingsRevisions: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [projectFilter, setProjectFilter] = useState("");
   const [tempProjectFilterId, setTempProjectFilterId] = useState("");
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const exportBtnRef = useRef<HTMLButtonElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useClickOutside(exportRef, () => setExportOpen(false), [exportBtnRef]);
+
   //pagination
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -175,20 +189,37 @@ const DrawingsRevisions: React.FC = () => {
     }
   };
 
-  //status color mapping
-  const getStatusClasses = (status: string) => {
-    switch (status) {
-      case "PLANNING":
-        return "bg-blue-100 text-blue-600"; // Planning = Blue
-      case "ONGOING":
-        return "bg-green-100 text-green-600"; // Active = Green
-      case "COMPLETED":
-        return "bg-purple-100 text-purple-700"; // Completed = Purple
-      case "ON_HOLD":
-        return "bg-yellow-100 text-yellow-600"; // On Hold = Yellow
-      default:
-        return "bg-gray-100 text-gray-600"; // fallback
-    }
+  const getSelectedDrawingData = () => {
+    const rows =
+      data?.data?.drawing?.filter((d) => selectedIds.includes(d.id)) || [];
+
+    return rows.map((d) => ({
+      "Drawing ID": d.drawingCode,
+      "Drawing Name": d.drawingName,
+      Project: d.project?.name || "-",
+      Discipline: d.discipline,
+      Revision: d.revision,
+      Date: formatToYMD(d.date),
+      // "File Name": d.fileName || "-",
+      // "File URL": d.fileUrl || "-",
+    }));
+  };
+
+  const handleExportCSV = () => {
+    const rows = getSelectedDrawingData();
+    if (!rows.length) return showError("No drawings selected");
+    exportToCSV(rows, "drawings");
+  };
+
+  const handleExportExcel = () => {
+    const rows = getSelectedDrawingData();
+    if (!rows.length) return showError("No drawings selected");
+    exportToExcel(rows, "drawings");
+  };
+  const handleExportPDF = () => {
+    const rows = getSelectedDrawingData();
+    if (!rows.length) return showError("No drawings selected");
+    exportToPDF(rows, "drawings");
   };
 
   const toggleMenu = (id: string) => {
@@ -209,42 +240,6 @@ const DrawingsRevisions: React.FC = () => {
     setBulkDeleteConfirmOpen(false);
   };
 
-  //handle csv export
-  const handleExportSelected = () => {
-    const selectedProjects = data?.data?.drawing.filter((p) =>
-      selectedIds.includes(p.id)
-    );
-
-    if (selectedProjects.length === 0) {
-      showError("No projects selected for export");
-      return;
-    }
-
-    const csvHeader =
-      "Project Code,Project Name,City,Country,Assigned To,Start Date,End Date,Status,Budget,Currency,Created At";
-
-    const csvRows = selectedProjects
-      .map(
-        (p) =>
-          `${p.code},${p.name},${p.city},${p.country},${
-            p.manager?.fullName || "—"
-          },${formatToYMD(p.startDate)},${formatToYMD(p.endDate)},${p.status},${
-            p.budgetBaseline
-          },${p.currency},${formatToYMD(p.createdAt)}`
-      )
-      .join("\n");
-
-    const csvContent =
-      "data:text/csv;charset=utf-8," + csvHeader + "\n" + csvRows;
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "selected_projects.csv");
-    document.body.appendChild(link);
-    link.click();
-  };
-
   const {
     data: projectsData,
     isLoading: isManagersLoading,
@@ -263,12 +258,19 @@ const DrawingsRevisions: React.FC = () => {
       setOpenMenuId(null);
     };
     const closeMenu = () => setOpenMenuId(null);
+    const tableEl = tableScrollRef.current;
+    if (tableEl) {
+      tableEl.addEventListener("scroll", closeMenu);
+    }
     window.addEventListener("scroll", handleScroll, true);
     window.addEventListener("resize", closeMenu);
 
     return () => {
       window.removeEventListener("scroll", handleScroll, true);
       window.removeEventListener("resize", closeMenu);
+      if (tableEl) {
+        tableEl.removeEventListener("scroll", closeMenu);
+      }
     };
   }, []);
 
@@ -428,9 +430,22 @@ const DrawingsRevisions: React.FC = () => {
                   className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm"
                 >
                   <option value="">All</option>
-                  <option value="Architecture">Architecture</option>
+                  <option value="Civil">Civil</option>
                   <option value="Structural">Structural</option>
+                  <option value="Architecture">Architecture</option>
+                  <option value="Mechanical">Mechanical</option>
                   <option value="Electrical">Electrical</option>
+                  <option value="Plumbing">Plumbing</option>
+                  <option value="HVAC">HVAC</option>
+                  <option value="Fire Protection">Fire Protection</option>
+                  <option value="Water Supply & Sanitation">
+                    Water Supply & Sanitation
+                  </option>
+                  <option value="Roads & Transportation">
+                    Roads & Transportation
+                  </option>
+                  <option value="Telecommunications">Telecommunications</option>
+                  <option value="Surveying">Surveying</option>
                 </select>
               </div>
 
@@ -451,7 +466,7 @@ const DrawingsRevisions: React.FC = () => {
                   className="bg-[#4b0082] text-white text-sm px-4 py-2 rounded-lg"
                   onClick={() => {
                     setProjectFilter(tempProjectFilterId);
-                    setCategoryFilter(tempCategory);
+                    setCategoryFilter(encodeURIComponent(tempCategory));
                     setPage(1);
                     setFilterOpen(false);
                   }}
@@ -482,12 +497,57 @@ const DrawingsRevisions: React.FC = () => {
                 {selectedIds.length} selected
               </span>
 
-              {/* <button
-                onClick={handleExportSelected}
-                className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
-              >
-                Export
-              </button> */}
+              <div className="relative">
+                <button
+                  ref={exportBtnRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExportOpen((p) => !p);
+                  }}
+                  className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]
+    border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
+                >
+                  Export
+                </button>
+
+                {exportOpen && (
+                  <div
+                    ref={exportRef}
+                    className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1"
+                  >
+                    <button
+                      onClick={() => {
+                        handleExportCSV();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <FileText size={16} className="text-gray-500" />
+                      CSV
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleExportExcel();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <Sheet size={16} className="text-gray-500" /> Excel
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleExportPDF();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <Files size={16} className="text-gray-500" /> PDF
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {userRole === "SUPER_ADMIN" && (
                 <button
@@ -501,7 +561,9 @@ const DrawingsRevisions: React.FC = () => {
           )}
         </div>
         {/* When loading → shimmer */}
-        <div className="overflow-x-auto border border-gray-200 rounded-xl">
+        <div 
+        ref={tableScrollRef}
+        className="overflow-x-auto border border-gray-200 rounded-xl">
           <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">

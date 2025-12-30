@@ -59,6 +59,7 @@ import DrawingsRevisions from "../components/Documents&Control/Drawings&Revision
 import Submittals from "../components/Documents&Control/Submittals/Submittals";
 import UserSiteDiary from "../components/UserControl/UserSiteDiary/UserSiteDiary";
 import UserTaskAssignment from "../components/UserControl/TaskAssignment/TaskAssignment";
+import AuditLogs from "../components/AuditLogs/AuditLogs";
 
 export default function AppRoutes() {
   return (
@@ -148,6 +149,15 @@ export default function AppRoutes() {
             element={
               <RoleProtectedRoute allowedRoles={["SUPER_ADMIN", "MANAGER"]}>
                 <TaskAssignment />
+              </RoleProtectedRoute>
+            }
+          />
+          {/* Audit Logs */}
+          <Route
+            path="/audit-logs"
+            element={
+              <RoleProtectedRoute allowedRoles={["SUPER_ADMIN"]}>
+                <AuditLogs />
               </RoleProtectedRoute>
             }
           />

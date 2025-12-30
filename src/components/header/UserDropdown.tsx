@@ -7,19 +7,21 @@ import { useAppSelector } from "../../app/hooks";
 import { useDispatch } from "react-redux";
 import { logout } from "../../features/auth/slices/authSlice";
 import { resetAllApis } from "../../utils/refechApis";
+import { capitalizeWords, formatLabel, getInitials } from "../../utils/helpers";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const { role } = useAppSelector((state) => state.auth);
+  const { role, user } = useAppSelector((state) => state.auth);
   function toggleDropdown() {
     setIsOpen(!isOpen);
   }
+  const isAdminRole = role === "SUPER_ADMIN" || role === "ADMIN";
+
   const ROLE_LABELS: Record<string, string> = {
     SUPER_ADMIN: "Super Admin",
     MANAGER: "Project Manager",
     INVESTOR: "Buyer",
   };
-  const displayRole = ROLE_LABELS[role] || role;
   function closeDropdown() {
     setIsOpen(false);
   }
@@ -31,31 +33,52 @@ export default function UserDropdown() {
     localStorage.clear();
     navigate("/signin");
   };
+  
   return (
     <div className="relative">
       <button
         onClick={toggleDropdown}
-        className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
+        className="flex items-center gap-2 text-gray-700 dropdown-toggle dark:text-gray-400"
       >
-        {/* <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img src="/images/user/owner.jpg" alt="User" />
-        </span> */}
+        {/* Avatar */}
+        <div className="relative group">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 text-purple-700 font-semibold text-sm">
+            {getInitials(user?.fullName)}
+          </div>
 
-        <span className="block mr-1 font-medium text-theme-sm">
-          {displayRole}
-        </span>
+          {!isAdminRole && user?.fullName && (
+            <div
+              className="absolute right-0 top-11 hidden group-hover:block 
+      bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200
+      border border-gray-200 dark:border-gray-700
+      text-xs px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap z-50"
+            >
+              {capitalizeWords(user.fullName)}
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col items-start leading-tight text-left max-w-[150px]">
+          <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+            {isAdminRole
+              ? user?.fullName
+              : formatLabel(user?.fullName?.split(" ")[0]) || "User"}
+          </span>
+          <span className="text-[11px] text-gray-500 text- dark:text-gray-400">
+            {ROLE_LABELS[role] || role}
+          </span>
+        </div>
+
+        {/* Chevron */}
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
+          className={`ml-1 h-4 w-4 stroke-gray-500 dark:stroke-gray-400 transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
-          width="18"
-          height="20"
-          viewBox="0 0 18 20"
+          viewBox="0 0 20 20"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M4.3125 8.65625L9 13.3437L13.6875 8.65625"
+            d="M6 8l4 4 4-4"
             stroke="currentColor"
             strokeWidth="1.5"
             strokeLinecap="round"
