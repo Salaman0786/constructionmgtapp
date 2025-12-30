@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 import { useGetAuditLogsQuery } from "../../features/auditLogs/auditLogsApi";
 import AuditLogShimmer from "./AuditLogShimmer";
-import { formatLabel } from "../../utils/helpers";
+import { capitalizeWords, formatLabel } from "../../utils/helpers";
 import useClickOutside from "../../hooks/useClickOutside";
+import { boldQuotedText } from "../common/BoldQuotedText";
 
 /* ================= TYPES (MATCH API) ================= */
 
@@ -239,7 +240,6 @@ export default function AuditLogThreadERPResponsive() {
 
   return (
     <div className="space-y-6 bg-white min-h-screen">
-      
       {/* Header */}
       <div className="flex flex-row justify-between gap-3 mb-8">
         <div>
@@ -375,9 +375,22 @@ export default function AuditLogThreadERPResponsive() {
 
                           <p className="text-xs text-gray-500 flex flex-wrap items-center gap-1">
                             <span>by</span>
-                            <span className="font-medium text-gray-700">
-                              {log.user.fullName}
+                            <span className="relative group cursor-pointer">
+                              <span className="font-medium text-gray-700">
+                                {capitalizeWords(log.user.fullName)}
+                              </span>
+
+                              {/* Tooltip */}
+                              <span
+                                className="absolute left-0 top-7 hidden group-hover:block
+    bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200
+    border border-gray-200 dark:border-gray-700
+    px-2 py-1 rounded-md shadow text-[10px] whitespace-nowrap z-50"
+                              >
+                                {log.user.email}
+                              </span>
                             </span>
+
                             <span className="text-gray-500">
                               ({formatLabel(log.user.role.name)})
                             </span>
@@ -412,7 +425,7 @@ export default function AuditLogThreadERPResponsive() {
                             Description
                           </p>
                           <p className="text-sm text-gray-700 leading-relaxed">
-                            {log.description}
+                            {boldQuotedText(log.description)}
                           </p>
                         </div>
 
@@ -438,7 +451,7 @@ export default function AuditLogThreadERPResponsive() {
                                 </thead>
 
                                 <tbody>
-                                  {log.changes.map((change) => (
+                                  {log?.changes?.map((change) => (
                                     <tr
                                       key={change.field}
                                       className="border-t border-gray-100 hover:bg-gray-50 transition"
@@ -466,14 +479,14 @@ export default function AuditLogThreadERPResponsive() {
                           log.actionType === "UNASSIGN") && (
                           <div className="space-y-6">
                             {/* USERS ADDED */}
-                            {getAddedUsers(log).length > 0 && (
+                            {getAddedUsers(log)?.length > 0 && (
                               <div className="pl-3 border-l-2 border-emerald-200">
                                 <p className="text-xs font-semibold text-emerald-600 uppercase mb-2">
                                   Users Added
                                 </p>
 
                                 <ul className="space-y-2">
-                                  {getAddedUsers(log).map((user: any) => (
+                                  {getAddedUsers(log)?.map((user: any) => (
                                     <li
                                       key={user.id}
                                       className="flex items-start gap-2 sm:gap-3 text-sm"
@@ -495,14 +508,14 @@ export default function AuditLogThreadERPResponsive() {
                             )}
 
                             {/* USERS REMOVED */}
-                            {getRemovedUsers(log).length > 0 && (
+                            {getRemovedUsers(log)?.length > 0 && (
                               <div className="pl-3 border-l-2 border-orange-200">
                                 <p className="text-xs font-semibold text-orange-600 uppercase mb-2">
                                   Users Removed
                                 </p>
 
                                 <ul className="space-y-2">
-                                  {getRemovedUsers(log).map((user: any) => (
+                                  {getRemovedUsers(log)?.map((user: any) => (
                                     <li
                                       key={user.id}
                                       className="flex items-start gap-2 sm:gap-3 text-sm"

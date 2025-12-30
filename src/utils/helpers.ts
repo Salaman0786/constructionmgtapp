@@ -98,3 +98,21 @@ export const getExportFileName = (ext: string): string => {
 
   return `${mm}-${dd}-${yyyy}.${ext}`;
 };
+
+
+export const getInitials = (name?: string) => {
+  if (!name) return "U";
+  const words = name.trim().split(" ");
+  if (words.length === 1) return words[0].charAt(0).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+};
+
+
+export function capitalizeWords(name: string): string {
+  if (!name) return "";
+    return name
+      .toLowerCase()
+      .split(/[_\s]+/) // split by underscore or space
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }

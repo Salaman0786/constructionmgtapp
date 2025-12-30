@@ -23,7 +23,7 @@ import {
 } from "../../../features/projectControll/projectsApi";
 import { useSelector } from "react-redux";
 import { renderShimmer } from "../../common/tableShimmer";
-import { formatLabel, getTwoWordPreview } from "../../../utils/helpers";
+import { capitalizeWords, formatLabel, getTwoWordPreview } from "../../../utils/helpers";
 import { formatToYMD } from "../../../utils/helpers";
 import { showError, showSuccess } from "../../../utils/toast";
 import ViewProjectDetailsModal from "./ViewProjectDetailsModal";
@@ -622,9 +622,9 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                     </td>
                     <td
                       className="p-3 text-center  text-[#3A3A3A]  align-middle"
-                      title={project.name}
+                      title={capitalizeWords(project.name)}
                     >
-                      {getTwoWordPreview(project.name)}
+                      {getTwoWordPreview(capitalizeWords(project.name))}
                     </td>
                     <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.country}
