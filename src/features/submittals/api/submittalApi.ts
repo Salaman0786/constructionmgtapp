@@ -1,16 +1,9 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_BASE_URL } from "../../../config/env";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithInterceptor } from "../../../baseQueryWithInterceptor";
 
 export const submittalsApi = createApi({
   reducerPath: "submittalsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_BASE_URL,
-    prepareHeaders: (headers, { getState }: any) => {
-      const token = getState().auth.token;
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithInterceptor,
   tagTypes: ["Documents"],
   endpoints: (builder) => ({
     getSubmittals: builder.query({
@@ -97,6 +90,13 @@ export const submittalsApi = createApi({
         { type: "Submittals", id: "LIST" }, // also refresh list
       ],
     }),
+    updateSubmittalsStatus: builder.mutation({
+      query: ({ id, payload }) => ({
+        url: `/submittals/${id}/decision`,
+        method: "PATCH", // or PATCH
+        body: payload,
+      }),
+    }),
   }),
 });
 
@@ -108,6 +108,7 @@ export const {
   useCreateSubmittalsMutation,
   useUploadSubmittalsMutation,
   useUpdateSubmittalsMutation,
+  useUpdateSubmittalsStatusMutation,
   useDeleteSubmittalsMutation,
   useDeleteSubmittalsFileMutation,
 } = submittalsApi;

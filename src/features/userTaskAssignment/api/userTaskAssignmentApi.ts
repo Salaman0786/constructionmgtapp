@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_BASE_URL } from "../../../config/env";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithInterceptor } from "../../../baseQueryWithInterceptor";
 
 // =========================
 // TYPES
@@ -30,7 +30,7 @@ export interface CreateTaskPayload {
   assignedToId: string;
   dueDate: string;
   priority: PriorityType;
-  parentTaskId : string 
+  parentTaskId: string;
 }
 
 export interface ParentTask {
@@ -81,15 +81,7 @@ export interface PaginatedTasks {
 
 export const userTaskApi = createApi({
   reducerPath: "userTaskApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_BASE_URL,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithInterceptor,
 
   tagTypes: ["Tasks", "Projects", "Assignees"],
 

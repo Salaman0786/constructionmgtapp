@@ -26,12 +26,14 @@ import {
   useDeleteDrawingsMutation,
   useGetDrawingsProjectsQuery,
   useGetDrawingsQuery,
+  useUpdateDrawingsStatusMutation,
 } from "../../../features/drawings&controls/api/drawingsApi";
 import ConfirmModal from "../../common/ConfirmModal";
 import ViewDrawings from "./ViewDrawings";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
+import { StatusBadge } from "../../ProjectControl/Project/StatusBadge";
 
 interface Project {
   id: string;
@@ -83,6 +85,7 @@ const DrawingsRevisions: React.FC = () => {
   const [projectFilter, setProjectFilter] = useState("");
   const [tempProjectFilterId, setTempProjectFilterId] = useState("");
   //pagination
+
   const [page, setPage] = useState(1);
   const limit = 10;
   useEffect(() => {
@@ -107,7 +110,8 @@ const DrawingsRevisions: React.FC = () => {
     category: categoryFilter,
     projectId: projectFilter,
   });
-
+  const [updateDrawingStatus, { isLoading: updatingStatus }] =
+    useUpdateDrawingsStatusMutation();
   const [deleteDrawings, { isLoading: isDeleting }] =
     useDeleteDrawingsMutation();
   /*
@@ -126,6 +130,21 @@ const DrawingsRevisions: React.FC = () => {
     setSingleDeleteConfirmOpen(false);
   };
 
+  const handleRevisionChange = async (projectId: string, value: string) => {
+    const payload = {
+      action: value,
+    };
+    try {
+      await updateDrawingStatus({ id: projectId, payload }).unwrap();
+      refetch();
+      showSuccess("Status updated successfully!");
+    } catch (error: any) {
+      const msg = Array.isArray(error?.data?.message)
+        ? error.data.message.join(", ")
+        : error?.data?.message;
+      showError(msg);
+    }
+  };
   //close filter when click outside
   useClickOutside(
     filterRef,
@@ -291,7 +310,11 @@ const DrawingsRevisions: React.FC = () => {
       />
     );
   }
-
+  const statusStyles: Record<string, string> = {
+    FOR_REVIEW: "text-yellow-600 border-yellow-400",
+    APPROVED: "text-green-600 border-green-400",
+    REJECTED: "text-red-600 border-red-400",
+  };
   return (
     <div className="space-y-6 bg-white min-h-screen">
       {/* Header */}
@@ -522,6 +545,7 @@ const DrawingsRevisions: React.FC = () => {
                 <th className="p-3 text-center">Project</th>
                 <th className="p-3 text-center">Discipline</th>
                 <th className="p-3 text-center">Revision</th>
+                <th className="p-3 text-center">Status</th>
                 <th className="p-3 text-center">Date</th>
                 <th className="p-3 text-center">Action</th>
               </tr>
@@ -579,6 +603,38 @@ const DrawingsRevisions: React.FC = () => {
                     <td className="p-3 text-center text-[#3A3A3A]  align-middle">
                       {project.revision}
                     </td>
+                    {userRole === "SUPER_ADMIN" ? (
+                      <td className="p-3 text-center align-middle">
+                        <select
+                          value={project.status}
+                          onChange={(e) =>
+                            handleRevisionChange(project.id, e.target.value)
+                          }
+                          className={`px-1 py-1 text-sm rounded-md border focus:outline-none ${
+                            statusStyles[project.status]
+                          }`}
+                        >
+                          <option
+                            value="FOR_REVIEW"
+                            className="text-yellow-600"
+                          >
+                            For Review
+                          </option>
+                          <option value="APPROVED" className="text-green-600">
+                            Approved
+                          </option>
+                          <option value="REJECTED" className="text-red-600">
+                            Rejected
+                          </option>
+                        </select>
+                      </td>
+                    ) : (
+                      <td className="p-3 text-center align-middle">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full">
+                          <StatusBadge status={project.status} />
+                        </span>
+                      </td>
+                    )}
                     <td className="p-3 text-center text-[#3A3A3A]  whitespace-nowrap align-middle">
                       {formatToYMD(project.date)}
                     </td>

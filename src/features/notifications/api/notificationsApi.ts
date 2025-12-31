@@ -1,16 +1,9 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_BASE_URL } from "../../../config/env";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithInterceptor } from "../../../baseQueryWithInterceptor";
 
 export const notificationsApi = createApi({
   reducerPath: "notificationsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_BASE_URL,
-    prepareHeaders: (headers, { getState }: any) => {
-      const token = getState().auth.token;
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithInterceptor,
   tagTypes: ["Notifications"],
   endpoints: (builder) => ({
     getNotifications: builder.query({
@@ -29,7 +22,7 @@ export const notificationsApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Notifications"],
+      invalidatesTags: ["NotificationCount", "Notifications"],
     }),
   }),
 });

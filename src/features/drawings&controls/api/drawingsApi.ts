@@ -1,16 +1,9 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_BASE_URL } from "../../../config/env";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithInterceptor } from "../../../baseQueryWithInterceptor";
 
 export const drawingsApi = createApi({
   reducerPath: "drawingsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_BASE_URL,
-    prepareHeaders: (headers, { getState }: any) => {
-      const token = getState().auth.token;
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithInterceptor,
   tagTypes: ["Documents"],
   endpoints: (builder) => ({
     getDrawings: builder.query({
@@ -90,6 +83,13 @@ export const drawingsApi = createApi({
         { type: "Drawings", id: "LIST" }, // also refresh list
       ],
     }),
+    updateDrawingsStatus: builder.mutation({
+      query: ({ id, payload }) => ({
+        url: `/drawings/${id}/decision`,
+        method: "PATCH", // or PATCH
+        body: payload,
+      }),
+    }),
   }),
 });
 
@@ -100,6 +100,7 @@ export const {
   useCreateDrawingsMutation,
   useUploadDrawingsMutation,
   useUpdateDrawingsMutation,
+  useUpdateDrawingsStatusMutation,
   useDeleteDrawingsMutation,
   useDeleteDrawingsFileMutation,
 } = drawingsApi;

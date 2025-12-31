@@ -1,25 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { Link } from "react-router";
 import Notifications from "./Notifications";
+import { useGetNotificationCountQuery } from "../../features/notifications/api/notificationsApi";
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifying, setNotifying] = useState(true);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   function toggleDropdown() {
     setIsOpen(!isOpen);
   }
 
-  function closeDropdown() {
-    setIsOpen(false);
-  }
-
+  const { data } = useGetNotificationCountQuery(undefined);
   const handleClick = () => {
     toggleDropdown();
-    setNotifying(false);
+
     setOpen(!open);
   };
 
@@ -43,13 +37,15 @@ export default function NotificationDropdown() {
         className="relative flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full dropdown-toggle hover:text-gray-700 h-8 w-8 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
         onClick={handleClick}
       >
-        <span
-          className={`absolute right-0 top-0.5 z-10 h-2 w-2 rounded-full bg-orange-400 ${
-            !notifying ? "hidden" : "flex"
-          }`}
+        <div
+          className={`absolute right-[-10px] top-[-8px] z-10 flex text-red-400`}
         >
-          <span className="absolute inline-flex w-full h-full bg-orange-400 rounded-full opacity-75 animate-ping"></span>
-        </span>
+          {data?.data?.unread > 0 && (
+            <div className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex justify-center items-center">
+              {data?.data?.unread}
+            </div>
+          )}
+        </div>
         <svg
           className="fill-current"
           width="20"
@@ -70,7 +66,7 @@ export default function NotificationDropdown() {
           className="absolute right-[-140px] mt-3 w-[600px] max-w-[95vw] z-10
                 max-h-[580px] overflow-y-auto"
         >
-          <Notifications />
+          <Notifications onClose={() => setOpen(!open)} />
         </div>
       )}
     </div>
