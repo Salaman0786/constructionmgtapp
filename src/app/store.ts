@@ -14,6 +14,7 @@ import { userTaskApi } from "../features/userTaskAssignment/api/userTaskAssignme
 import { dashboardApi } from "../features/dashboard/api/dashboardApi";
 import { submittalsApi } from "../features/submittals/api/submittalApi";
 import { userSiteDiaryApi } from "../features/userSiteDiary/api/userSiteDiaryApi";
+import { auditLogApi } from "../features/auditLogs/auditLogsApi";
 import { notificationsApi } from "../features/notifications/api/notificationsApi";
 
 export const store = configureStore({
@@ -32,6 +33,7 @@ export const store = configureStore({
 
     [userSiteDiaryApi.reducerPath]: userSiteDiaryApi.reducer,
     [userTaskApi.reducerPath]: userTaskApi.reducer,
+    [auditLogApi.reducerPath]: auditLogApi.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -48,6 +50,7 @@ export const store = configureStore({
       dashboardApi.middleware,
       userSiteDiaryApi.middleware,
       userTaskApi.middleware,
+      auditLogApi.middleware,
       notificationsApi.middleware
     ),
 });

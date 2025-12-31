@@ -7,10 +7,12 @@ import {
   Edit,
   Eye,
   Files,
+  FileText,
   Filter,
   MoreHorizontal,
   Plus,
   Search,
+  Sheet,
   Trash2,
 } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -36,7 +38,15 @@ import {
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
+
 import { StatusBadge } from "../../ProjectControl/Project/StatusBadge";
+
+import {
+  exportToCSV,
+  exportToExcel,
+  exportToPDF,
+} from "../../../utils/exportUtils";
+
 export interface SubmittalRecord {
   id: number;
   submittalNo: string;
@@ -45,7 +55,7 @@ export interface SubmittalRecord {
   linkedDrawing: string;
   department: string;
   date: string;
-  status: "Approved" | "Submitted" | "Rejected" | "Draft";
+  status: "Approved" | "Submitted" | "Rejected";
 }
 
 const SubmittalTable: React.FC = () => {
@@ -107,6 +117,34 @@ const SubmittalTable: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const dropdownRef = React.useRef<HTMLDivElement | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const exportBtnRef = useRef<HTMLButtonElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useClickOutside(exportRef, () => setExportOpen(false), [exportBtnRef]);
+
+  // Close menu when scrolling
+  useEffect(() => {
+    const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
+    const tableEl = tableScrollRef.current;
+    if (tableEl) {
+      tableEl.addEventListener("scroll", closeMenu);
+    }
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", closeMenu);
+
+      if (tableEl) {
+        tableEl.removeEventListener("scroll", closeMenu);
+      }
+    };
+  }, []);
+
   //pagination
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -183,6 +221,40 @@ const SubmittalTable: React.FC = () => {
   if (isError) {
     console.error("Error :", (error as any)?.data?.message);
   }
+
+  const getSelectedSubmittalData = () => {
+    const rows =
+      data?.data?.submittals?.filter((s) => selectedIds.includes(s.id)) || [];
+
+    return rows.map((s) => ({
+      "Submittal No": s.submittalCode,
+      Title: s.title,
+      Project: s.project?.name || "-",
+      Category: s.category,
+      "Linked Drawing": s.linkedDrawingId ? "Yes" : "No",
+      Department: s.department,
+      Date: formatToYMD(s.date),
+      // Status: s.status,
+    }));
+  };
+
+  const handleExportCSV = () => {
+    const rows = getSelectedSubmittalData();
+    if (!rows.length) return showError("No submittals selected");
+    exportToCSV(rows, "submittals");
+  };
+
+  const handleExportExcel = () => {
+    const rows = getSelectedSubmittalData();
+    if (!rows.length) return showError("No submittals selected");
+    exportToExcel(rows, "submittals");
+  };
+
+  const handleExportPDF = () => {
+    const rows = getSelectedSubmittalData();
+    if (!rows.length) return showError("No submittals selected");
+    exportToPDF(rows, "submittals");
+  };
 
   // Select / Deselect
   const toggleSelect = (id: string) => {
@@ -449,12 +521,57 @@ const SubmittalTable: React.FC = () => {
                 {selectedIds.length} selected
               </span>
 
-              {/* <button
-                  onClick={handleExportSelected}
-                  className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
+              <div className="relative">
+                <button
+                  ref={exportBtnRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExportOpen((p) => !p);
+                  }}
+                  className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]
+    border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
                 >
                   Export
-                </button> */}
+                </button>
+
+                {exportOpen && (
+                  <div
+                    ref={exportRef}
+                    className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1"
+                  >
+                    <button
+                      onClick={() => {
+                        handleExportCSV();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <FileText size={16} className="text-gray-500" />
+                      CSV
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleExportExcel();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <Sheet size={16} className="text-gray-500" /> Excel
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleExportPDF();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <Files size={16} className="text-gray-500" /> PDF
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {userRole === "SUPER_ADMIN" && (
                 <button
@@ -468,7 +585,10 @@ const SubmittalTable: React.FC = () => {
           )}
         </div>
         {/* When loading → shimmer */}
-        <div className="overflow-x-auto border border-gray-200 rounded-xl">
+        <div
+          ref={tableScrollRef}
+          className="overflow-x-auto border border-gray-200 rounded-xl"
+        >
           <table className="min-w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">

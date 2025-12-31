@@ -12,6 +12,9 @@ import {
   Edit,
   MoreHorizontal,
   Calendar,
+  FileText,
+  Files,
+  Sheet,
 } from "lucide-react";
 import AddProject from "./AddProject";
 import {
@@ -20,7 +23,7 @@ import {
 } from "../../../features/projectControll/projectsApi";
 import { useSelector } from "react-redux";
 import { renderShimmer } from "../../common/tableShimmer";
-import { getTwoWordPreview } from "../../../utils/helpers";
+import { capitalizeWords, formatLabel, getTwoWordPreview } from "../../../utils/helpers";
 import { formatToYMD } from "../../../utils/helpers";
 import { showError, showSuccess } from "../../../utils/toast";
 import ViewProjectDetailsModal from "./ViewProjectDetailsModal";
@@ -29,7 +32,11 @@ import { StatusBadge } from "./StatusBadge";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
-
+import {
+  exportToCSV,
+  exportToExcel,
+  exportToPDF,
+} from "../../../utils/exportUtils";
 interface Project {
   id: string;
   name: string;
@@ -74,6 +81,13 @@ const Project: React.FC = () => {
   const [tempEnd, setTempEnd] = useState("");
   const [tempStatus, setTempStatus] = useState("");
 
+  //exoprt
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const exportBtnRef = useRef<HTMLButtonElement>(null);
+
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
+
   //close filter when click outside
   useClickOutside(
     filterRef,
@@ -82,6 +96,9 @@ const Project: React.FC = () => {
     },
     [filterBtnRef]
   );
+
+  //close export when click outside
+  useClickOutside(exportRef, () => setExportOpen(false), [exportBtnRef]);
 
   //close Action modal when click outside
   useActionMenuOutside({
@@ -176,49 +193,20 @@ const Project: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
     const closeMenu = () => setOpenMenuId(null);
+    const tableEl = tableScrollRef.current;
+    if (tableEl) {
+      tableEl.addEventListener("scroll", closeMenu);
+    }
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", closeMenu);
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", closeMenu);
+      if (tableEl) {
+        tableEl.removeEventListener("scroll", closeMenu);
+      }
     };
   }, []);
-
-  //handle csv export
-  const handleExportSelected = () => {
-    const selectedProjects = filteredProjects.filter((p) =>
-      selectedIds.includes(p.id)
-    );
-
-    if (selectedProjects.length === 0) {
-      showError("No projects selected for export");
-      return;
-    }
-
-    const csvHeader =
-      "Project Code,Project Name,City,Country,Assigned To,Start Date,End Date,Status,Budget,Currency,Created At";
-
-    const csvRows = selectedProjects
-      .map(
-        (p) =>
-          `${p.code},${p.name},${p.city},${p.country},${
-            p.manager?.fullName || "—"
-          },${formatToYMD(p.startDate)},${formatToYMD(p.endDate)},${p.status},${
-            p.budgetBaseline
-          },${p.currency},${formatToYMD(p.createdAt)}`
-      )
-      .join("\n");
-
-    const csvContent =
-      "data:text/csv;charset=utf-8," + csvHeader + "\n" + csvRows;
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "selected_projects.csv");
-    document.body.appendChild(link);
-    link.click();
-  };
 
   // Search filter
   const filteredProjects = projects.filter((p) => {
@@ -243,6 +231,65 @@ const Project: React.FC = () => {
 
     return matchesSearch && matchesStart && matchesEnd && matchesStatus;
   });
+
+  const getSelectedProjectsData = () => {
+    const rows = filteredProjects.filter((p) => selectedIds.includes(p.id));
+
+    if (rows.length === 0) {
+      showError("No projects selected for export");
+      return null;
+    }
+    return rows.map((p) => {
+      const baseData: any = {
+        "Project ID": p.code,
+        "Project Name": p.name,
+        "Project Type": p.type,
+        Country: p.country,
+        City: p.city || "-",
+        "Start Date": formatToYMD(p.startDate),
+        "End Date": formatToYMD(p.endDate),
+        Currency: p.currency,
+        "Created At": formatToYMD(p.createdAt),
+        Address: p.address || "-",
+        "Assigned To": p.manager?.fullName || "-",
+        Status: formatLabel(p.status),
+      };
+
+      // 👇 Only add Budget if NOT USER
+      if (userRole !== "USER") {
+        baseData.Budget = p.budgetBaseline;
+      }
+
+      return baseData;
+    });
+  };
+
+  const handleExportCSV = () => {
+    const rows = getSelectedProjectsData();
+    if (!rows || rows.length === 0) {
+      showError("No projects selected for export");
+      return;
+    }
+    exportToCSV(rows, "project");
+  };
+
+  const handleExportExcel = () => {
+    const rows = getSelectedProjectsData();
+    if (!rows || rows.length === 0) {
+      showError("No projects selected for export");
+      return;
+    }
+    exportToExcel(rows, "project");
+  };
+
+  const handleExportPDF = () => {
+    const rows = getSelectedProjectsData();
+    if (!rows || rows.length === 0) {
+      showError("No projects selected for export");
+      return;
+    }
+    exportToPDF(rows, "project");
+  };
 
   //handle project view permission
 
@@ -439,12 +486,57 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                 {selectedIds.length} selected
               </span>
 
-              <button
-                onClick={handleExportSelected}
-                className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
-              >
-                Export
-              </button>
+              <div className="relative">
+                <button
+                  ref={exportBtnRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExportOpen((p) => !p);
+                  }}
+                  className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]
+    border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
+                >
+                  Export
+                </button>
+
+                {exportOpen && (
+                  <div
+                    ref={exportRef}
+                    className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1"
+                  >
+                    <button
+                      onClick={() => {
+                        handleExportCSV();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <FileText size={16} className="text-gray-500" />
+                      CSV
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleExportExcel();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <Sheet size={16} className="text-gray-500" /> Excel
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleExportPDF();
+                        setExportOpen(false);
+                      }}
+                      className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                    >
+                      <Files size={16} className="text-gray-500" /> PDF
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {userRole === "SUPER_ADMIN" && (
                 <button
@@ -458,7 +550,10 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
           )}
         </div>
 
-        <div className="w-full overflow-x-auto border border-gray-200 rounded-xl">
+        <div
+          ref={tableScrollRef}
+          className="w-full overflow-x-auto border border-gray-200 rounded-xl"
+        >
           <table className="table-auto w-full text-sm border-collapse">
             <thead className="bg-gray-100 text-gray-600">
               <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
@@ -527,9 +622,9 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
                     </td>
                     <td
                       className="p-3 text-center  text-[#3A3A3A]  align-middle"
-                      title={project.name}
+                      title={capitalizeWords(project.name)}
                     >
-                      {getTwoWordPreview(project.name)}
+                      {getTwoWordPreview(capitalizeWords(project.name))}
                     </td>
                     <td className="p-3  text-center text-[#3A3A3A]  align-middle">
                       {project.country}

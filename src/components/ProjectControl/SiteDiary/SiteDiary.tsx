@@ -13,6 +13,9 @@ import {
   Users,
   Plus,
   Calendar,
+  Files,
+  Sheet,
+  FileText,
 } from "lucide-react";
 
 import AddEditSiteDiary from "./AddEditSiteDiary";
@@ -25,13 +28,22 @@ import {
   useGetSiteDiaryProjectsQuery,
 } from "../../../features/siteDiary/api/siteDiaryApi";
 
-import { getTwoWordPreview, formatToYMD } from "../../../utils/helpers";
+import {
+  getTwoWordPreview,
+  formatToYMD,
+  formatLabel,
+} from "../../../utils/helpers";
 import { renderShimmer } from "../../common/tableShimmer";
 import { showError, showSuccess } from "../../../utils/toast";
 import { renderWeatherBadge } from "./WeatherBadge";
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
+import {
+  exportToCSV,
+  exportToExcel,
+  exportToPDF,
+} from "../../../utils/exportUtils";
 
 const SiteDiary: React.FC = () => {
   /* -----------------------------------
@@ -73,6 +85,13 @@ const SiteDiary: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
 
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const exportBtnRef = useRef<HTMLButtonElement>(null);
+
+    const tableScrollRef = useRef<HTMLDivElement | null>(null);
+  
+
   const { data: projectData, refetch: refetchProjects } =
     useGetSiteDiaryProjectsQuery();
   const allProjects = projectData?.data?.projects || [];
@@ -96,6 +115,8 @@ const SiteDiary: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useClickOutside(exportRef, () => setExportOpen(false), [exportBtnRef]);
 
   /* -----------------------------------
      Fetch diaries (RTK Query)
@@ -150,6 +171,47 @@ const SiteDiary: React.FC = () => {
     [filterBtnRef]
   );
 
+  /* -----------------------------------
+     Export CSV / Excel / PDF
+  -----------------------------------*/
+
+  const getSelectedDiaryData = () => {
+    const rows = diaries.filter((d) => selectedIds.includes(d.id));
+    if (rows.length === 0) {
+      showError("No site diary selected for export");
+      return null;
+    }
+    return rows.map((d) => ({
+      Date: formatToYMD(d.date),
+      Weather: formatLabel(d.weather),
+      Project: d.project?.name || "-",
+      Manpower: d.manpower,
+      Equipment: d.equipment || "-",
+      "Work Done": d.workDone || "-",
+      Issues: d.issues || "-",
+      "Reported By": d.reportedByUser?.fullName || "-",
+      "Created At": formatToYMD(d.createdAt),
+    }));
+  };
+
+  const handleExportCSV = () => {
+    const rows = getSelectedDiaryData();
+    if (!rows || rows.length === 0) return showError("No DPR selected");
+    exportToCSV(rows, "site_diary");
+  };
+
+  const handleExportExcel = () => {
+    const rows = getSelectedDiaryData();
+    if (!rows || rows.length === 0) return showError("No DPR selected");
+    exportToExcel(rows, "site_diary");
+  };
+
+  const handleExportPDF = () => {
+    const rows = getSelectedDiaryData();
+    if (!rows || rows.length === 0) return showError("No DPR selected");
+    exportToPDF(rows, "site_diary");
+  };
+
   //close Action modal when click outside
   useActionMenuOutside({
     buttonSelector: "[data-user-menu-btn]",
@@ -175,44 +237,21 @@ const SiteDiary: React.FC = () => {
   useEffect(() => {
     const handleScroll = () => setOpenMenuId(null);
     const closeMenu = () => setOpenMenuId(null);
+    const tableEl = tableScrollRef.current;
+    if (tableEl) {
+      tableEl.addEventListener("scroll", closeMenu);
+    }
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", closeMenu);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", closeMenu);
+      if (tableEl) {
+      tableEl.removeEventListener("scroll", closeMenu);
+    }
     };
   }, []);
-
-  /* -----------------------------------
-     Export CSV
-  -----------------------------------*/
-  const handleExportSelected = () => {
-    const rows = diaries.filter((d) => selectedIds.includes(d.id));
-    if (rows.length === 0) return showError("No entries selected");
-
-    const header =
-      "Date,Weather,Project,Manpower,Equipment,Work Done,Issues,Reported By,Created At";
-
-    const csv = rows
-      .map(
-        (d) =>
-          `${formatToYMD(d.date)},${d.weather},${d.project?.name || "—"},${
-            d.manpower
-          },${d.equipment},${(d.workDone || "").replace(/,/g, " ")},${(
-            d.issues || ""
-          ).replace(/,/g, " ")},${
-            d.reportedByUser?.fullName || "—"
-          },${formatToYMD(d.createdAt)}`
-      )
-      .join("\n");
-
-    const finalCSV = "data:text/csv;charset=utf-8," + header + "\n" + csv;
-    const link = document.createElement("a");
-    link.href = encodeURI(finalCSV);
-    link.download = "site-diary-export.csv";
-    link.click();
-  };
 
   /* -----------------------------------
      UI Handlers
@@ -476,12 +515,56 @@ const SiteDiary: React.FC = () => {
                 <span className="text-gray-600">
                   {selectedIds.length} selected
                 </span>
-                <button
-                  onClick={handleExportSelected}
-                  className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]  border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
-                >
-                  Export
-                </button>
+                <div className="relative">
+                  <button
+                    ref={exportBtnRef}
+                    onClick={(e) => {
+                      e.stopPropagation(); 
+                      setExportOpen((p) => !p)}}
+                    className="bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c]
+    border hover:border-[#fe9a00] px-3 py-1.5 rounded-md"
+                  >
+                    Export
+                  </button>
+
+                  {exportOpen && (
+                    <div
+                      ref={exportRef}
+                      className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1"
+                    >
+                      <button
+                        onClick={() => {
+                          handleExportCSV();
+                          setExportOpen(false);
+                        }}
+                        className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                      >
+                        <FileText size={16} className="text-gray-500" />
+                        CSV
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          handleExportExcel();
+                          setExportOpen(false);
+                        }}
+                        className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                      >
+                        <Sheet size={16} className="text-gray-500" /> Excel
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          handleExportPDF();
+                          setExportOpen(false);
+                        }}
+                        className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                      >
+                        <Files size={16} className="text-gray-500" /> PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 <button
                   onClick={() => setBulkDeleteConfirmOpen(true)}
@@ -493,7 +576,9 @@ const SiteDiary: React.FC = () => {
             )}
           </div>
 
-          <div className="overflow-x-auto border border-gray-200 rounded-xl">
+          <div
+          ref={tableScrollRef}
+          className="overflow-x-auto border border-gray-200 rounded-xl">
             <table className="min-w-full text-sm border-collapse">
               <thead className="bg-gray-100 text-gray-700">
                 <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50 whitespace-nowrap">
