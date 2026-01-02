@@ -8,6 +8,7 @@ export const userApi = createApi({
     prepareHeaders: (headers, { getState }: any) => {
       const token = getState().auth.token;
       if (token) headers.set("Authorization", `Bearer ${token}`);
+      headers.set("ngrok-skip-browser-warning", "1");
       return headers;
     },
   }),

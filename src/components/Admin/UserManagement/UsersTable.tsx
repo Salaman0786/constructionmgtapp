@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Edit,
   Eye,
   Filter,
@@ -164,7 +168,7 @@ export const UsersTable: React.FC = () => {
     setBulkDeleteConfirmOpen(false);
   };
   return (
-    <div className="py-6">
+    <div className="mt-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
         <div>
@@ -248,7 +252,7 @@ export const UsersTable: React.FC = () => {
           focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
                   >
                     <option value="">All</option>
-                    <option value="SUPER_ADMIN">Super Admin</option>
+                    <option value="USER">User</option>
                     <option value="MANAGER">Manager</option>
                     <option value="INVESTOR">Investor</option>
                   </select>
@@ -285,170 +289,174 @@ export const UsersTable: React.FC = () => {
         </div>
       </div>
       {/* Table */}
-      <div className="overflow-x-auto border border-gray-200 rounded-xl">
-        {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2 text-sm justify-end">
-            <span className="text-gray-600">{selectedIds.length} selected</span>
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+        <div className="pb-6 overflow-x-auto">
+          <div className="relative w-full rounded-xl">
+            {/* {selectedIds.length > 0 && (
+              <div className="flex items-center gap-2 text-sm justify-end">
+                <span className="text-gray-600">
+                  {selectedIds.length} selected
+                </span>
 
-            <button
-              onClick={() => setBulkDeleteConfirmOpen(true)}
-              className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md m-2"
-            >
-              Delete
-            </button>
-          </div>
-        )}
-        <table className="min-w-full text-sm border-collapse">
-          <thead>
-            <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
-              <th className="p-3">
-                <input
-                  type="checkbox"
-                  checked={
-                    data?.data?.users.length > 0 &&
-                    selectedIds.length === data?.data?.users.length
-                  }
-                  onChange={(e) => selectAll(e.target.checked)}
-                  className="accent-purple-600"
-                />
-              </th>
-              <th className="p-3 text-center">S.No.</th>
-              <th className="p-3">User</th>
-              <th className="p-3 text-center">Email</th>
-              <th className="p-3 text-center">Role</th>
-              <th className="p-3 text-center">Status</th>
+                <button
+                  onClick={() => setBulkDeleteConfirmOpen(true)}
+                  className="bg-red-600 text-white hover:bg-red-700 px-3 py-1.5 rounded-md m-2"
+                >
+                  Delete
+                </button>
+              </div>
+            )} */}
+            <table className="min-w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200 text-left text-gray-700 bg-gray-50">
+                  {/* <th className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={
+                        data?.data?.users.length > 0 &&
+                        selectedIds.length === data?.data?.users.length
+                      }
+                      onChange={(e) => selectAll(e.target.checked)}
+                      className="accent-purple-600"
+                    />
+                  </th> */}
+                  <th className="p-3 text-center">S.No.</th>
+                  <th className="p-3">User</th>
+                  <th className="p-3 text-center">Email</th>
+                  <th className="p-3 text-center">Role</th>
+                  <th className="p-3 text-center">Status</th>
 
-              <th className="p-3 text-center">Created</th>
-              <th className="p-3 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <>{renderShimmer()}</>
-            ) : isError ? (
-              <tr>
-                <td colSpan={12} className="text-center py-6 text-gray-500">
-                  No Record Found
-                </td>
-              </tr>
-            ) : (
-              data?.data?.users.map((user, index) => {
-                const serialNo =
-                  (pagination.page - 1) * pagination.limit + (index + 1);
-                return (
-                  <tr
-                    key={user.id}
-                    className={`border-b border-gray-100 hover:bg-gray-50 transition ${
-                      selectedIds.includes(user.id) ? "bg-purple-50" : ""
-                    }`}
-                  >
-                    <td className="p-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(user.id)}
-                        onChange={() => toggleSelect(user.id)}
-                        className="accent-purple-700"
-                      />
+                  <th className="p-3 text-center">Created</th>
+                  <th className="p-3 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <>{renderShimmer()}</>
+                ) : isError ? (
+                  <tr>
+                    <td colSpan={12} className="text-center py-6 text-gray-500">
+                      No Record Found
                     </td>
-                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
-                      {serialNo}
-                    </td>
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
-                          {user.fullName.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {user.userName}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {user.fullName}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
-                      {user.email}
-                    </td>
-                    <td className="p-3 text-center align-middle">
-                      <span className="text-xs font-medium bg-[#4b0082] text-white px-2 py-1 rounded-full ">
-                        {user.role.name}
-                      </span>
-                    </td>
-
-                    <td className="p-3">
-                      <div className="flex items-center justify-center gap-2">
-                        <span
-                          className={`text-xs font-medium px-2 py-1 rounded-full ${
-                            user.isActive
-                              ? "bg-[#4b0082] text-white"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          {user.isActive ? "Active" : "Inactive"}
-                        </span>
-
-                        {/* Toggle Switch */}
-                        <label className="inline-flex items-center cursor-pointer">
+                  </tr>
+                ) : (
+                  data?.data?.users.map((user, index) => {
+                    const serialNo =
+                      (pagination.page - 1) * pagination.limit + (index + 1);
+                    return (
+                      <tr
+                        key={user.id}
+                        className={`border-b border-gray-100 hover:bg-gray-50 transition ${
+                          selectedIds.includes(user.id) ? "bg-purple-50" : ""
+                        }`}
+                      >
+                        {/* <td className="p-3">
                           <input
                             type="checkbox"
-                            className="sr-only"
-                            checked={user.isActive}
-                            onChange={() =>
-                              handleToggleStatus(user.id, user.isActive)
-                            }
-                            disabled={isUpdating}
+                            checked={selectedIds.includes(user.id)}
+                            onChange={() => toggleSelect(user.id)}
+                            className="accent-purple-700"
                           />
-                          <div
-                            className={`w-10 h-5 rounded-full flex items-center px-1 transition-colors duration-300 ${
-                              user.isActive ? "bg-[#4b0082]" : "bg-gray-300"
-                            }`}
-                          >
-                            <div
-                              className={`w-3.5 h-3.5 bg-white rounded-full shadow transform transition-transform duration-300 ${
-                                user.isActive
-                                  ? "translate-x-5"
-                                  : "translate-x-0"
-                              }`}
-                            ></div>
+                        </td> */}
+                        <td className="p-3 text-center text-[#3A3A3A]  align-middle">
+                          {serialNo}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#4b0082] text-white font-medium uppercase">
+                              {user.fullName.charAt(0)}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {user.userName}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {user.fullName}
+                              </div>
+                            </div>
                           </div>
-                        </label>
-                      </div>
-                    </td>
-                    <td className="p-3 text-center text-[#3A3A3A]  align-middle">
-                      {formatToYMD(user.createdAt)}
-                    </td>
+                        </td>
+                        <td className="p-3 text-center text-[#3A3A3A]  align-middle">
+                          {user.email}
+                        </td>
+                        <td className="p-3 text-center align-middle">
+                          <span className="text-xs font-medium bg-[#4b0082] text-white px-2 py-1 rounded-full ">
+                            {user.role.name}
+                          </span>
+                        </td>
 
-                    {/* Action menu */}
-                    <td className="relative px-3 py-4 text-center">
-                      <button
-                        onClick={() =>
-                          setActiveMenuId(
-                            activeMenuId === user.id ? null : user.id
-                          )
-                        }
-                        className="p-2 rounded-lg hover:bg-[#facf6c]"
-                      >
-                        <MoreHorizontal size={18} />
-                      </button>
+                        <td className="p-3">
+                          <div className="flex items-center justify-center gap-2">
+                            <span
+                              className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                user.isActive
+                                  ? "bg-[#4b0082] text-white"
+                                  : "bg-gray-100 text-gray-500"
+                              }`}
+                            >
+                              {user.isActive ? "Active" : "Inactive"}
+                            </span>
 
-                      {activeMenuId === user.id && (
-                        <div className="absolute px-1 py-1 right-6 top-15  w-28 bg-white border border-gray-200 rounded-md shadow-md z-10">
-                          {/* <button
+                            {/* Toggle Switch */}
+                            <label className="inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={user.isActive}
+                                onChange={() =>
+                                  handleToggleStatus(user.id, user.isActive)
+                                }
+                                disabled={isUpdating}
+                              />
+                              <div
+                                className={`w-10 h-5 rounded-full flex items-center px-1 transition-colors duration-300 ${
+                                  user.isActive ? "bg-[#4b0082]" : "bg-gray-300"
+                                }`}
+                              >
+                                <div
+                                  className={`w-3.5 h-3.5 bg-white rounded-full shadow transform transition-transform duration-300 ${
+                                    user.isActive
+                                      ? "translate-x-5"
+                                      : "translate-x-0"
+                                  }`}
+                                ></div>
+                              </div>
+                            </label>
+                          </div>
+                        </td>
+                        <td className="p-3 text-center text-[#3A3A3A] whitespace-nowrap align-middle">
+                          {formatToYMD(user.createdAt)}
+                        </td>
+
+                        {/* Action menu */}
+                        <td className="relative px-3 py-4 text-center">
+                          <button
+                            onClick={() =>
+                              setActiveMenuId(
+                                activeMenuId === user.id ? null : user.id
+                              )
+                            }
+                            className="p-2 rounded-lg hover:bg-[#facf6c]"
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
+
+                          {activeMenuId === user.id && (
+                            <div className="absolute px-1 py-1 right-6 top-15  w-28 bg-white border border-gray-200 rounded-md shadow-md z-10">
+                              {/* <button
                           onClick={() => handleDelete(user.id)}
                           disabled={isDeleting}
                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-blue-800 hover:bg-red-50"
                         >
                           <Eye size={16} /> View
                         </button> */}
-                          <button
-                            onClick={() => handleEdit(user.id)}
-                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
-                          >
-                            <Edit size={16} /> Edit
-                          </button>
-                          <button
+                              <button
+                                onClick={() => handleEdit(user.id)}
+                                className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                              >
+                                <Edit size={16} /> Edit
+                              </button>
+                              {/* <button
                             onClick={() => {
                               setSelectedProject(user);
                               setSelectedProjectId(user.id);
@@ -459,68 +467,80 @@ export const UsersTable: React.FC = () => {
                             className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
                           >
                             <Trash2 size={16} /> Delete
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-        <div className="px-4 py-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <span className="text-sm sm:text-base">
+                          </button> */}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/** Pagination */}
+
+          <div className="px-4 pt-4 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <span className="text-sm sm:text-base">
+              {pagination && (
+                <>
+                  Showing{" "}
+                  {pagination.total > 0
+                    ? `${(pagination.page - 1) * pagination.limit + 1}`
+                    : "0"}{" "}
+                  to{" "}
+                  {Math.min(
+                    pagination.page * pagination.limit,
+                    pagination.total
+                  )}{" "}
+                  of {pagination.total} results
+                </>
+              )}
+            </span>
+
             {pagination && (
-              <>
-                Showing{" "}
-                {pagination.total > 0
-                  ? `${(pagination.page - 1) * pagination.limit + 1}`
-                  : "0"}{" "}
-                to{" "}
-                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                of {pagination.total} results
-              </>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setPage(1)}
+                  disabled={page === 1}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronsLeft size={18} />
+                </button>
+
+                <button
+                  onClick={handlePrev}
+                  disabled={page === 1}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                <span className="px-2 text-sm font-medium">{page}</span>
+
+                <button
+                  onClick={handleNext}
+                  disabled={!pagination?.hasNextPage}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={18} />
+                </button>
+
+                <button
+                  onClick={() => setPage(pagination?.totalPages || 1)}
+                  disabled={!pagination?.hasNextPage}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronsRight size={18} />
+                </button>
+              </div>
             )}
-          </span>
-
-          {pagination && (
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setPage(1)}
-                disabled={page === 1}
-                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
-              >
-                «
-              </button>
-
-              <button
-                onClick={handlePrev}
-                disabled={page === 1}
-                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
-              >
-                ‹
-              </button>
-
-              <span className="px-2 text-sm font-medium">{page}</span>
-
-              <button
-                onClick={handleNext}
-                disabled={!pagination?.hasNextPage}
-                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
-              >
-                ›
-              </button>
-
-              <button
-                onClick={() => setPage(pagination?.totalPages || 1)}
-                disabled={!pagination?.hasNextPage}
-                className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
-              >
-                »
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 

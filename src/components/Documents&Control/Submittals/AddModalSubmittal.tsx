@@ -445,10 +445,16 @@ Currently uploaded: ${existingCount}`
 
   //handle select project
   const handleSelectProject = (p) => {
-    setForm({ ...form, projectId: p.id });
+    setForm({
+      ...form,
+      projectId: p.id,
+      linkedDrawingId: null, // clear old drawing
+    });
     setSelectedProjectId(p.id); // load drawings
     setProjectSearch(p.code + " - " + p.name);
+    setDrawingSearch(""); // clear old drawing text
     setShowDropdown(false);
+    setHighlightDrawingIndex(-1); // reset highlight
     //Clear project error on select
     if (errors.projectId) {
       setErrors((prev) => ({ ...prev, projectId: "" }));
@@ -745,7 +751,9 @@ Currently uploaded: ${existingCount}`
                       setErrors((prev) => ({ ...prev, category: "" }));
                   }}
                 >
-                  <option value="">Select Category</option>
+                  <option value="" disabled hidden>
+                    Select Category
+                  </option>
                   <option value="Material">Material</option>
                   <option value="Drawing">Drawing</option>
                   <option value="Finance">Finance</option>
@@ -772,7 +780,7 @@ Currently uploaded: ${existingCount}`
                     }}
                     disabled={!form.category}
                   >
-                    <option value="">
+                    <option value="" disabled hidden>
                       {!form.category
                         ? "-- Select category first --"
                         : "Choose department"}
@@ -913,7 +921,8 @@ Currently uploaded: ${existingCount}`
                   Upload files
                   <span className=" text-xs text-gray-500 mt-1">
                     {" "}
-                    ( Up to 10 files at a time, 10 MB each, maximum 50 files total )
+                    ( Up to 10 files at a time, 10 MB each, maximum 50 files
+                    total )
                   </span>
                 </label>
 

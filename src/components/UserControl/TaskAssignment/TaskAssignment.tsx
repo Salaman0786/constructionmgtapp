@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Search, Filter, Calendar, Trash2 } from "lucide-react";
+import { Search, Filter, Calendar, Trash2, AlertTriangle } from "lucide-react";
 import {
   DragDropContext,
   Droppable,
@@ -262,7 +262,19 @@ const TaskAssignment: React.FC = () => {
     const start = source.droppableId as keyof ColumnMap;
     const end = destination.droppableId as keyof ColumnMap;
 
-    if (start === end && source.index === destination.index) return;
+    // ❌ Same column reorder — UI only, no API, no toast
+    if (start === end) {
+      const newTasks = Array.from(localColumns[start]);
+      const [moved] = newTasks.splice(source.index, 1);
+      newTasks.splice(destination.index, 0, moved);
+
+      setLocalColumns((prev) => ({
+        ...prev,
+        [start]: newTasks,
+      }));
+
+      return;
+    }
 
     const task = localColumns[start][source.index];
 
@@ -351,18 +363,29 @@ const TaskAssignment: React.FC = () => {
             {...provided.draggableProps}
             {...provided.dragHandleProps}
             ref={provided.innerRef}
-            className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4 transition-all duration-200 ${
-              snapshot.isDragging
-                ? "rotate-1 shadow-lg scale-[1.03] cursor-grabbing"
-                : "cursor-grab"
-            }`}
+            className={`bg-white p-4 rounded-2xl shadow-sm border mb-4 transition-all duration-200 
+${
+  snapshot.isDragging
+    ? "rotate-1 shadow-lg scale-[1.03] cursor-grabbing"
+    : "cursor-grab"
+}
+${!task.isUserInProject ? "border-red-400 bg-red-50" : "border-gray-100"}
+`}
           >
+            {!task.isUserInProject && userRole === "MANAGER" && (
+              <div className="flex items-center gap-2 mb-2 px-2 py-1 rounded-md bg-red-100 text-red-700 text-xs">
+                <AlertTriangle size={14} />
+                <span>
+                  User is no longer part of this project. Please reassign this
+                  task.
+                </span>
+              </div>
+            )}
             {/* HEADER : Title + Delete */}
             <div className="flex items-start justify-between gap-3">
               <h3 className="font-semibold text-gray-800 text-sm sm:text-base break-words pr-2">
                 {task.title}
               </h3>
-
               {userRole === "MANAGER" && (
                 <button
                   onClick={(e) => {
@@ -382,10 +405,23 @@ const TaskAssignment: React.FC = () => {
 
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-semibold">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold
+    ${
+      !task.isUserInProject
+        ? "bg-red-200 text-red-700"
+        : "bg-purple-100 text-purple-600"
+    }`}
+                >
                   {initials}
                 </div>
-                <span className="text-sm text-gray-700">
+                <span
+                  className={`text-sm ${
+                    !task.isUserInProject
+                      ? "text-red-600 line-through"
+                      : "text-gray-700"
+                  }`}
+                >
                   {task.assignedTo?.fullName}
                 </span>
               </div>
@@ -501,9 +537,11 @@ const TaskAssignment: React.FC = () => {
                       ? `${selectedProjectFilter.name} (${selectedProjectFilter.code})`
                       : projectSearch
                   }
-                  title={ selectedProjectFilter
+                  title={
+                    selectedProjectFilter
                       ? `${selectedProjectFilter.name} (${selectedProjectFilter.code})`
-                      : projectSearch}
+                      : projectSearch
+                  }
                   onChange={(e) => {
                     setSelectedProjectFilter(null);
                     setProjectSearch(e.target.value.trimStart());
