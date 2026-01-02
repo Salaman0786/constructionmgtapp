@@ -119,6 +119,8 @@ export default function AuditLogThreadERPResponsive() {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const isLoadingMoreRef = useRef(false);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const isFilterDirty =
+    tempActionType !== actionTypeFilter || tempEntityType !== entityTypeFilter;
 
   const isFilterApplied = Boolean(actionTypeFilter || entityTypeFilter);
 
@@ -307,6 +309,8 @@ export default function AuditLogThreadERPResponsive() {
                   <option value="UserSiteDiary">User Site Diary</option>
                   <option value="User">User</option>
                   <option value="Auth">Auth</option>
+                  <option value="Drawing">Drawing</option>
+                  <option value="Submittal">Submittal</option>
                 </select>
               </div>
 
@@ -323,7 +327,13 @@ export default function AuditLogThreadERPResponsive() {
                 </button>
 
                 <button
-                  className="bg-[#4b0082] text-white text-sm px-4 py-2 rounded-lg"
+                  disabled={!isFilterDirty}
+                  className={`text-sm px-4 py-2 rounded-lg transition
+    ${
+      isFilterDirty
+        ? "bg-[#4b0082] text-white hover:bg-[#3a006b]"
+        : "bg-[#7b39a9] text-white cursor-not-allowed"
+    }`}
                   onClick={applyFilters}
                 >
                   Apply

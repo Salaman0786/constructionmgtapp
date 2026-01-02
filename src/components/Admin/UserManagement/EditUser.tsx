@@ -124,7 +124,7 @@ const EditUser: React.FC<EditUserProps> = ({
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 m-4">
         {/* Header */}
         <div className="flex justify-between items-center border-b pb-3">
           <h2 className="text-lg font-semibold text-gray-800">Edit User</h2>
