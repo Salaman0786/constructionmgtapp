@@ -1,16 +1,9 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_BASE_URL } from "../../../config/env";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithInterceptor } from "../../../baseQueryWithInterceptor";
 
 export const companySettingsApi = createApi({
   reducerPath: "companySettingsApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_BASE_URL,
-    prepareHeaders: (headers, { getState }: any) => {
-      const token = getState().auth.token; // ✅ get token from auth slice
-      if (token) headers.set("Authorization", `Bearer ${token}`);
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithInterceptor,
 
   tagTypes: ["CompanySettings"],
 

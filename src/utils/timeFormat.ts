@@ -4,9 +4,21 @@ export function timeFormat(createdAt: string): string {
 
   const diffMs = now - created;
 
-  const totalMinutes = Math.floor(diffMs / (1000 * 60));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const minutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
 
-  return `${hours}:${minutes.toString().padStart(2, "0")} hr ago`;
+  if (minutes < 1) {
+    return "Just now";
+  }
+
+  if (minutes < 60) {
+    return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
+  }
+
+  if (hours < 24) {
+    return `${hours} hr${hours > 1 ? "s" : ""} ago`;
+  }
+
+  return days === 1 ? "1 day ago" : `${days} days ago`;
 }

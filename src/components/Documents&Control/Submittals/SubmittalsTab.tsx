@@ -20,6 +20,7 @@ import {
   useDeleteSubmittalsMutation,
   useGetSubmittalsProjectsQuery,
   useGetSubmittalsQuery,
+  useUpdateSubmittalsStatusMutation,
 } from "../../../features/submittals/api/submittalApi";
 import { showError, showSuccess } from "../../../utils/toast";
 
@@ -37,6 +38,9 @@ import {
 import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
+
+import { StatusBadge } from "../../ProjectControl/Project/StatusBadge";
+
 import {
   exportToCSV,
   exportToExcel,
@@ -51,7 +55,7 @@ export interface SubmittalRecord {
   linkedDrawing: string;
   department: string;
   date: string;
-  status: "Approved" | "Submitted" | "Rejected" | "Draft";
+  status: "Approved" | "Submitted" | "Rejected";
 }
 
 const SubmittalTable: React.FC = () => {
@@ -61,6 +65,25 @@ const SubmittalTable: React.FC = () => {
     alert(`${selectedIds.length} RFQs deleted (demo only)`);
     setSelectedIds([]);
   };
+
+  const statusStyles: Record<string, string> = {
+    SUBMITTED: "text-yellow-600 border-yellow-400",
+    APPROVED: "text-green-600 border-green-400",
+    REJECTED: "text-red-600 border-red-400",
+  };
+  // Close menu when scrolling
+  useEffect(() => {
+    const handleScroll = () => setOpenMenuId(null);
+    const closeMenu = () => setOpenMenuId(null);
+
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", closeMenu);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", closeMenu);
+    };
+  }, []);
 
   const userRole = useSelector((state: any) => state.auth.user?.role?.name);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -177,7 +200,8 @@ const SubmittalTable: React.FC = () => {
   const { data: projectListData, refetch: refetchProjects } =
     useGetSubmittalsProjectsQuery(undefined);
   const allProjects = projectListData?.data?.projects || [];
-
+  const [updateSubmittalsStatus, { isLoading: updatingStatus }] =
+    useUpdateSubmittalsStatusMutation();
   const filteredProjects = allProjects.filter((p: any) =>
     `${p.code} ${p.name}`
       .toLowerCase()
@@ -300,7 +324,21 @@ const SubmittalTable: React.FC = () => {
       />
     );
   }
-
+  const handleRevisionChange = async (projectId: string, value: string) => {
+    const payload = {
+      action: value,
+    };
+    try {
+      await updateSubmittalsStatus({ id: projectId, payload }).unwrap();
+      refetch();
+      showSuccess("Status updated successfully!");
+    } catch (error: any) {
+      const msg = Array.isArray(error?.data?.message)
+        ? error.data.message.join(", ")
+        : error?.data?.message;
+      showError(msg);
+    }
+  };
   return (
     <div className="space-y-6 bg-white min-h-screen">
       {/* Header */}
@@ -572,6 +610,7 @@ const SubmittalTable: React.FC = () => {
                 <th className="p-3 text-center">Category</th>
                 <th className="p-3 text-center">Linked Drawing</th>
                 <th className="p-3 text-center">Department</th>
+                <th className="p-3 text-center">Status</th>
                 <th className="p-3 text-center">Date</th>
                 <th className="p-3 text-center">Action</th>
               </tr>
@@ -644,6 +683,35 @@ const SubmittalTable: React.FC = () => {
                     <td className="p-3 text-center text-[#3A3A3A] align-middle">
                       {project.department}
                     </td>
+                    {userRole === "SUPER_ADMIN" ? (
+                      <td className="p-3 text-center align-middle">
+                        <select
+                          value={project.status}
+                          onChange={(e) =>
+                            handleRevisionChange(project.id, e.target.value)
+                          }
+                          className={`px-1 py-1 text-sm rounded-md border focus:outline-none ${
+                            statusStyles[project.status]
+                          }`}
+                        >
+                          <option value="SUBMITTED" className="text-yellow-600">
+                            Submitted
+                          </option>
+                          <option value="APPROVED" className="text-green-600">
+                            Approved
+                          </option>
+                          <option value="REJECTED" className="text-red-600">
+                            Rejected
+                          </option>
+                        </select>
+                      </td>
+                    ) : (
+                      <td className="p-3 text-center align-middle">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full">
+                          <StatusBadge status={project.status} />
+                        </span>
+                      </td>
+                    )}
                     <td className="p-3 text-center whitespace-nowrap text-[#3A3A3A] align-middle">
                       {formatToYMD(project.date)}
                     </td>
