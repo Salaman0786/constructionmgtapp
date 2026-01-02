@@ -9,7 +9,7 @@ const baseQuery = fetchBaseQuery({
   baseUrl: API_BASE_URL,
   prepareHeaders: (headers, { getState }: any) => {
     const token = getState().auth.token;
-
+    // headers.set("ngrok-skip-browser-warning", "1");
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }

@@ -288,20 +288,13 @@ const navItems: NavItem[] = [
   //     },
   //   ],
   // },
-   {
-    icon: <ScanEye />,
-    name: "Audit Logs",
-    roles: ["SUPER_ADMIN"], // INVESTOR cannot see it
-    subItems: [
-      {
-        icon: <ScanEye />,
-        name: "Audit Logs",
-        path: "/audit-logs",
-        pro: false,
-        roles: ["SUPER_ADMIN"],
-      }
-    ],
-  },
+
+  // {
+  //   icon: <ScanEye />,
+  //   name: "Audit Logs",
+  //   path: "/audit-logs",
+  //   roles: ["SUPER_ADMIN"],
+  // },
   {
     icon: <FolderOpen />,
     name: "Documents & Control",
@@ -371,6 +364,26 @@ const navItems: NavItem[] = [
         roles: ["USER"],
       },
     ],
+  },
+  // {
+  //   icon: <ScanEye />,
+  //   name: "Audit Logs",
+  //   roles: ["SUPER_ADMIN"], // INVESTOR cannot see it
+  //   subItems: [
+  //     {
+  //       icon: <ScanEye />,
+  //       name: "Audit Logs",
+  //       path: "/audit-logs",
+  //       pro: false,
+  //       roles: ["SUPER_ADMIN"],
+  //     },
+  //   ],
+  // },
+  {
+    icon: <ScanEye />,
+    name: "Audit Logs",
+    path: "/audit-logs",
+    roles: ["SUPER_ADMIN"],
   },
   /* ADMIN MODULE → Only SUPER_ADMIN */
   {

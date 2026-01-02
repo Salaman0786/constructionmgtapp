@@ -33,15 +33,16 @@ export default function UserDropdown() {
     localStorage.clear();
     navigate("/signin");
   };
-  
+
   return (
     <div className="relative">
       <button
         onClick={toggleDropdown}
         className="flex items-center gap-2 text-gray-700 dropdown-toggle dark:text-gray-400"
       >
+        <div className="font-medium"> {ROLE_LABELS[role] || role}</div>
         {/* Avatar */}
-        <div className="relative group">
+        {/* <div className="relative group">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-100 text-purple-700 font-semibold text-sm">
             {getInitials(user?.fullName)}
           </div>
@@ -50,7 +51,6 @@ export default function UserDropdown() {
             <div
               className="absolute right-0 top-11 hidden group-hover:block 
       bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200
-      border border-gray-200 dark:border-gray-700
       text-xs px-3 py-1.5 rounded-lg shadow-md whitespace-nowrap z-50"
             >
               {capitalizeWords(user.fullName)}
@@ -67,7 +67,7 @@ export default function UserDropdown() {
           <span className="text-[11px] text-gray-500 text- dark:text-gray-400">
             {ROLE_LABELS[role] || role}
           </span>
-        </div>
+        </div> */}
 
         {/* Chevron */}
         <svg

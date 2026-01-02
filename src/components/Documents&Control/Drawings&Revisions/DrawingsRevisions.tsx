@@ -11,7 +11,6 @@ import {
   Trash2,
   Edit,
   MoreHorizontal,
-  File,
   Files,
   FileText,
   Sheet,

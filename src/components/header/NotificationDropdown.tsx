@@ -1,20 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import Notifications from "./Notifications";
 import { useGetNotificationCountQuery } from "../../features/notifications/api/notificationsApi";
+import { useAppSelector } from "../../app/hooks";
 
 export default function NotificationDropdown() {
-  const [isOpen, setIsOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  function toggleDropdown() {
-    setIsOpen(!isOpen);
-  }
-
+  const { role, user } = useAppSelector((state) => state.auth);
   const { data } = useGetNotificationCountQuery(undefined);
-  const handleClick = () => {
-    toggleDropdown();
 
-    setOpen(!open);
+  const handleClick = () => {
+    setOpen((prev) => !prev);
   };
 
   // Close when clicking outside
@@ -29,10 +25,12 @@ export default function NotificationDropdown() {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         className="relative flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full dropdown-toggle hover:text-gray-700 h-8 w-8 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
         onClick={handleClick}
@@ -63,8 +61,10 @@ export default function NotificationDropdown() {
       </button>
       {open && (
         <div
-          className="absolute right-[-140px] mt-3 w-[600px] max-w-[95vw] z-10
-                max-h-[580px] overflow-y-auto"
+          className={`absolute ${
+            role === "SUPER_ADMIN" ? "right-[-157px]" : "right-[-185px]"
+          } mt-3 w-[600px] max-w-[95vw] z-10
+      max-h-[580px] overflow-y-auto`}
         >
           <Notifications onClose={() => setOpen(!open)} />
         </div>
