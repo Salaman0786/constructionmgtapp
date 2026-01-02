@@ -54,6 +54,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
 
   const { data: projectDetails, isFetching: isProjectFetching } =
     useGetProjectByIdQuery(projectId!, {
+      skip: !projectId,
       refetchOnMountOrArgChange: true,
     });
   const [createProject, { isLoading: creating }] = useCreateProjectMutation();
@@ -91,22 +92,36 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   const userRole = useSelector((state: any) => state.auth.user?.role?.name);
   const isManager = userRole === "MANAGER";
   const isSuperAdmin = userRole === "SUPER_ADMIN";
+  const canAssignUsers = isManager || isSuperAdmin;
+
   const cleanedSearch = managerSearch.trim().toLowerCase();
   const filteredManagers = managers.filter((m: any) =>
     m.fullName.toLowerCase().includes(cleanedSearch)
   );
   const [selected, setSelected] = useState([]);
   // const { data: patientResponse } = useGetAllUsersQuery({ page: 0, limit: 50 });
-  const { data: patientResponse, refetch } = useGetAllUsersQuery(
+  const {
+    data: patientResponse,
+    refetch,
+    isFetching: isUsersFetching,
+    isLoading: isUsersLoading,
+  } = useGetAllUsersQuery(
     {
       page: 0,
       limit: 50,
     },
-    { skip: !isManager }
+    { skip: !canAssignUsers }
   );
   useEffect(() => {
-    setSelected(projectDetails?.data?.assignedUsers);
-  }, [projectDetails]);
+    if (isEdit && projectDetails?.data?.assignedUsers) {
+      setSelected(projectDetails.data.assignedUsers);
+    }
+
+    if (!isEdit && isOpen) {
+      setSelected([]); // 👈 clear when opening create modal
+    }
+  }, [isEdit, isOpen, projectDetails]);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownRefUser = useRef<HTMLDivElement>(null);
   /* -----------------------------------------
@@ -127,6 +142,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setErrors({});
+      setSelected([]);
     }
   }, [isOpen]);
 
@@ -235,26 +251,39 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
       return;
     }
 
-    const payload = {
+    // const payload = {
+    //   ...form,
+    //   budgetBaseline: Number(form.budgetBaseline),
+    // };
+    // const payloadUpdate = {
+    //   ...form,
+    //   budgetBaseline: Number(form.budgetBaseline),
+    //   assignedUserIds: selected?.map((item) => String(item.id)),
+    // };
+    const basePayload = {
       ...form,
       budgetBaseline: Number(form.budgetBaseline),
     };
-    const payloadUpdate = {
-      ...form,
-      budgetBaseline: Number(form.budgetBaseline),
-      assignedUserIds: selected?.map((item) => String(item.id)),
-    };
+    const assignPayload =
+      isManager || isSuperAdmin
+        ? { assignedUserIds: selected?.map((item) => String(item.id)) }
+        : {};
+    const finalPayload = { ...basePayload, ...assignPayload };
+
     // ❌ Remove code only during CREATE
     if (!isEdit) {
-      delete payload.code;
+      delete finalPayload.code;
     }
 
     try {
       if (isEdit) {
-        await updateProject({ id: projectId, payload: payloadUpdate }).unwrap();
+        await updateProject({
+          id: projectId,
+          payload: finalPayload,
+        }).unwrap();
         showSuccess("Project updated successfully!");
       } else {
-        await createProject(payload).unwrap();
+        await createProject(finalPayload).unwrap();
         showSuccess("Project created successfully!");
 
         // Reset form after create
@@ -299,7 +328,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
         </div>
 
         {/* EDIT MODE LOADING SPINNER */}
-        {isEdit && isProjectFetching && (
+        {projectId && isProjectFetching && (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-3 border-[#4b0082]"></div>
           </div>
@@ -391,7 +420,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                 type="text"
                 value={managerSearch}
                 placeholder="Search manager..."
-                disabled={isEdit}
+                disabled={isManager}
                 onChange={(e) => {
                   setManagerSearch(e.target.value.trimStart());
                   setShowDropdown(true);
@@ -405,8 +434,8 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   setShowDropdown(true);
                 }}
                 className={`w-full mt-1 border border-gray-300 ${
-                 ( isManager || isEdit) ? "cursor-not-allowed bg-gray-100" : ""
-                } rounded-md p-2 text-sm
+                  isManager ? "cursor-not-allowed bg-gray-100" : ""
+                } rounded-md p-2 pr-10 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]`}
               />
               {errors.managerId && (
@@ -422,7 +451,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   }}
                   className="absolute right-3 top-12 -translate-y-1/2 text-gray-400 hover:text-gray-700 "
                 >
-                  {(isManager || isEdit) ? "" : "✕"}
+                  {isManager ? "" : "✕"}
                 </button>
               )}
 
@@ -464,7 +493,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                 </div>
               )}
             </div>
-            {isManager && (
+            {canAssignUsers && (
               <div className="w-full max-w-2xl">
                 <label className="block text-sm mb-1">Users</label>
                 <div className="relative" ref={dropdownRefUser}>
@@ -494,7 +523,7 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                       ))
                     ) : (
                       <span className="text-gray-400 text-sm">
-                        Select patients...
+                        Select Users...
                       </span>
                     )}
 
@@ -516,20 +545,40 @@ const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                   {/* Dropdown */}
                   {open && (
                     <div className="absolute w-full border bg-white shadow-md rounded-md mt-1 max-h-60 overflow-y-auto z-50">
-                      {patientResponse?.data?.users?.map((item) => (
-                        <label
-                          key={item.id}
-                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selected.some((s) => s.id === item.id)}
-                            onChange={() => handleCheckboxChange(item)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <span className="text-sm">{item.fullName}</span>
-                        </label>
-                      ))}
+                      {/* LOADER */}
+                      {(isUsersLoading || isUsersFetching) && (
+                        <div className="py-4 flex items-center justify-center gap-2 text-sm text-gray-500">
+                          <span className="h-4 w-4 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+                          <span>Loading users…</span>
+                        </div>
+                      )}
+
+                      {/*  NO USERS FOUND */}
+                      {!isUsersLoading &&
+                        !isUsersFetching &&
+                        patientResponse?.data?.users?.length === 0 && (
+                          <div className="p-4 text-center text-sm text-gray-500">
+                            No users found
+                          </div>
+                        )}
+
+                      {/* USERS LIST */}
+                      {!isUsersLoading &&
+                        !isUsersFetching &&
+                        patientResponse?.data?.users?.map((item) => (
+                          <label
+                            key={item.id}
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected.some((s) => s.id === item.id)}
+                              onChange={() => handleCheckboxChange(item)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <span className="text-sm">{item.fullName}</span>
+                          </label>
+                        ))}
                     </div>
                   )}
                 </div>

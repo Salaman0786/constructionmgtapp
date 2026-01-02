@@ -262,14 +262,25 @@ const TaskAssignment: React.FC = () => {
     const start = source.droppableId as keyof ColumnMap;
     const end = destination.droppableId as keyof ColumnMap;
 
-    if (start === end && source.index === destination.index) return;
+    // ❌ Same column reorder — UI only, no API, no toast
+    if (start === end) {
+      const newTasks = Array.from(localColumns[start]);
+      const [moved] = newTasks.splice(source.index, 1);
+      newTasks.splice(destination.index, 0, moved);
 
+      setLocalColumns((prev) => ({
+        ...prev,
+        [start]: newTasks,
+      }));
+
+      return;
+    }
+
+    // 🔥 Cross-column move — only here call API
     const task = localColumns[start][source.index];
 
-    // SAVE PREVIOUS STATE (for rollback)
     const prevColumns = JSON.parse(JSON.stringify(localColumns));
 
-    // OPTIMISTIC UI UPDATE
     const newColumns: ColumnMap = {
       todo: [...localColumns.todo],
       inProgress: [...localColumns.inProgress],
@@ -293,12 +304,9 @@ const TaskAssignment: React.FC = () => {
         status: statusMap[end],
       }).unwrap();
 
-      //SUCCESS
       showSuccess("Task status updated successfully");
     } catch (error) {
-      //ROLLBACK UI
       setLocalColumns(prevColumns);
-
       showError("Failed to update task status");
       console.error("Status update failed:", error);
     }

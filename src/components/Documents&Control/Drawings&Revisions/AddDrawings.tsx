@@ -585,7 +585,7 @@ Currently uploaded: ${existingCount}`
                       }
                     }}
                   >
-                    <option value="">Select Discipline</option>
+                    <option value="" disabled hidden>Select Discipline</option>
                     <option value="Civil">Civil</option>
                     <option value="Structural">Structural</option>
                     <option value="Architecture">Architecture</option>
@@ -627,7 +627,7 @@ Currently uploaded: ${existingCount}`
                       }
                     }}
                   >
-                    <option value="">Select Revision</option>
+                    <option value="" disabled hidden>Select Revision</option>
                     <option value="R1">R1</option>
                     <option value="R2">R2</option>
                     <option value="R3">R3</option>

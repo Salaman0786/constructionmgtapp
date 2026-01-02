@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { Edit, MoreHorizontal } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Edit,
+  MoreHorizontal,
+} from "lucide-react";
 import StatusSummaryCard from "./StatusSummaryCard";
 
 import { useGetRolesQuery } from "../../../features/role/api/roleApi";
@@ -184,15 +190,16 @@ const PurchaseRequestTable: React.FC = () => {
               <table className="min-w-full border-collapse text-sm text-left">
                 <thead className="bg-gray-50 text-gray-700">
                   <tr className="border-b border-gray-200">
-                    <th className="w-10 p-3 text-center">
+                    {/* <th className="w-10 p-3 text-center">
                       <input
                         type="checkbox"
                         // checked={selectedIds.length === filteredRequests.length}
                         //  onChange={(e) => selectAll(e.target.checked)}
                         className="accent-purple-700"
                       />
-                    </th>
-                    <th className="p-3">Role Name</th>
+                    </th> */}
+                    <th className="p-3 text-center">S.No.</th>
+                    <th className="p-3 whitespace-nowrap">Role Name</th>
                     <th className="p-3">Description</th>
                     <th className="p-3 text-center">Users</th>
                     <th className="p-3 text-center">Modules</th>
@@ -212,63 +219,69 @@ const PurchaseRequestTable: React.FC = () => {
                     // </tr>
                     <>{renderShimmer()}</>
                   ) : (
-                    roles.map((rp, index) => (
-                      <tr
-                        key={rp.id}
-                        className={`border-b border-gray-100 hover:bg-gray-50 transition-all ${
-                          selectedIds.includes(rp.id) ? "bg-purple-50" : ""
-                        }`}
-                      >
-                        <td className="w-10 p-3 text-center align-middle">
+                    roles.map((rp, index) => {
+                      const serialNo =
+                        (pagination.page - 1) * pagination.limit + (index + 1);
+                      return (
+                        <tr
+                          key={rp.id}
+                          className={`border-b border-gray-100 hover:bg-gray-50 transition-all ${
+                            selectedIds.includes(rp.id) ? "bg-purple-50" : ""
+                          }`}
+                        >
+                          <td className="p-3 text-center text-[#3A3A3A]  align-middle">
+                            {serialNo}
+                          </td>
+                          {/* <td className="w-10 p-3 text-center align-middle">
                           <input
                             type="checkbox"
                             checked={selectedIds.includes(rp.id)}
                             onChange={() => toggleSelect(rp.id)}
                             className="accent-purple-700"
                           />
-                        </td>
-                        <td className="p-3 text-gray-700 align-middle">
-                          {rp.name}
-                        </td>
-                        <td className="p-3 text-gray-700 align-middle">
-                          {rp.description}
-                        </td>
-                        <td className="p-3 text-gray-700 text-center align-middle">
-                          {rp.userCount}
-                        </td>
-                        <td className="p-3 text-gray-700 text-center align-middle">
-                          {rp.moduleCount}
-                        </td>
-                        <td className="p-3 text-gray-700 text-center align-middle">
-                          {formatToYMD(rp.createdAt)}
-                        </td>
+                        </td> */}
+                          <td className="p-3 text-gray-700 align-middle">
+                            {rp.name}
+                          </td>
+                          <td className="p-3 text-gray-700 align-middle">
+                            {rp.description}
+                          </td>
+                          <td className="p-3 text-gray-700 text-center align-middle">
+                            {rp.userCount}
+                          </td>
+                          <td className="p-3 text-gray-700 text-center align-middle">
+                            {rp.moduleCount}
+                          </td>
+                          <td className="p-3 text-gray-700 text-center whitespace-nowrap align-middle">
+                            {formatToYMD(rp.createdAt)}
+                          </td>
 
-                        {/* ACTION MENU */}
-                        <td className="p-3 text-center align-middle relative">
-                          <button
-                            className="p-2 rounded-full hover:bg-gray-100"
-                            onClick={(e) => {
-                              const rect =
-                                e.currentTarget.getBoundingClientRect();
-                              setMenuPosition({
-                                top: rect.bottom + 6,
-                                left: rect.right - 140,
-                              });
-                              toggleMenu(rp.id);
-                            }}
-                          >
-                            <MoreHorizontal size={18} />
-                          </button>
-
-                          {openMenuId === rp.id && (
-                            <div
-                              className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
-                              style={{
-                                top: menuPosition.top,
-                                left: menuPosition.left,
+                          {/* ACTION MENU */}
+                          <td className="p-3 text-center align-middle relative">
+                            <button
+                              className="p-2 rounded-full hover:bg-gray-100"
+                              onClick={(e) => {
+                                const rect =
+                                  e.currentTarget.getBoundingClientRect();
+                                setMenuPosition({
+                                  top: rect.bottom + 6,
+                                  left: rect.right - 140,
+                                });
+                                toggleMenu(rp.id);
                               }}
                             >
-                              {/* <button
+                              <MoreHorizontal size={18} />
+                            </button>
+
+                            {openMenuId === rp.id && (
+                              <div
+                                className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                                style={{
+                                  top: menuPosition.top,
+                                  left: menuPosition.left,
+                                }}
+                              >
+                                {/* <button
                                 onClick={() =>
                                   handleAction("View", rp.roleName)
                                 }
@@ -276,18 +289,18 @@ const PurchaseRequestTable: React.FC = () => {
                               >
                                 <Eye size={16} className="text-gray-500" /> View
                               </button> */}
-                              <button
-                                onClick={() => {
-                                  setSelectedProjectId(rp.id);
-                                  setIsModalOpen(true);
-                                  setOpenMenuId(null);
-                                }}
-                                className="flex items-center gap-2 w-full px-3 py-1.5 text-left text-sm rounded-md hover:bg-[#facf6c]"
-                              >
-                                <Edit size={16} className="text-gray-500" />{" "}
-                                Edit
-                              </button>
-                              {/* <button
+                                <button
+                                  onClick={() => {
+                                    setSelectedProjectId(rp.id);
+                                    setIsModalOpen(true);
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="flex items-center gap-2 w-full px-3 py-1.5 text-left text-sm rounded-md hover:bg-[#facf6c]"
+                                >
+                                  <Edit size={16} className="text-gray-500" />{" "}
+                                  Edit
+                                </button>
+                                {/* <button
                                 onClick={() =>
                                   handleAction("Delete", rp.roleName)
                                 }
@@ -296,11 +309,12 @@ const PurchaseRequestTable: React.FC = () => {
                                 <Trash2 size={16} className="text-gray-500" />{" "}
                                 Delete
                               </button> */}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -332,7 +346,7 @@ const PurchaseRequestTable: React.FC = () => {
                     disabled={page === 1}
                     className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
                   >
-                    «
+                    <ChevronsLeft size={18} />
                   </button>
 
                   <button
@@ -340,7 +354,7 @@ const PurchaseRequestTable: React.FC = () => {
                     disabled={page === 1}
                     className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
                   >
-                    ‹
+                    <ChevronsLeft size={18} />
                   </button>
 
                   <span className="px-2 text-sm font-medium">{page}</span>
@@ -350,7 +364,7 @@ const PurchaseRequestTable: React.FC = () => {
                     disabled={!pagination?.hasNextPage}
                     className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
                   >
-                    ›
+                    <ChevronRight size={18} />
                   </button>
 
                   <button
@@ -358,7 +372,7 @@ const PurchaseRequestTable: React.FC = () => {
                     disabled={!pagination?.hasNextPage}
                     className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
                   >
-                    »
+                    <ChevronsRight size={18} />
                   </button>
                 </div>
               )}

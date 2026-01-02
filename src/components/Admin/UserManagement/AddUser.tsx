@@ -85,7 +85,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 m-4">
         {/* Header */}
         <div className="flex justify-between items-center border-b pb-3">
           <h2 className="text-lg font-semibold text-gray-800">Add New User</h2>
@@ -187,7 +187,7 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
               value={form.tempPassword}
               onChange={handleChange}
               required
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
   focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             />
             <button
