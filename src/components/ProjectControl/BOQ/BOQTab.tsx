@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   CircleDollarSign,
   CreditCard,
+  Edit,
+  Eye,
   Filter,
   MoreHorizontal,
   Phone,
@@ -11,6 +18,8 @@ import {
 } from "lucide-react";
 import AddInvestors from "../../Finance&CRM/Investors/AddInvestors";
 import AddBOQ from "./AddBOQ";
+import useClickOutside from "../../../hooks/useClickOutside";
+import { useSelector } from "react-redux";
 
 interface User {
   id: number;
@@ -176,12 +185,32 @@ const usersData: User[] = [
 
 export const BOQTab: React.FC = () => {
   const [users, setUsers] = useState<User[]>(usersData);
+  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
+  const filterRef = useRef(null);
+  const filterBtnRef = useRef(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const data = { pagination: { totalPages: "2", total: "20" } };
+  const pagination = data?.pagination;
+  const totalPages = pagination?.totalPages || 1;
+  const totalItems = pagination?.total || 0;
 
+  const goToFirst = () => setPage(1);
+  const goToLast = () => setPage(totalPages);
+  const goToPrev = () => setPage((prev) => Math.max(prev - 1, 1));
+  const goToNext = () => setPage((prev) => Math.min(prev + 1, totalPages));
+  useClickOutside(
+    filterRef,
+    () => {
+      setFilterOpen(false);
+    },
+    [filterBtnRef]
+  );
   // Close delete popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -253,15 +282,133 @@ export const BOQTab: React.FC = () => {
 
           <input
             type="text"
-            placeholder="Search Diary (DPR)..."
+            placeholder="Search BOQ..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
           />
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100">
             <Filter size={16} /> Filters
           </button>
+        </div> */}
+        <div className="relative min-w-max">
+          <button
+            ref={filterBtnRef}
+            onClick={() => {
+              // setTempStart(startDateFilter);
+              // setTempEnd(endDateFilter);
+              // setTempStatus(statusFilter);
+              setFilterOpen(!filterOpen);
+            }}
+            className="flex items-center gap-2 px-4 py-2 border  border-[f0f0f0]  rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
+          >
+            <Filter size={16} /> Filters
+          </button>
+
+          {filterOpen && (
+            <div
+              ref={filterRef}
+              className="absolute  right-0 mt-2 w-64 max-w-[90vw] bg-white p-4 rounded-xl border shadow-lg z-10000"
+            >
+              <h3 className="text-sm font-semibold mb-3">Filter Projects</h3>
+
+              {/* GRID ROW: Start & End date */}
+              <div className="grid grid-cols-1 gap-1">
+                {/* Start Date */}
+                <label className="text-xs text-gray-600">Start Date</label>
+                <div className="relative">
+                  <input
+                    type="date"
+                    // value={tempStart}
+                    // onChange={(e) => setTempStart(e.target.value)}
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+               focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                  />
+                  <Calendar
+                    size={16}
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    className="absolute right-3 top-6 -translate-y-1/2 text-gray-400 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 mt-2 gap-1">
+                {/* End Date */}
+
+                <label className="text-xs text-gray-600">End Date</label>
+
+                <div className="relative">
+                  <input
+                    type="date"
+                    // value={tempEnd}
+                    // onChange={(e) => setTempEnd(e.target.value)}
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm 
+        focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                  />
+
+                  <Calendar
+                    size={16}
+                    onClick={(e) =>
+                      (
+                        e.currentTarget
+                          .previousElementSibling as HTMLInputElement
+                      )?.showPicker?.()
+                    }
+                    className="absolute right-3 top-6 -translate-y-1/2 text-gray-400 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Status Below */}
+              <div className="mt-2">
+                <label className="text-xs text-gray-600">Status</label>
+                <select
+                  // value={tempStatus}
+                  // onChange={(e) => setTempStatus(e.target.value)}
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm 
+               focus:outline-none focus:ring-1 focus:ring-[#5b00b2]"
+                >
+                  <option value="">All</option>
+                  <option value="PLANNING">Planning</option>
+                  <option value="ONGOING">Ongoing</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="ON_HOLD">On Hold</option>
+                </select>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-between mt-4">
+                <button
+                  className="text-sm text-gray-600 hover:underline"
+                  // onClick={() => {
+                  //   setTempStart("");
+                  //   setTempEnd("");
+                  //   setTempStatus("");
+                  // }}
+                >
+                  Reset
+                </button>
+
+                <button
+                  className="bg-[#4b0082] text-white text-sm px-4 py-2 rounded-lg"
+                  // onClick={() => {
+                  //   setStartDateFilter(tempStart);
+                  //   setEndDateFilter(tempEnd);
+                  //   setStatusFilter(tempStatus);
+                  //   setFilterOpen(false);
+                  // }}
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -365,7 +512,7 @@ export const BOQTab: React.FC = () => {
 
                     <td className="p-3 text-gray-700">{user.vendor}</td>
                     <td className="p-3 text-gray-700">{user.remarks}</td>
-                    <td className="relative p-3 text-center">
+                    {/* <td className="relative p-3 text-center">
                       <button
                         onClick={() =>
                           setActiveMenuId(
@@ -390,6 +537,74 @@ export const BOQTab: React.FC = () => {
                           </button>
                         </div>
                       )}
+                    </td> */}
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        data-user-menu-btn
+                        className="p-2 rounded-lg hover:bg-[#facf6c]"
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setMenuPosition({
+                            top: rect.bottom + 6,
+                            left: rect.right - 140,
+                          });
+                          setActiveMenuId(
+                            activeMenuId === user.id ? null : user.id
+                          );
+                        }}
+                      >
+                        <MoreHorizontal size={18} />
+                      </button>
+
+                      {activeMenuId === user.id && (
+                        <div
+                          data-user-menu
+                          className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                          style={{
+                            top: menuPosition.top,
+                            left: menuPosition.left,
+                          }}
+                        >
+                          <button
+                            onClick={() => {
+                              // setSelectedProjectId(project.id);
+                              // setViewModalOpen(true);
+                              // setOpenMenuId(null); // 🔥 CLOSE MENU
+                            }}
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                          >
+                            <Eye size={16} /> View
+                          </button>
+
+                          {(userRole === "SUPER_ADMIN" ||
+                            userRole === "MANAGER") && (
+                            <button
+                              onClick={() => {
+                                // setSelectedProjectId(project.id); // send id to modal
+                                // setIsModalOpen(true);
+                                // setOpenMenuId(null); // 🔥 CLOSE MENU
+                              }}
+                              className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                            >
+                              <Edit size={16} /> Edit
+                            </button>
+                          )}
+
+                          {userRole === "SUPER_ADMIN" && (
+                            <button
+                              onClick={() => {
+                                // setSelectedProject(project);
+                                // setSelectedProjectId(project.id);
+                                // setSingleDeleteConfirmOpen(true);
+                                // setOpenMenuId(null); // 🔥 CLOSE MENU
+                              }}
+                              className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
+                            >
+                              <Trash2 size={16} /> Delete
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -398,26 +613,50 @@ export const BOQTab: React.FC = () => {
           </div>
           <div className="px-4 pt-3 sm:px-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <span className="text-sm sm:text-base">
-              Showing 1 to 3 of 10 results
+              Showing {(page - 1) * limit + 1} to{" "}
+              {Math.min(page * limit, totalItems)} of {totalItems} results
             </span>
 
             <div>
               <div className="flex items-center space-x-2">
-                <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                  «
+                <button
+                  onClick={goToFirst}
+                  disabled={page === 1}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronsLeft size={18} />
                 </button>
 
-                <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                  ‹
+                <button
+                  onClick={goToPrev}
+                  disabled={page === 1}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={18} />
                 </button>
-                <div>...</div>
 
-                <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                  ›
+                <div className="px-2 text-sm font-medium">
+                  Page {page} of {totalPages}
+                </div>
+
+                <button
+                  onClick={goToNext}
+                  disabled={page === totalPages}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={18} />
                 </button>
 
-                <button className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed">
-                  »
+                <button
+                  onClick={goToLast}
+                  disabled={page === totalPages}
+                  className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 
+        text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronsRight size={18} />
                 </button>
               </div>
             </div>

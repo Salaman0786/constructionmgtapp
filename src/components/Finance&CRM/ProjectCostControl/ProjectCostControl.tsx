@@ -45,7 +45,7 @@ const ProjectCostControl: React.FC = () => {
 
           <input
             type="text"
-            placeholder="Search Diary (DPR)..."
+            placeholder="Search Project Cost Control..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-600 outline-none"
           />
         </div>
@@ -58,7 +58,7 @@ const ProjectCostControl: React.FC = () => {
       </div>
 
       {/* Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white border rounded-xl p-4 shadow-sm flex items-center justify-between">
           <div className="flex flex-col items-start gap-3">
             <p className="text-base  text-gray-500">Project Budget</p>

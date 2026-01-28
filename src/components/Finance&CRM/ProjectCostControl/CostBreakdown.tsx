@@ -15,7 +15,7 @@ const CostBreakdown: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-5 w-full max-w-4xl mx-auto">
+    <div className="bg-white rounded-xl shadow-sm p-5 w-full max-w-7xl mx-auto">
       <h2 className="text-gray-800 font-semibold mb-5 text-lg">
         Cost Breakdown by Category
       </h2>

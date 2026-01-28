@@ -23,7 +23,11 @@ import {
 } from "../../../features/projectControll/projectsApi";
 import { useSelector } from "react-redux";
 import { renderShimmer } from "../../common/tableShimmer";
-import { capitalizeWords, formatLabel, getTwoWordPreview } from "../../../utils/helpers";
+import {
+  capitalizeWords,
+  formatLabel,
+  getTwoWordPreview,
+} from "../../../utils/helpers";
 import { formatToYMD } from "../../../utils/helpers";
 import { showError, showSuccess } from "../../../utils/toast";
 import ViewProjectDetailsModal from "./ViewProjectDetailsModal";

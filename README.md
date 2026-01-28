@@ -1,1 +1,0 @@
-# construction-mgt-app-front

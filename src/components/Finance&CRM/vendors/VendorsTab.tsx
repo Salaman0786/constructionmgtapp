@@ -1,6 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-import { File, Mail, MoreHorizontal, Phone, Plus, Trash2 } from "lucide-react";
+import {
+  Edit,
+  Eye,
+  File,
+  Mail,
+  MoreHorizontal,
+  Phone,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import AddVendors from "./AddVendors";
+import { useSelector } from "react-redux";
+import { useGetProjectsQuery } from "../../../features/projectControll/projectsApi";
 
 interface User {
   id: number;
@@ -62,14 +73,20 @@ const usersData: User[] = [
 
 export const VendorsTab: React.FC = () => {
   const [users, setUsers] = useState<User[]>(usersData);
+  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
-
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
-
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // Close delete popup when clicking outside
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -118,7 +135,9 @@ export const VendorsTab: React.FC = () => {
     document.body.appendChild(link);
     link.click();
   };
-
+  const toggleMenu = (id: string) => {
+    setOpenMenuId(openMenuId === id ? null : id);
+  };
   const handleToggleStatus = (id: number) => {
     setUsers((prev) =>
       prev.map((user) =>
@@ -296,8 +315,20 @@ export const VendorsTab: React.FC = () => {
                     {activeMenuId === user.id && (
                       <div
                         ref={menuRef}
-                        className="absolute right-0 top-8 w-28 bg-white border border-gray-200 rounded-md shadow-md z-10"
+                        className="absolute right-0 top-10 w-28 bg-white border border-gray-200 rounded-md shadow-md z-10"
                       >
+                        <button
+                          // onClick={() => handleDelete(user.id)}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-black hover:bg-orange-50"
+                        >
+                          <Eye size={16} /> View
+                        </button>
+                        <button
+                          onClick={() => setOpenModal(true)}
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-black hover:bg-orange-50"
+                        >
+                          <Edit size={16} /> Edit
+                        </button>
                         <button
                           onClick={() => handleDelete(user.id)}
                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
@@ -307,6 +338,84 @@ export const VendorsTab: React.FC = () => {
                       </div>
                     )}
                   </td>
+                  {/* <td className="text-center p-3 text-gray-700">
+                    <button
+                      data-user-menu-btn
+                      className="p-2 rounded-lg hover:bg-[#facf6c]"
+                      onClick={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setMenuPosition({
+                          top: rect.bottom + 6,
+                          left: rect.right - 140,
+                        });
+                        setActiveMenuId(
+                          activeMenuId === user.id ? null : user.id
+                        );
+                        // toggleMenu(project.id);
+                      }}
+                    >
+                      <MoreHorizontal size={18} />
+                    </button>
+
+                    {openMenuId === user.id && (
+                      <div
+                        data-user-menu
+                        className="fixed w-36 py-1 px-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999]"
+                        style={{
+                          top: menuPosition.top,
+                          left: menuPosition.left,
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            // setSelectedProjectId(project.id);
+                            setViewModalOpen(true);
+                            setOpenMenuId(null);
+                            setActiveMenuId(
+                              activeMenuId === user.id ? null : user.id
+                            ); // 🔥 CLOSE MENU
+                          }}
+                          className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                        >
+                          <Eye size={16} /> View
+                        </button>
+
+                        {(userRole === "SUPER_ADMIN" ||
+                          userRole === "MANAGER") && (
+                          <button
+                            onClick={() => {
+                              // setSelectedProjectId(project.id); // send id to modal
+                              setIsModalOpen(true);
+                              setOpenMenuId(null);
+                              setActiveMenuId(
+                                activeMenuId === user.id ? null : user.id
+                              ); // 🔥 CLOSE MENU
+                            }}
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg hover:bg-[#facf6c]"
+                          >
+                            <Edit size={16} /> Edit
+                          </button>
+                        )}
+
+                        {userRole === "SUPER_ADMIN" && (
+                          <button
+                            onClick={() => {
+                              // setSelectedProject(project);
+                              // setSelectedProjectId(project.id);
+                              // setSingleDeleteConfirmOpen(true);
+                              setOpenMenuId(null); // 🔥 CLOSE MENU
+                              setActiveMenuId(
+                                activeMenuId === user.id ? null : user.id
+                              );
+                            }}
+                            className="flex items-center gap-2 w-full px-2 py-1 text-left text-sm rounded-lg text-red-600 hover:bg-[#facf6c]"
+                          >
+                            <Trash2 size={16} /> Delete
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </td> */}
                 </tr>
               ))}
             </tbody>
@@ -338,6 +447,7 @@ export const VendorsTab: React.FC = () => {
             </div>
           </div>
         </div>
+        <AddVendors isOpen={openModal} onClose={() => setOpenModal(false)} />
       </div>
     </div>
   );
