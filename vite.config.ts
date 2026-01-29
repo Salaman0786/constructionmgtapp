@@ -23,6 +23,7 @@ export default defineConfig({
     allowedHosts: [
       "localhost",
       "https://construction-api-stg.addisababadbohra.com",
+      "https://constructionmgtapp.netlify.app",
     ],
   },
 });
