@@ -7,11 +7,6 @@ export const getTwoWordPreview = (name: string): string => {
   if (trimmed.length <= 30) return trimmed; // show normally
   return trimmed.substring(0, 30) + "..."; // truncate after 30 chars
 };
-
-/**
- * Return current date in Addis Ababa as "YYYY-MM-DD".
- * Use this when creating new records so date is always Addis date.
- */
 export const getAddisAbabaDate = (): string => {
   try {
     return new Date().toLocaleDateString("en-CA", {
@@ -22,10 +17,6 @@ export const getAddisAbabaDate = (): string => {
   }
 };
 
-/**
- * Convert a backend ISO datetime/string to Addis Ababa date string "YYYY-MM-DD".
- * Accepts ISO like "2025-12-11T10:20:30Z" or "2025-12-11".
- */
 export const convertToAddisDate = (isoDate?: string | null): string => {
   if (!isoDate) return "";
   try {
@@ -36,17 +27,9 @@ export const convertToAddisDate = (isoDate?: string | null): string => {
   }
 };
 
-/**
- * Safe formatter for display: accepts an ISO-like date or datetime string and returns "MM-DD-YYYY".
- * NOTE: This is string-based when possible so timezone shifts don't change the day.
- *
- * Examples:
- *  - input "2025-12-11T10:20:30Z"  -> returns "12-11-2025"
- *  - input "2025-12-11"           -> returns "12-11-2025"
- */
 export const formatToYMD = (isoDate?: string | null): string => {
   if (!isoDate) return "";
-  // Prefer to parse the YYYY-MM-DD portion directly (safe against TZ shifts).
+
   const datePart = isoDate.split("T")[0]; // "YYYY-MM-DD"
   const parts = datePart.split("-");
   if (parts.length === 3) {
@@ -54,7 +37,6 @@ export const formatToYMD = (isoDate?: string | null): string => {
     return `${month.padStart(2, "0")}-${day.padStart(2, "0")}-${year}`;
   }
 
-  // Fallback: try Date object formatting (less ideal)
   try {
     const d = new Date(isoDate);
     const year = d.getFullYear();
@@ -90,15 +72,12 @@ export const calculateProgress = (startDate: string, endDate: string) => {
   return Math.round(progress);
 };
 
-
-
 export const getExportFileName = (ext: string): string => {
   const addisDate = getAddisAbabaDate(); // YYYY-MM-DD
   const [yyyy, mm, dd] = addisDate.split("-");
 
   return `${mm}-${dd}-${yyyy}.${ext}`;
 };
-
 
 export const getInitials = (name?: string) => {
   if (!name) return "U";
@@ -107,12 +86,11 @@ export const getInitials = (name?: string) => {
   return (words[0][0] + words[1][0]).toUpperCase();
 };
 
-
 export function capitalizeWords(name: string): string {
   if (!name) return "";
-    return name
-      .toLowerCase()
-      .split(/[_\s]+/) // split by underscore or space
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  }
+  return name
+    .toLowerCase()
+    .split(/[_\s]+/) // split by underscore or space
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}

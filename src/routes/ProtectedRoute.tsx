@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAppSelector } from "../app/hooks";
+import { JSX } from "react";
 
 export default function ProtectedRoute({
   children,

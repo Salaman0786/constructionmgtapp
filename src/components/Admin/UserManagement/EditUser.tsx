@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { X, Mail } from "lucide-react";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import {
   useUpdateUserMutation,
   useGetRolesQuery,
   useGetUserByIdQuery,
 } from "../../../features/user/api/userApi";
 import { showError, showSuccess } from "../../../utils/toast";
-import Loader from "../../common/Loader";
+
 import { RequiredLabel } from "../../common/RequiredLabel";
+import Loader from "../../common/Loader";
+
+/* -----------------------------
+   Types
+-------------------------------- */
 
 interface EditUserProps {
   isOpen: boolean;
@@ -15,19 +21,81 @@ interface EditUserProps {
   userId: string | null;
 }
 
-const EditUser: React.FC<EditUserProps> = ({
-  isOpen,
-  onClose,
+interface EditUserForm {
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  tempPassword: string;
+}
 
-  userId,
-}) => {
-  const {
-    data: userDetails,
-    isLoading,
-    isFetching,
-  } = useGetUserByIdQuery(userId!, {
-    skip: !userId,
+interface Role {
+  id: string;
+  name: string;
+}
+
+interface RolesResponse {
+  data?: {
+    roles?: Role[];
+  };
+}
+
+interface UserDetailsResponse {
+  data?: {
+    data?: {
+      userName?: string;
+      email?: string;
+      fullName?: string;
+      role?: {
+        id?: string;
+      };
+    };
+  };
+}
+
+interface UpdateUserPayload {
+  userName: string;
+  email: string;
+  fullName: string;
+  roleId: string;
+  password?: string;
+}
+
+interface ApiErrorData {
+  message?: string | string[];
+}
+
+/* -----------------------------
+   Component
+-------------------------------- */
+
+const EditUser: React.FC<EditUserProps> = ({ isOpen, onClose, userId }) => {
+  const [form, setForm] = useState<EditUserForm>({
+    username: "",
+    email: "",
+    fullName: "",
+    role: "",
+    tempPassword: "",
   });
+
+  const { data: userDetails, isFetching } = useGetUserByIdQuery(
+    userId as string,
+    {
+      skip: !userId,
+    },
+  ) as {
+    data?: UserDetailsResponse;
+    isFetching: boolean;
+  };
+
+  const { data: rolesData, isLoading: rolesLoading } = useGetRolesQuery(
+    undefined,
+  ) as {
+    data?: RolesResponse;
+    isLoading: boolean;
+  };
+
+  const [updateUser, { isLoading: updating }] = useUpdateUserMutation();
 
   useEffect(() => {
     if (!isOpen) {
@@ -40,80 +108,57 @@ const EditUser: React.FC<EditUserProps> = ({
       });
     }
   }, [isOpen]);
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    fullName: "",
-    role: "",
-    tempPassword: "",
-  });
 
   useEffect(() => {
-    if (isOpen && !isFetching && userDetails) {
+    if (isOpen && userDetails?.data?.data) {
+      const user = userDetails.data.data;
       setForm({
-        username: userDetails?.data?.data?.userName || "",
-        email: userDetails?.data?.data?.email || "",
-        fullName: userDetails?.data?.data?.fullName || "",
-        role: userDetails?.data?.data?.role?.id || "",
+        username: user.userName ?? "",
+        email: user.email ?? "",
+        fullName: user.fullName ?? "",
+        role: user.role?.id ?? "",
         tempPassword: "",
       });
     }
-  }, [userDetails, isFetching, isOpen]);
-
-  const { data: rolesData, isLoading: rolesLoading } =
-    useGetRolesQuery(undefined);
-
-  const [updateUser, { isLoading: updating }] = useUpdateUserMutation();
-
-  /** 📌 Fill form when userDetails is fetched */
-  useEffect(() => {
-    if (userDetails) {
-      setForm({
-        username: userDetails?.data?.data?.userName || "",
-        email: userDetails?.data?.data?.email || "",
-        fullName: userDetails?.data?.data?.fullName || "",
-        role: userDetails?.data?.data?.role?.id || "",
-        tempPassword: "", // password is never returned
-      });
-    }
-  }, [userDetails, userId]);
+  }, [userDetails, isOpen]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ): void => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  /** 📌 Submit update request */
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     e.preventDefault();
 
-    const payload = {
+    const payload: UpdateUserPayload = {
       userName: form.username,
       email: form.email,
       fullName: form.fullName,
       roleId: form.role,
-      password: form.tempPassword || undefined, // optional
+      password: form.tempPassword || undefined,
     };
 
     try {
-      await updateUser({ id: userId, body: payload }).unwrap();
+      await updateUser({ id: userId as string, body: payload }).unwrap();
       showSuccess("User updated successfully!");
       onClose();
-    } catch (err: any) {
-      // Normalize the message: always turn it into a string
-      const errorMessage = err?.data?.message;
+    } catch (err) {
+      const apiError = err as FetchBaseQueryError & {
+        data?: ApiErrorData;
+      };
 
-      let displayMessage: string;
+      const errorMessage = apiError?.data?.message;
+
+      let displayMessage = "Failed to edit user!";
 
       if (Array.isArray(errorMessage)) {
-        // If it's an array → join all messages (you can also take just the first one)
         displayMessage = errorMessage.join(", ");
-        // Or just the first one: errorMessage[0]
       } else if (typeof errorMessage === "string") {
         displayMessage = errorMessage;
-      } else {
-        displayMessage = "Failed to edit user!";
       }
 
       showError(displayMessage);
@@ -125,7 +170,6 @@ const EditUser: React.FC<EditUserProps> = ({
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 m-4">
-        {/* Header */}
         <div className="flex justify-between items-center border-b pb-3">
           <h2 className="text-lg font-semibold text-gray-800">Edit User</h2>
           <button
@@ -135,14 +179,15 @@ const EditUser: React.FC<EditUserProps> = ({
             <X size={20} />
           </button>
         </div>
+
         <p className="text-sm text-gray-500 mt-2 mb-4">
           Update user account details.
         </p>
+
         {isFetching ? (
           <Loader />
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Username & Email */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <RequiredLabel label="Username" />
@@ -152,8 +197,7 @@ const EditUser: React.FC<EditUserProps> = ({
                   value={form.username}
                   onChange={handleChange}
                   required
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-[#5b00b2]"
                 />
               </div>
 
@@ -164,11 +208,9 @@ const EditUser: React.FC<EditUserProps> = ({
                     type="email"
                     name="email"
                     value={form.email}
-                    title={form.email}
                     onChange={handleChange}
                     required
-                    className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                    className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm focus:ring-1 focus:ring-[#5b00b2]"
                   />
                   <Mail
                     size={16}
@@ -178,7 +220,6 @@ const EditUser: React.FC<EditUserProps> = ({
               </div>
             </div>
 
-            {/* Full Name */}
             <div>
               <RequiredLabel label="Full Name" />
               <input
@@ -187,26 +228,22 @@ const EditUser: React.FC<EditUserProps> = ({
                 value={form.fullName}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-[#5b00b2]"
               />
             </div>
 
-            {/* Role */}
             <div>
               <RequiredLabel label="Role" />
-
               <select
                 name="role"
                 value={form.role}
                 onChange={handleChange}
                 required
                 disabled={rolesLoading}
-                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-[#5b00b2]"
               >
                 <option value="">Select role</option>
-                {rolesData?.data?.roles?.map((role: any) => (
+                {rolesData?.data?.roles?.map((role: Role) => (
                   <option key={role.id} value={role.id}>
                     {role.name}
                   </option>
@@ -214,14 +251,12 @@ const EditUser: React.FC<EditUserProps> = ({
               </select>
             </div>
 
-            {/* Buttons */}
             <div className="flex justify-end gap-3 mt-4">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={updating}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700
-              hover:bg-[#facf6c] hover:border-[#fe9a00]"
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700"
               >
                 Cancel
               </button>

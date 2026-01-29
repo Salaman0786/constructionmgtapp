@@ -13,11 +13,10 @@ const AccessDenied: React.FC<AccessDeniedProps> = ({
   return (
     <div className="flex items-center justify-center min-h-[60vh] sm:min-h-[70vh] bg-white px-4">
       <div className="w-full max-w-md sm:max-w-lg text-center p-6 sm:p-10 border border-red-200 rounded-2xl shadow-md bg-gradient-to-br from-white to-red-50">
-        
         {/* Icon */}
         <div className="flex justify-center mb-4 sm:mb-6">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-100 flex items-center justify-center shadow-sm">
-            <ShieldAlert size={28} className="text-red-600 sm:size-32" />
+            <ShieldAlert size={28} className="text-red-600" />
           </div>
         </div>
 

@@ -1,45 +1,87 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+export interface Role {
+  id: string;
+  name: string;
+}
+
+export interface User {
+  id: string;
+  fullName: string;
+  email: string;
+  role: Role;
+}
 
 interface AuthState {
   token: string | null;
-  user: any | null;
-  userEmail: any | null;
+  user: User | null;
+  userEmail: string | null;
   role: string | null;
 }
 
+const getToken = (): string | null => {
+  return localStorage.getItem("token");
+};
+
+const getUser = (): User | null => {
+  const user = localStorage.getItem("user");
+  return user ? (JSON.parse(user) as User) : null;
+};
+
+const getRole = (): string | null => {
+  return localStorage.getItem("role");
+};
+
 const initialState: AuthState = {
-  token: localStorage.getItem("token"),
-  user: JSON.parse(localStorage.getItem("user") || "null"),
+  token: getToken(),
+  user: getUser(),
   userEmail: null,
-  role: localStorage.getItem("role"),
+  role: getRole(),
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    /* LOGIN / SET AUTH DATA */
     setCredentials: (
       state,
-      action: PayloadAction<{ token: string; user: any }>
+      action: PayloadAction<{ token: string; user: User }>,
     ) => {
-      state.token = action.payload.token;
-      state.user = action.payload.user;
-      localStorage.setItem("token", action.payload.token);
-      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      const { token, user } = action.payload;
+
+      state.token = token;
+      state.user = user;
+      state.role = user.role.name;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("role", user.role.name);
     },
-    setUserEmail: (state, action: PayloadAction<{ userEmail: any }>) => {
-      state.userEmail = action.payload.userEmail;
+
+    /* STORE EMAIL (FOR OTP / RESET FLOW) */
+    setUserEmail: (state, action: PayloadAction<string>) => {
+      state.userEmail = action.payload;
     },
-    setUserToken: (state, action: PayloadAction<{ token: string }>) => {
-      state.token = action.payload.token;
+
+    /* UPDATE TOKEN ONLY (REFRESH TOKEN CASE) */
+    setUserToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
+      localStorage.setItem("token", action.payload);
     },
-    setRole: (state, action: PayloadAction<{ role: string }>) => {
-      state.role = action.payload.role;
-      localStorage.setItem("role", action.payload.role);
+
+    /* UPDATE ROLE ONLY */
+    setRole: (state, action: PayloadAction<string>) => {
+      state.role = action.payload;
+      localStorage.setItem("role", action.payload);
     },
+
+    /* LOGOUT */
     logout: (state) => {
       state.token = null;
       state.user = null;
+      state.userEmail = null;
+      state.role = null;
+
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("role");
@@ -49,4 +91,5 @@ const authSlice = createSlice({
 
 export const { setCredentials, logout, setUserEmail, setUserToken, setRole } =
   authSlice.actions;
+
 export default authSlice.reducer;

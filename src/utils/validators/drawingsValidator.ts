@@ -37,17 +37,8 @@ export const validateDrawings = (form: any, files: any[]) => {
   //Description
   if (!form.description?.trim()) {
     errors.description = "Description is required";
-  }else if (form.description.length > 500) {
+  } else if (form.description.length > 500) {
     errors.description = "Description must not exceed 500 characters";
   }
-  //  else if (form.description.length < 5) {
-  //   errors.description = "Description must be at least 5 characters";
-  // }
-
-  //Files Validation
-  //   if (!files || files.length === 0) {
-  //     errors.files = "At least one drawing file is required";
-  //   }
-
   return errors;
 };

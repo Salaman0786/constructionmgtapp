@@ -11,7 +11,8 @@ export default function RoleProtectedRoute({
   children,
   allowedRoles,
 }: RoleProtectedRouteProps) {
-  const { role } = useAppSelector((state) => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
+  const role = user?.role?.name ?? "";
 
   if (!allowedRoles.includes(role)) {
     return <Navigate to="/not-authorized" replace />;

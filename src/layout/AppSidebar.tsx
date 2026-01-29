@@ -1,50 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-
-// Assume these icons are imported from an icon library
 import {
-  BoxCubeIcon,
-  ChevronDownIcon,
-  HorizontaLDots,
-  PieChartIcon,
-  PlugInIcon,
-} from "../icons";
-import {
-  BadgeDollarSign,
-  Box,
   Building2,
-  Calculator,
-  Car,
-  ChartColumn,
-  CircleDollarSign,
-  CreditCard,
-  File,
-  FileQuestion,
-  FileText,
-  Folder,
-  FolderGit2,
-  FolderKanban,
-  House,
-  LayoutDashboard,
-  NotebookText,
-  Package,
-  ReceiptText,
-  Settings,
-  ShoppingCart,
-  SquareCheckBig,
-  TrendingUp,
   UserRoundCog,
   Users,
-  User,
-  Lock,
-  SettingsIcon,
-  Truck,
-  Bell,
   FolderOpen,
   Files,
-  Upload,
-  FolderCog,
-  ScanEye,
+  ChevronDown,
+  PlugZap,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAppSelector } from "../app/hooks";
@@ -65,236 +28,6 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  // {
-  //   icon: <Users />,
-  //   name: "Investors",
-  //   path: "/investors",
-  // },
-  // {
-  //   icon: <Car />,
-  //   name: "Vendors",
-  //   path: "/vendors",
-  // },
-  // {
-  //   icon: <House />,
-  //   name: "Units",
-  //   path: "/units",
-  // },
-  // {
-  //   icon: <File />,
-  //   name: "Invoices",
-  //   path: "/invoices",
-  // },
-  // {
-  //   icon: <CreditCard />,
-  //   name: "Payments",
-  //   path: "/payments",
-  // },
-
-  // {
-  //   icon: <CircleDollarSign />,
-  //   name: "Expenses",
-  //   path: "/expenses",
-  // },
-
-  // {
-  //   icon: <CircleDollarSign />,
-  //   name: "Expenses",
-  //   path: "/expenses",
-  // },
-
-  // {
-  //   icon: <Box />,
-  //   name: "Inventory",
-  //   path: "/inventory",
-  // },
-
-  // {
-  //   icon: <ChartColumn />,
-  //   name: "Reports",
-  //   path: "/reports",
-  // },
-  // {
-  //   icon: <ReceiptText />,
-  //   name: "BOQ",
-  //   path: "/boq",
-  // },
-
-  // {
-  //   icon: <ChartColumn />,
-  //   name: "Reports",
-  //   path: "/reports",
-  // },
-  // {
-  //   icon: <ReceiptText />,
-  //   name: "BOQ",
-  //   path: "/boq",
-  // },
-
-  // {
-  //   icon: <UserCircleIcon />,
-  //   name: "User Profile",
-  //   path: "/profile",
-  // },
-  // {
-
-  {
-    icon: <LayoutDashboard />,
-    name: "Dashboard",
-    path: "/",
-    roles: ["SUPER_ADMIN", "MANAGER", "INVESTOR", "USER"],
-  },
-  {
-    icon: <FolderGit2 />,
-    name: "Project Control",
-    roles: ["SUPER_ADMIN", "MANAGER"], // INVESTOR cannot see it
-    subItems: [
-      {
-        icon: <FolderKanban />,
-        name: "Project",
-        path: "/project",
-        pro: false,
-        roles: ["SUPER_ADMIN", "MANAGER"],
-      },
-      // {
-      //   icon: <ChartColumn />,
-      //   name: "Gantt & Scheduling",
-      //   path: "/gantt-scheduling",
-      //   pro: false,
-      //   roles: ["SUPER_ADMIN", "MANAGER"],
-      // },
-      {
-        icon: <Calculator />,
-        name: "BOQ & Estimation",
-        path: "/boq",
-        pro: false,
-        roles: ["SUPER_ADMIN", "MANAGER"],
-      },
-      {
-        icon: <NotebookText />,
-        name: "Site Diary (DPR)",
-        path: "/site-diary",
-        pro: false,
-        roles: ["SUPER_ADMIN", "MANAGER"],
-      },
-      {
-        icon: <SquareCheckBig />,
-        name: "Task Assignment",
-        path: "/task-assignment",
-        pro: false,
-        roles: ["SUPER_ADMIN", "MANAGER"],
-      },
-    ],
-  },
-
-  /* PROCUREMENT */
-  // {
-  //   icon: <ShoppingCart />,
-  //   name: "Procurement",
-  //   roles: ["SUPER_ADMIN", "MANAGER"],
-  //   subItems: [
-  //     {
-  //       icon: <ShoppingCart />,
-  //       name: "Purchase Request",
-  //       path: "/purchase-request",
-  //       pro: false,
-  //       roles: ["SUPER_ADMIN", "MANAGER"],
-  //     },
-  //     {
-  //       icon: <FileQuestion />,
-  //       name: "Request for Quotation",
-  //       path: "/request-for-quotation",
-  //       pro: false,
-  //       roles: ["SUPER_ADMIN"],
-  //     },
-  //     {
-  //       icon: <FileText />,
-  //       name: "Purchase Orders",
-  //       path: "/purchase-orders",
-  //       pro: false,
-  //       roles: ["SUPER_ADMIN", "MANAGER"],
-  //     },
-  //     {
-  //       icon: <Package />,
-  //       name: "Goods Received Note",
-  //       path: "/goods-received-note",
-  //       pro: false,
-  //       roles: ["SUPER_ADMIN"],
-  //     },
-  //   ],
-  // },
-
-  /* FINANCE & CRM → Only investors and admins */
-  {
-    icon: <Calculator />,
-    name: "Finance & CRM",
-    roles: ["SUPER_ADMIN", "INVESTOR"],
-    subItems: [
-      // {
-      //   icon: <Users />,
-      //   name: "Investors",
-      //   path: "/investors",
-      //   pro: false,
-      //   roles: ["SUPER_ADMIN"],
-      // },
-      {
-        icon: <Car />,
-        name: "Vendors",
-        path: "/vendors",
-        pro: false,
-        roles: ["SUPER_ADMIN"],
-      },
-      // {
-      //   icon: <House />,
-      //   name: "My Units",
-      //   path: "/units",
-      //   pro: false,
-      //   roles: ["SUPER_ADMIN", "INVESTOR"],
-      // },
-      // {
-      //   icon: <File />,
-      //   name: "Invoices",
-      //   path: "/invoices",
-      //   pro: false,
-      //   roles: ["SUPER_ADMIN", "INVESTOR"],
-      // },
-      // {
-      //   icon: <CreditCard />,
-      //   name: "Payments",
-      //   path: "/payments",
-      //   pro: false,
-      //   roles: ["SUPER_ADMIN", "INVESTOR"],
-      // },
-      // {
-      //   icon: <TrendingUp />,
-      //   name: "Cash Flow Projection",
-      //   path: "/cash-flow-projection",
-      //   pro: false,
-      //   roles: ["SUPER_ADMIN"],
-      // },
-      // {
-      //   icon: <BadgeDollarSign />,
-      //   name: "Budget vs Actual",
-      //   path: "/budget-actual",
-      //   pro: false,
-      //   roles: ["SUPER_ADMIN"],
-      // },
-      {
-        icon: <Calculator />,
-        name: "Project Cost Control",
-        path: "/project-cost-control",
-        pro: false,
-        roles: ["SUPER_ADMIN"],
-      },
-    ],
-  },
-
-  // {
-  //   icon: <ScanEye />,
-  //   name: "Audit Logs",
-  //   path: "/audit-logs",
-  //   roles: ["SUPER_ADMIN"],
-  // },
   {
     icon: <FolderOpen />,
     name: "Documents & Control",
@@ -307,108 +40,19 @@ const navItems: NavItem[] = [
         pro: false,
         roles: ["SUPER_ADMIN", "MANAGER"],
       },
-      {
-        icon: <Upload />,
-        name: "Submittals",
-        path: "/submittals",
-        pro: false,
-        roles: ["SUPER_ADMIN", "MANAGER"],
-      },
     ],
   },
-  {
-    icon: <FolderCog />,
-    name: "User Control",
-    roles: ["MANAGER"], // INVESTOR cannot see it
-    subItems: [
-      {
-        icon: <NotebookText />,
-        name: "User Site Diary (DPR)",
-        path: "/usermanager-site-diary",
-        pro: false,
-        roles: ["MANAGER"],
-      },
-      {
-        icon: <SquareCheckBig />,
-        name: "User Task Assignment",
-        path: "/usermanager-task-assignment",
-        pro: false,
-        roles: ["MANAGER"],
-      },
-    ],
-  },
-  {
-    icon: <FolderCog />,
-    name: "Project Control",
-    roles: ["USER"], // INVESTOR cannot see it
-    subItems: [
-      {
-        icon: <FolderKanban />,
-        name: "User Project",
-        path: "/user-project",
-        pro: false,
-        roles: ["USER"],
-      },
-      {
-        icon: <NotebookText />,
-        name: "User Site Diary (DPR)",
-        path: "/user-site-diary",
-        pro: false,
-        roles: ["USER"],
-      },
-      {
-        icon: <SquareCheckBig />,
-        name: "User Task Assignment",
-        path: "/user-task-assignment",
-        pro: false,
-        roles: ["USER"],
-      },
-    ],
-  },
-  // {
-  //   icon: <ScanEye />,
-  //   name: "Audit Logs",
-  //   roles: ["SUPER_ADMIN"], // INVESTOR cannot see it
-  //   subItems: [
-  //     {
-  //       icon: <ScanEye />,
-  //       name: "Audit Logs",
-  //       path: "/audit-logs",
-  //       pro: false,
-  //       roles: ["SUPER_ADMIN"],
-  //     },
-  //   ],
-  // },
-  {
-    icon: <ScanEye />,
-    name: "Audit Logs",
-    path: "/audit-logs",
-    roles: ["SUPER_ADMIN"],
-  },
+
   /* ADMIN MODULE → Only SUPER_ADMIN */
   {
     icon: <UserRoundCog />,
     name: "Admin",
-    roles: ["SUPER_ADMIN", "MANAGER"],
+    roles: ["SUPER_ADMIN"],
     subItems: [
       {
         icon: <Users />,
         name: "User Management",
         path: "/user-management",
-        pro: false,
-        roles: ["SUPER_ADMIN", "MANAGER"],
-      },
-      {
-        icon: <Lock />,
-        name: "Roles & Permissions",
-        path: "/roles-and-permissions",
-        pro: false,
-        roles: ["SUPER_ADMIN"],
-      },
-      {
-        icon: <SettingsIcon />,
-        name: "Company Setting",
-        path: "/company-setting",
         pro: false,
         roles: ["SUPER_ADMIN"],
       },
@@ -418,37 +62,7 @@ const navItems: NavItem[] = [
 
 const othersItems: NavItem[] = [
   {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      {
-        icon: <UserRoundCog />,
-        name: "Line Chart",
-        path: "/line-chart",
-        pro: false,
-      },
-      {
-        icon: <UserRoundCog />,
-        name: "Bar Chart",
-        path: "/bar-chart",
-        pro: false,
-      },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
-    subItems: [
-      { icon: <UserRoundCog />, name: "Alerts", path: "/alerts", pro: false },
-      { icon: <UserRoundCog />, name: "Avatar", path: "/avatars", pro: false },
-      { icon: <UserRoundCog />, name: "Badge", path: "/badge", pro: false },
-      { icon: <UserRoundCog />, name: "Buttons", path: "/buttons", pro: false },
-      { icon: <UserRoundCog />, name: "Images", path: "/images", pro: false },
-      { icon: <UserRoundCog />, name: "Videos", path: "/videos", pro: false },
-    ],
-  },
-  {
-    icon: <PlugInIcon />,
+    icon: <PlugZap />,
     name: "Authentication",
     subItems: [
       { icon: <UserRoundCog />, name: "Sign In", path: "/signin", pro: false },
@@ -460,20 +74,21 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
-  const { role } = useAppSelector((state) => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
+  const role = user?.role?.name ?? "";
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
     index: number;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
+    {},
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
     (path: string) => location.pathname === path,
-    [location.pathname]
+    [location.pathname],
   );
 
   useEffect(() => {
@@ -555,7 +170,7 @@ const AppSidebar: React.FC = () => {
                 <span className="menu-item-text">{nav.name}</span>
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDownIcon
+                <ChevronDown
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                     openSubmenu?.type === menuType &&
                     openSubmenu?.index === index
@@ -658,7 +273,7 @@ const AppSidebar: React.FC = () => {
         ...item,
         subItems: item.subItems
           ? item.subItems.filter((sub) =>
-              sub.roles ? sub.roles.includes(role) : true
+              sub.roles ? sub.roles.includes(role) : true,
             )
           : undefined,
       }))
@@ -675,8 +290,8 @@ const AppSidebar: React.FC = () => {
           isExpanded || isMobileOpen
             ? "w-[290px]"
             : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
+              ? "w-[290px]"
+              : "w-[90px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
@@ -688,7 +303,7 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link to="/">
+        <Link to="/drawings-revisions">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <div className="flex items-center gap-3">
@@ -697,9 +312,8 @@ const AppSidebar: React.FC = () => {
                 </div>
                 <div className="flex flex-col items-center gap-0 justify-center">
                   <div className="font-semibold text-base">
-                    Addis Ababa Jamaat
+                    Construction Mgt App
                   </div>
-                  <div className="text-sm">Construction ERP v2</div>
                 </div>
               </div>
             </>
@@ -713,41 +327,9 @@ const AppSidebar: React.FC = () => {
       <div className="flex flex-col px-5  overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
           <div className="flex flex-col gap-4 mt-4">
-            <div>
-              {/* <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  ""
-                ) : (
-                  <HorizontaLDots className="size-6" />
-                )}
-              </h2> */}
-              {renderMenuItems(filterByRole(navItems), "main")}
-            </div>
-            {/* <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div> */}
+            <div>{renderMenuItems(filterByRole(navItems), "main")}</div>
           </div>
         </nav>
-        {/* {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null} */}
       </div>
     </aside>
   );

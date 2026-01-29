@@ -10,7 +10,6 @@ import {
 import { toast } from "react-toastify";
 import { playNotificationSound } from "./utils/playNotificationSound ";
 import { useGetDrawingsQuery } from "./features/drawings&controls/api/drawingsApi";
-import { useGetSubmittalsQuery } from "./features/submittals/api/submittalApi";
 
 export default function App() {
   const authUser = useSelector((state: any) => state.auth.user);
@@ -31,14 +30,14 @@ export default function App() {
     limit: 10,
     type: "read",
   });
-  const { refetch: refetchDrawing } = useGetDrawingsQuery();
-  const { refetch: refetchSubmittal } = useGetSubmittalsQuery({
+  const { refetch: refetchDrawing } = useGetDrawingsQuery({
     page: 1,
     limit: 10,
     search: "",
     category: "",
     projectId: "",
   });
+
   useEffect(() => {
     const unlockAudio = () => {
       const audio = new Audio("/sounds/notification.mp3");
@@ -67,7 +66,6 @@ export default function App() {
       refetchAllRead();
       refetchAllUnread();
       refetchDrawing();
-      refetchSubmittal();
       toast.info(`${notification.message}`);
       playNotificationSound();
       //showSuccess(notification.message);
@@ -80,7 +78,6 @@ export default function App() {
     refetchAllRead,
     refetchAllUnread,
     refetchDrawing,
-    refetchSubmittal,
   ]);
 
   useEffect(() => {

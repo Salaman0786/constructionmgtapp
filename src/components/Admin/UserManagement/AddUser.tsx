@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, Mail, EyeOff, Eye } from "lucide-react";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import {
   useAddUserMutation,
   useGetRolesQuery,
@@ -12,9 +13,40 @@ interface AddUserModalProps {
   onClose: () => void;
 }
 
+interface AddUserFormState {
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  tempPassword: string;
+}
+
+interface Role {
+  id: string;
+  name: string;
+}
+
+interface RolesResponse {
+  data?: {
+    roles?: Role[];
+  };
+}
+
+interface AddUserPayload {
+  userName: string;
+  fullName: string;
+  email: string;
+  roleId: string;
+  password: string;
+}
+
+interface ApiErrorData {
+  message?: string | string[];
+}
+
 const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [form, setForm] = useState<AddUserFormState>({
     username: "",
     email: "",
     fullName: "",
@@ -23,21 +55,29 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
   });
 
   const [addUser, { isLoading }] = useAddUserMutation();
-  const { data: rolesData, isLoading: rolesLoading } =
-    useGetRolesQuery(undefined);
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const { data: rolesData, isLoading: rolesLoading } = useGetRolesQuery(
+    undefined,
+  ) as {
+    data?: RolesResponse;
+    isLoading: boolean;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ): void => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     e.preventDefault();
-    const payload = {
+
+    const payload: AddUserPayload = {
       userName: form.username,
       fullName: form.fullName,
       email: form.email,
-      // roleId: roleMap[form.role],
       roleId: form.role,
       password: form.tempPassword,
     };
@@ -53,25 +93,26 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
         role: "",
         tempPassword: "",
       });
-    } catch (err: any) {
-      const errorMessage = err?.data?.message;
+    } catch (err) {
+      const apiError = err as FetchBaseQueryError & {
+        data?: ApiErrorData;
+      };
 
-      let displayMessage: string;
+      const errorMessage = apiError?.data?.message;
+
+      let displayMessage = "Failed to add user!";
 
       if (Array.isArray(errorMessage)) {
-        // If it's an array → join all messages (you can also take just the first one)
         displayMessage = errorMessage.join(", ");
-        // Or just the first one: errorMessage[0]
       } else if (typeof errorMessage === "string") {
         displayMessage = errorMessage;
-      } else {
-        displayMessage = "Failed to add user!";
       }
 
       showError(displayMessage);
     }
   };
-  const handleCancel = () => {
+
+  const handleCancel = (): void => {
     onClose();
     setForm({
       username: "",
@@ -81,12 +122,12 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
       tempPassword: "",
     });
   };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 m-4">
-        {/* Header */}
         <div className="flex justify-between items-center border-b pb-3">
           <h2 className="text-lg font-semibold text-gray-800">Add New User</h2>
           <button
@@ -97,66 +138,55 @@ const AddUser: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Description */}
         <p className="text-sm text-gray-500 mt-2 mb-4">
           Create a new user account with assigned role.
         </p>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username & Email */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <RequiredLabel label="Username" />
               <input
                 type="text"
                 name="username"
-                placeholder="john_doe"
                 value={form.username}
                 onChange={handleChange}
                 required
-                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-[#5b00b2]"
               />
             </div>
+
             <div>
               <RequiredLabel label="Email" />
               <div className="relative">
                 <input
                   type="email"
                   name="email"
-                  placeholder="john@example.com"
                   value={form.email}
                   onChange={handleChange}
-                  title={form.email}
                   required
-                  className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
-focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+                  className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm focus:ring-1 focus:ring-[#5b00b2]"
                 />
                 <Mail
                   size={16}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                 />
               </div>
             </div>
           </div>
 
-          {/* Full Name */}
           <div>
             <RequiredLabel label="Full Name" />
             <input
               type="text"
               name="fullName"
-              placeholder="John Doe"
               value={form.fullName}
               onChange={handleChange}
               required
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-[#5b00b2]"
             />
           </div>
 
-          {/* Role */}
           <div>
             <RequiredLabel label="Role" />
             <select
@@ -165,11 +195,10 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
               onChange={handleChange}
               required
               disabled={rolesLoading}
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 text-sm focus:ring-1 focus:ring-[#5b00b2]"
             >
               <option value="">Select role</option>
-              {rolesData?.data?.roles?.map((role: any) => (
+              {rolesData?.data?.roles?.map((role: Role) => (
                 <option key={role.id} value={role.id}>
                   {role.name}
                 </option>
@@ -177,36 +206,31 @@ focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
             </select>
           </div>
 
-          {/* Temporary Password */}
           <div className="relative">
             <RequiredLabel label="Temporary Password" />
             <input
               type={showPassword ? "text" : "password"}
               name="tempPassword"
-              placeholder="Temporary password"
               value={form.tempPassword}
               onChange={handleChange}
               required
-              className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm
-  focus:outline-none focus:ring-1 focus:ring-[#5b00b2] focus:border-[#5b00b2]"
+              className="w-full mt-1 border border-gray-300 rounded-md p-2 pr-10 text-sm focus:ring-1 focus:ring-[#5b00b2]"
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 transition"
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-3 mt-4">
             <button
               type="button"
               onClick={handleCancel}
               disabled={isLoading}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700
-              hover:bg-[#facf6c] hover:border-[#fe9a00]"
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700"
             >
               Cancel
             </button>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
-import { Calendar, Download, Eye, Trash2, UploadCloud, X } from "lucide-react";
+
+import { Download, Eye, Trash2, UploadCloud, X } from "lucide-react";
 import {
   useCreateDrawingsMutation,
   useDeleteDrawingsFileMutation,
@@ -19,7 +19,28 @@ import { getAddisAbabaDate, convertToAddisDate } from "../../../utils/helpers";
 interface AddEditProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  projectId?: string | null; // if present → edit mode
+  projectId?: string | null;
+}
+
+interface DrawingForm {
+  projectId: string;
+  drawingName: string;
+  description: string;
+  discipline: string;
+  revision: string;
+  date: string;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  code?: string;
+}
+
+interface DrawingFile {
+  id: string;
+  originalName: string;
+  url: string;
 }
 const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   isOpen,
@@ -27,49 +48,32 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   projectId,
 }) => {
   const isEdit = Boolean(projectId);
-
   const [fileError, setFileError] = useState<string>("");
-  const [isDragging, setIsDragging] = useState(false); // visual state while dragging
-
-  //Track Upload Request with a REF
-  const uploadRequestRef = useRef<any>(null);
-
-  //DO NOT update state if modal is closed
-  const isModalOpenRef = useRef(isOpen);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const uploadRequestRef = useRef<{ abort?: () => void } | null>(null);
+  const isModalOpenRef = useRef<boolean>(isOpen);
   useEffect(() => {
     isModalOpenRef.current = isOpen;
   }, [isOpen]);
+  const projectDropdownRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  //project searchable state
-  const [projectSearch, setProjectSearch] = useState("");
-  const [showProjectDropdown, setShowProjectDropdown] = useState(false);
-  const [highlightProjectIndex, setHighlightProjectIndex] = useState(-1);
-  const projectDropdownRef = useRef(null);
+  const [projectSearch, setProjectSearch] = useState<string>("");
+  const [showProjectDropdown, setShowProjectDropdown] =
+    useState<boolean>(false);
+  const [highlightProjectIndex, setHighlightProjectIndex] =
+    useState<number>(-1);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showAllFiles, setShowAllFiles] = useState<DrawingFile[]>([]);
 
   const MAX_FILES = 10;
   const MAX_TOTAL_FILES = 50;
   const MAX_FILE_SIZE_MB = 10; // 10 MB
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-
-  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const {
-    data: projectsData,
-    isLoading: isManagersLoading,
-    refetch: refetchProjects,
-  } = useGetDrawingsProjectsQuery(undefined);
-  const {
-    data: projectDetails,
-    isFetching: isProjectFetching,
-    refetch: newFetch,
-  } = useGetDrawingsByIdQuery(projectId!, {
-    skip: !isEdit,
-  });
   const [updateDrawing, { isLoading: updating }] = useUpdateDrawingsMutation();
-  const [showAllFiles, setShowAllFiles] = useState([]);
-
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<DrawingForm>({
     projectId: "",
     drawingName: "",
     description: "",
@@ -79,11 +83,14 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
   });
   const [uploadDrawings, { isLoading, reset: resetUpload }] =
     useUploadDrawingsMutation();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [createDrawing, { isLoading: isCreateLoading }] =
     useCreateDrawingsMutation();
+  const { data: projectsData, refetch: refetchProjects } =
+    useGetDrawingsProjectsQuery(undefined);
 
-  // Manage automatic filled date while creating
+  const { data: projectDetails, isFetching: isProjectFetching } =
+    useGetDrawingsByIdQuery(projectId!, { skip: !isEdit });
   useEffect(() => {
     if (isOpen && !isEdit) {
       const today = getAddisAbabaDate();
@@ -100,7 +107,6 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
       }));
     }
   }, [isOpen, isEdit, projectDetails]);
-
   useEffect(() => {
     if (isEdit && projectDetails?.data) {
       const p = projectDetails.data;
@@ -117,7 +123,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
       setProjectSearch(
         p?.project?.code
           ? `${p.project.code} - ${p.project.name}`
-          : p.project.name
+          : p.project.name,
       );
     }
   }, [projectDetails, isEdit]);
@@ -161,7 +167,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     // block if upload already running
     if (isLoading) {
       setFileError(
-        "Upload in progress. Please wait until current upload finishes."
+        "Upload in progress. Please wait until current upload finishes.",
       );
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
@@ -177,7 +183,7 @@ const AddDrawings: React.FC<AddEditProjectModalProps> = ({
     if (existingCount + incomingCount > MAX_TOTAL_FILES) {
       setFileError(
         `You can upload a maximum of ${MAX_TOTAL_FILES} files in total.
-Currently uploaded: ${existingCount}`
+Currently uploaded: ${existingCount}`,
       );
 
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -210,7 +216,7 @@ Currently uploaded: ${existingCount}`
       setFileError(
         `These files exceed ${MAX_FILE_SIZE_MB}MB and were skipped:\n${oversizedFiles
           .map((f) => `• ${f}`)
-          .join("\n")}`
+          .join("\n")}`,
       );
     } else {
       setFileError(""); // clear old error if all files are valid
@@ -245,7 +251,7 @@ Currently uploaded: ${existingCount}`
       }
 
       showSuccess(
-        `${uploadedFiles.length} valid file(s) uploaded successfully!`
+        `${uploadedFiles.length} valid file(s) uploaded successfully!`,
       );
     } catch (err: any) {
       showError(err?.data?.message || "Upload failed!");
@@ -258,14 +264,6 @@ Currently uploaded: ${existingCount}`
     }
   };
 
-  // Cleanup effect to safely cancel any ongoing upload request
-  // This runs ONLY when the component unmounts (route change, page refresh, parent unmount).
-  // It prevents:
-  //  Background API calls
-  // Delayed success/error toasts
-  // Memory leaks
-  // Ghost uploads after modal is gone
-  // If an upload is currently running, we abort it immediately.
   useEffect(() => {
     return () => {
       if (uploadRequestRef.current?.abort) {
@@ -274,7 +272,6 @@ Currently uploaded: ${existingCount}`
     };
   }, []);
 
-  //handle select project in searchable project dropdown
   const handleSelectProject = (p) => {
     setForm({ ...form, projectId: p.id });
 
@@ -361,8 +358,6 @@ Currently uploaded: ${existingCount}`
       }
 
       onClose();
-      refetch();
-      newFetch();
       setShowAllFiles([]);
       setForm({
         projectId: "",
@@ -445,15 +440,12 @@ Currently uploaded: ${existingCount}`
       console.error("Download error:", error);
     }
   };
-
-  //filter project based on search
-  const filteredProjects =
-    projectsData?.data?.projects?.filter((p) =>
-      `${p.code || ""} ${p.name}`
+  const filteredProjects: Project[] =
+    projectsData?.data?.projects?.filter((p: Project) =>
+      `${p.code ?? ""} ${p.name}`
         .toLowerCase()
-        .includes(projectSearch.toLowerCase())
+        .includes(projectSearch.toLowerCase()),
     ) || [];
-
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 p-4">
       <div className="relative bg-white rounded-lg shadow-lg w-full max-w-[350px] sm:max-w-lg p-6 max-h-[90vh] overflow-y-auto">
@@ -585,7 +577,9 @@ Currently uploaded: ${existingCount}`
                       }
                     }}
                   >
-                    <option value="" disabled hidden>Select Discipline</option>
+                    <option value="" disabled hidden>
+                      Select Discipline
+                    </option>
                     <option value="Civil">Civil</option>
                     <option value="Structural">Structural</option>
                     <option value="Architecture">Architecture</option>
@@ -627,7 +621,9 @@ Currently uploaded: ${existingCount}`
                       }
                     }}
                   >
-                    <option value="" disabled hidden>Select Revision</option>
+                    <option value="" disabled hidden>
+                      Select Revision
+                    </option>
                     <option value="R1">R1</option>
                     <option value="R2">R2</option>
                     <option value="R3">R3</option>
@@ -719,7 +715,7 @@ Currently uploaded: ${existingCount}`
 
                     if (isLoading) {
                       setFileError(
-                        "Upload in progress. Please wait until current upload finishes."
+                        "Upload in progress. Please wait until current upload finishes.",
                       );
                       return;
                     }
@@ -897,12 +893,12 @@ Currently uploaded: ${existingCount}`
                     isLoading
                       ? "Uploading..." // uploading files (both add & edit)
                       : updating
-                      ? "Updating..." // updating drawing (edit mode)
-                      : isEdit
-                      ? "Update Drawing" // edit mode normal
-                      : isCreateLoading
-                      ? "Saving..." // create mode saving
-                      : "Upload Drawing" // create mode normal
+                        ? "Updating..." // updating drawing (edit mode)
+                        : isEdit
+                          ? "Update Drawing" // edit mode normal
+                          : isCreateLoading
+                            ? "Saving..." // create mode saving
+                            : "Upload Drawing" // create mode normal
                   }
                 </button>
               </div>

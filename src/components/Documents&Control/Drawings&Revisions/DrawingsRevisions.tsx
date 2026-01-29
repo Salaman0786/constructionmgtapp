@@ -15,14 +15,11 @@ import {
   FileText,
   Sheet,
 } from "lucide-react";
-
 import { useSelector } from "react-redux";
 import { renderShimmer } from "../../common/tableShimmer";
 import { formatToYMD, getTwoWordPreview } from "../../../utils/helpers";
 import { showError, showSuccess } from "../../../utils/toast";
-
 import AddDrawings from "./AddDrawings";
-
 import {
   useDeleteDrawingsMutation,
   useGetDrawingsProjectsQuery,
@@ -35,13 +32,12 @@ import AccessDenied from "../../common/AccessDenied";
 import useClickOutside from "../../../hooks/useClickOutside";
 import { useActionMenuOutside } from "../../../hooks/useActionMenuOutside";
 
-import { StatusBadge } from "../../ProjectControl/Project/StatusBadge";
-
 import {
   exportToCSV,
   exportToExcel,
   exportToPDF,
 } from "../../../utils/exportUtils";
+import { StatusBadge } from "./StatusBadge";
 
 interface Project {
   id: string;
@@ -56,41 +52,78 @@ interface Project {
   currency: string;
   createdAt: string;
 }
+type UserRole = "SUPER_ADMIN" | "MANAGER" | "INVESTOR" | string;
 
+interface RootState {
+  auth: {
+    user?: {
+      role?: {
+        name?: UserRole;
+      };
+    };
+  };
+}
+
+interface Drawing {
+  id: string;
+  drawingCode: string;
+  drawingName: string;
+  discipline: string;
+  revision: string;
+  status: "FOR_REVIEW" | "APPROVED" | "REJECTED";
+  date: string;
+  project?: {
+    id: string;
+    name: string;
+  };
+}
+
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
 const DrawingsRevisions: React.FC = () => {
-  const userRole = useSelector((state: any) => state.auth.user?.role?.name);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
+  const userRole = useSelector(
+    (state: RootState) => state.auth.user?.role?.name,
   );
-  const filterRef = useRef(null);
-  const filterBtnRef = useRef(null);
 
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const dropdownRef = React.useRef<HTMLDivElement | null>(null);
-  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [viewModalOpen, setViewModalOpen] = useState<boolean>(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
+  const [selectedProject, setSelectedProject] = useState<Drawing | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [projectFilter, setProjectFilter] = useState<string>("");
+  const [filterOpen, setFilterOpen] = useState<boolean>(false);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] =
+    useState<boolean>(false);
+  const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] =
+    useState<boolean>(false);
+
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false);
-  // Store selected project for deleting
-  const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [viewModalOpen, setViewModalOpen] = useState(false);
-  //actual filters applied to table
-  const [statusFilter, setStatusFilter] = useState("");
-  const [startDateFilter, setStartDateFilter] = useState("");
-  const [endDateFilter, setEndDateFilter] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    left: number;
+  }>({
+    top: 0,
+    left: 0,
+  });
+
+  const filterRef = useRef<HTMLDivElement | null>(null);
+  const filterBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  const dropdownRef = React.useRef<HTMLDivElement | null>(null);
+
   const [tempProjectSearch, setTempProjectSearch] = useState("");
   const [tempCategory, setTempCategory] = useState("");
-  // temporary values inside popup
-  const [tempStart, setTempStart] = useState("");
-  const [tempEnd, setTempEnd] = useState("");
-  const [tempStatus, setTempStatus] = useState("");
+
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [projectFilter, setProjectFilter] = useState("");
   const [tempProjectFilterId, setTempProjectFilterId] = useState("");
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -103,6 +136,7 @@ const DrawingsRevisions: React.FC = () => {
 
   const [page, setPage] = useState(1);
   const limit = 10;
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -125,14 +159,9 @@ const DrawingsRevisions: React.FC = () => {
     category: categoryFilter,
     projectId: projectFilter,
   });
-  const [updateDrawingStatus, { isLoading: updatingStatus }] =
-    useUpdateDrawingsStatusMutation();
+  const [updateDrawingStatus] = useUpdateDrawingsStatusMutation();
   const [deleteDrawings, { isLoading: isDeleting }] =
     useDeleteDrawingsMutation();
-  /*
-  This function is called when user clicks the “Delete” button in the modal.
-  We send projectId + reason to API.
-*/
   const confirmSingleDelete = async () => {
     try {
       await deleteDrawings([selectedProject.id]).unwrap();
@@ -161,13 +190,9 @@ const DrawingsRevisions: React.FC = () => {
     }
   };
   //close filter when click outside
-  useClickOutside(
-    filterRef,
-    () => {
-      setFilterOpen(false);
-    },
-    [filterBtnRef]
-  );
+  useClickOutside(filterRef, () => {
+    setFilterOpen(false);
+  }, [filterBtnRef]);
 
   //close Action modal when click outside
   useActionMenuOutside({
@@ -178,7 +203,7 @@ const DrawingsRevisions: React.FC = () => {
   });
 
   //pagination
-  const pagination = data?.pagination;
+  const pagination: Pagination | undefined = data?.pagination;
   const totalPages = pagination?.totalPages || 1;
   const totalItems = pagination?.total || 0;
 
@@ -197,7 +222,7 @@ const DrawingsRevisions: React.FC = () => {
   // Select / Deselect
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id],
     );
   };
 
@@ -220,8 +245,6 @@ const DrawingsRevisions: React.FC = () => {
       Discipline: d.discipline,
       Revision: d.revision,
       Date: formatToYMD(d.date),
-      // "File Name": d.fileName || "-",
-      // "File URL": d.fileUrl || "-",
     }));
   };
 
@@ -260,17 +283,14 @@ const DrawingsRevisions: React.FC = () => {
     setBulkDeleteConfirmOpen(false);
   };
 
-  const {
-    data: projectsData,
-    isLoading: isManagersLoading,
-    refetch: refetchProjects,
-  } = useGetDrawingsProjectsQuery(undefined);
+  const { data: projectsData, refetch: refetchProjects } =
+    useGetDrawingsProjectsQuery(undefined);
 
   const allProjects = projectsData?.data?.projects || [];
   const filteredProjects = allProjects.filter((p: any) =>
     `${p.code} ${p.name}`
       .toLowerCase()
-      .includes(tempProjectSearch.toLowerCase())
+      .includes(tempProjectSearch.toLowerCase()),
   );
 
   useEffect(() => {
@@ -364,9 +384,6 @@ const DrawingsRevisions: React.FC = () => {
           <button
             ref={filterBtnRef}
             onClick={() => {
-              setTempStart(startDateFilter);
-              setTempEnd(endDateFilter);
-              setTempStatus(statusFilter);
               setFilterOpen(!filterOpen);
             }}
             className="flex items-center gap-2 px-4 py-2 border  border-[f0f0f0]  rounded-lg text-sm font-medium bg-[#4b0082] text-white hover:text-gray-700 hover:bg-[#facf6c] hover:border-[#fe9a00]"
@@ -511,9 +528,6 @@ const DrawingsRevisions: React.FC = () => {
             <h2 className="text-gray-900 font-semibold text-base">
               Drawing Revision
             </h2>
-            {/* <p className="text-sm text-gray-500">
-                Comprehensive management of quantities, costs, and progress
-              </p> */}
           </div>
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 text-sm justify-end">

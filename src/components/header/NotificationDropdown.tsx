@@ -3,19 +3,21 @@ import Notifications from "./Notifications";
 import { useGetNotificationCountQuery } from "../../features/notifications/api/notificationsApi";
 import { useAppSelector } from "../../app/hooks";
 
-export default function NotificationDropdown() {
-  const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const { role, user } = useAppSelector((state) => state.auth);
+const NotificationDropdown: React.FC = () => {
+  const [open, setOpen] = useState<boolean>(false);
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const { user } = useAppSelector((state) => state.auth);
+  const role = user?.role?.name ?? "";
+
   const { data } = useGetNotificationCountQuery(undefined);
 
-  const handleClick = () => {
+  const handleClick = (): void => {
     setOpen((prev) => !prev);
   };
-
-  // Close when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent): void => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
@@ -29,21 +31,31 @@ export default function NotificationDropdown() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const unreadCount: number = data?.data?.unread ?? 0;
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="relative flex items-center justify-center text-gray-500 transition-colors bg-white border border-gray-200 rounded-full dropdown-toggle hover:text-gray-700 h-8 w-8 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+        type="button"
         onClick={handleClick}
+        className="relative flex items-center justify-center h-8 w-8 rounded-full
+          border border-gray-200 bg-white text-gray-500 transition-colors
+          hover:bg-gray-100 hover:text-gray-700
+          dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400
+          dark:hover:bg-gray-800 dark:hover:text-white"
       >
-        <div
-          className={`absolute right-[-10px] top-[-8px] z-10 flex text-red-400`}
-        >
-          {data?.data?.unread > 0 && (
-            <div className="w-5 h-5 rounded-full bg-red-500 text-white text-xs flex justify-center items-center">
-              {data?.data?.unread}
-            </div>
-          )}
-        </div>
+        {/* Notification Badge */}
+        {unreadCount > 0 && (
+          <div
+            className="absolute -right-2 -top-2 z-10 flex items-center justify-center
+              w-5 h-5 rounded-full bg-red-500 text-white text-xs font-medium"
+          >
+            {unreadCount}
+          </div>
+        )}
+
+        {/* Bell Icon */}
         <svg
           className="fill-current"
           width="20"
@@ -54,21 +66,23 @@ export default function NotificationDropdown() {
           <path
             fillRule="evenodd"
             clipRule="evenodd"
-            d="M10.75 2.29248C10.75 1.87827 10.4143 1.54248 10 1.54248C9.58583 1.54248 9.25004 1.87827 9.25004 2.29248V2.83613C6.08266 3.20733 3.62504 5.9004 3.62504 9.16748V14.4591H3.33337C2.91916 14.4591 2.58337 14.7949 2.58337 15.2091C2.58337 15.6234 2.91916 15.9591 3.33337 15.9591H4.37504H15.625H16.6667C17.0809 15.9591 17.4167 15.6234 17.4167 15.2091C17.4167 14.7949 17.0809 14.4591 16.6667 14.4591H16.375V9.16748C16.375 5.9004 13.9174 3.20733 10.75 2.83613V2.29248ZM14.875 14.4591V9.16748C14.875 6.47509 12.6924 4.29248 10 4.29248C7.30765 4.29248 5.12504 6.47509 5.12504 9.16748V14.4591H14.875ZM8.00004 17.7085C8.00004 18.1228 8.33583 18.4585 8.75004 18.4585H11.25C11.6643 18.4585 12 18.1228 12 17.7085C12 17.2943 11.6643 16.9585 11.25 16.9585H8.75004C8.33583 16.9585 8.00004 17.2943 8.00004 17.7085Z"
+            d="M10.75 2.29248C10.75 1.87827 10.4143 1.54248 10 1.54248C9.58583 1.54248 9.25004 1.87827 9.25004 2.29248V2.83613C6.08266 3.20733 3.62504 5.9004 3.62504 9.16748V14.4591H3.33337C2.91916 14.4591 2.58337 14.7949 2.58337 15.2091C2.58337 15.6234 2.91916 15.9591 3.33337 15.9591H16.6667C17.0809 15.9591 17.4167 15.6234 17.4167 15.2091C17.4167 14.7949 17.0809 14.4591 16.6667 14.4591H16.375V9.16748C16.375 5.9004 13.9174 3.20733 10.75 2.83613V2.29248Z"
             fill="currentColor"
           />
         </svg>
       </button>
+
+      {/* Dropdown */}
       {open && (
         <div
-          className={`absolute ${
-            role === "SUPER_ADMIN" ? "right-[-157px]" : "right-[-185px]"
-          } mt-3 w-[600px] max-w-[95vw] z-10
-      max-h-[580px] overflow-y-auto`}
+          className={`absolute mt-3 z-10 max-h-[580px] w-[600px] max-w-[95vw] overflow-y-auto
+            ${role === "SUPER_ADMIN" ? "right-[-157px]" : "right-[-185px]"}`}
         >
-          <Notifications onClose={() => setOpen(!open)} />
+          <Notifications onClose={() => setOpen(false)} />
         </div>
       )}
     </div>
   );
-}
+};
+
+export default NotificationDropdown;
